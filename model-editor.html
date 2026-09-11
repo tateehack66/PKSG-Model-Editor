@@ -159,6 +159,88 @@ input[type=file]{
   .boxgrid{grid-template-columns:repeat(5,1fr)}
   .poke-sprite{width:60px;height:60px}
 }
+
+/* ===== MODEL ASSET CREATOR v0.5 — additive only ===== */
+.asset-creator{
+  margin-top:28px;
+  padding:22px;
+  border:2px solid #263b54;
+  border-left:4px solid #ff3d78;
+  border-radius:22px;
+  background:linear-gradient(180deg,rgba(31,20,51,.92),rgba(8,15,28,.96));
+}
+.asset-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;margin-bottom:18px
+}
+.asset-head h2{
+  margin:0;color:#ff5b91;font-size:30px
+}
+.asset-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;margin-top:18px
+}
+.asset-slot{
+  border:1px solid #315170;border-radius:16px;
+  background:#091827;padding:12px;text-align:center
+}
+.asset-slot strong{display:block;margin-bottom:8px}
+.asset-preview{
+  width:128px;height:128px;margin:0 auto 10px;
+  border:1px solid #315170;border-radius:12px;
+  background-color:#132338;
+  background-image:linear-gradient(45deg,#17263a 25%,transparent 25%),
+                   linear-gradient(-45deg,#17263a 25%,transparent 25%),
+                   linear-gradient(45deg,transparent 75%,#17263a 75%),
+                   linear-gradient(-45deg,transparent 75%,#17263a 75%);
+  background-size:20px 20px;
+  background-position:0 0,0 10px,10px -10px,-10px 0;
+  display:flex;align-items:center;justify-content:center;overflow:hidden
+}
+.asset-preview img{width:100%;height:100%;image-rendering:pixelated;object-fit:contain}
+.asset-slot input[type=file]{width:100%;font-size:11px}
+.asset-info{font-size:12px;color:#aebed1;min-height:34px;margin-top:7px}
+.asset-tools{
+  display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px
+}
+.asset-tools input[type=text]{
+  flex:1;min-width:180px;padding:12px 14px;border-radius:12px;
+  border:1px solid #315170;background:#071421;color:#fff
+}
+.asset-tools input[type=file]{max-width:100%}
+.asset-btn{
+  border:1px solid #315170;background:#10263d;color:#dbeaff;
+  border-radius:12px;padding:11px 15px;font-weight:700;cursor:pointer
+}
+.asset-btn.primary{background:#ff3d78;border-color:#ff3d78;color:#fff}
+.asset-btn:disabled{opacity:.45;cursor:not-allowed}
+.asset-note{
+  margin-top:16px;padding:14px;border-radius:14px;
+  background:rgba(20,43,66,.55);border:1px dashed #315170;
+  color:#b9c9dc;font-size:13px;line-height:1.6
+}
+.asset-status{
+  white-space:pre-line;margin-top:14px;color:#9fd3ff;font-size:13px
+}
+.asset-result{
+  margin-top:18px;display:none
+}
+.asset-result h3{margin:0 0 12px;color:#ff9fbd}
+.asset-result-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px
+}
+.asset-result-card{
+  background:#091827;border:1px solid #315170;border-radius:12px;padding:8px;text-align:center
+}
+.asset-result-card img{width:100%;height:110px;object-fit:contain;image-rendering:pixelated}
+.asset-result-card span{display:block;font-size:12px;color:#c7d6e8}
+@media(max-width:760px){
+  .asset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .asset-result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .asset-preview{width:108px;height:108px}
+}
+
 </style>
 </head>
 <body>
@@ -231,7 +313,7 @@ input[type=file]{
     <div id="modelSources" class="model-sources"></div>
 
     <div class="model-warning">
-      <b>โหมด Preview v0.4</b><br>
+      <b>โหมด Preview v0.5</b><br>
       ตอนนี้ระบบเปลี่ยนเฉพาะ Preview ในหน้าเว็บ ยังไม่เขียนทับข้อมูลใน Save หรือ ROM
       เพื่อรักษา Save Editor เดิมและ Reader ให้ปลอดภัยก่อน
     </div>
@@ -250,6 +332,51 @@ input[type=file]{
   Pokémon SoulGold GBA ROM Hack
 </footer>
 </div>
+
+
+<section id="assetCreator" class="asset-creator hidden">
+  <div class="asset-head">
+    <h2>MODEL ASSET CREATOR</h2>
+    <button class="asset-btn" id="closeAssetCreator">ปิด</button>
+  </div>
+
+  <div class="asset-tools">
+    <input id="assetModelName" type="text" value="Ceruledge Mascot Girl"
+           placeholder="ชื่อ Model ใหม่">
+    <input id="assetModelId" type="text" value="AUTO"
+           placeholder="Model ID">
+  </div>
+
+  <div class="asset-tools">
+    <input id="assetSheetFile" type="file" accept="image/png,image/jpeg,image/webp">
+    <button class="asset-btn primary" id="autoSplitSheet">นำรูป Sheet นี้มาแยก 7 ส่วน</button>
+    <button class="asset-btn" id="clearAssets">ล้างทั้งหมด</button>
+  </div>
+
+  <div class="asset-grid" id="assetSlots"></div>
+
+  <div class="asset-tools">
+    <button class="asset-btn primary" id="validateAssets">ตรวจสอบ Model</button>
+    <button class="asset-btn" id="previewAssetSet">สร้าง Preview Model</button>
+  </div>
+
+  <div id="assetStatus" class="asset-status">
+    ยังไม่มี Asset — สามารถอัปโหลด Sprite Sheet หรือเลือกภาพทีละช่องได้
+  </div>
+
+  <div id="assetResult" class="asset-result">
+    <h3>MODEL PREVIEW</h3>
+    <div id="assetResultGrid" class="asset-result-grid"></div>
+  </div>
+
+  <div class="asset-note">
+    <b>โหมด v0.5 — Asset Preview เท่านั้น</b><br>
+    ระบบนี้ยังไม่เขียน Save หรือ ROM และยังไม่สร้าง Model ID จริงใน ROM
+    โดยจะช่วยเตรียม Front / Back / Left / Right / Shiny / Cry / UI Icon,
+    ปรับพื้นหลังขาวเป็น Transparent และย่อ Preview เป็น 64×64 ก่อน
+    ขั้น ROM Patcher จะทำภายหลังหลังจากเราตรวจโครงสร้างกราฟิกของ ROM ให้แน่นอนแล้ว
+  </div>
+</section>
 
 <script>
 const SPECIAL_SPECIES_MAPPING={
@@ -946,6 +1073,260 @@ function renderAll(){
 document.getElementById("closeModelEditor").onclick=closeModelEditor;
 document.getElementById("applyModel").onclick=previewAppliedModel;
 document.getElementById("resetModel").onclick=resetModelPreview;
+
+
+/* ===== MODEL ASSET CREATOR v0.5 — additive only ===== */
+const MODEL_ASSETS = [
+  {key:"front", label:"FRONT", box:[0.03,0.10,0.20,0.38]},
+  {key:"back",  label:"BACK",  box:[0.22,0.10,0.20,0.38]},
+  {key:"left",  label:"LEFT",  box:[0.41,0.10,0.20,0.38]},
+  {key:"right", label:"RIGHT", box:[0.60,0.10,0.20,0.38]},
+  {key:"shiny", label:"SHINY", box:[0.03,0.49,0.22,0.43]},
+  {key:"cry",   label:"CRY",   box:[0.29,0.49,0.22,0.43]},
+  {key:"icon",  label:"UI ICON",box:[0.59,0.49,0.24,0.43]}
+];
+
+const assetState = {};
+let assetSheetImage = null;
+
+function assetCreatorEl(id){ return document.getElementById(id); }
+
+function removeNearWhiteBackground(ctx,w,h){
+  const imageData=ctx.getImageData(0,0,w,h);
+  const d=imageData.data;
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i],g=d[i+1],b=d[i+2];
+    if(r>=238 && g>=238 && b>=238){
+      d[i+3]=0;
+    }
+  }
+  ctx.putImageData(imageData,0,0);
+}
+
+function imageTo64DataURL(source, sx=0, sy=0, sw=null, sh=null){
+  const canvas=document.createElement("canvas");
+  canvas.width=64; canvas.height=64;
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  ctx.imageSmoothingEnabled=false;
+
+  sw=sw||source.naturalWidth||source.width;
+  sh=sh||source.naturalHeight||source.height;
+
+  // Keep the whole selected sprite inside 64×64.
+  const scale=Math.min(60/sw,60/sh);
+  const dw=Math.max(1,Math.round(sw*scale));
+  const dh=Math.max(1,Math.round(sh*scale));
+  const dx=Math.round((64-dw)/2);
+  const dy=Math.round((64-dh)/2);
+
+  ctx.clearRect(0,0,64,64);
+  ctx.drawImage(source,sx,sy,sw,sh,dx,dy,dw,dh);
+  removeNearWhiteBackground(ctx,64,64);
+  return canvas.toDataURL("image/png");
+}
+
+function makeImageFromDataURL(url){
+  return new Promise((resolve,reject)=>{
+    const im=new Image();
+    im.onload=()=>resolve(im);
+    im.onerror=reject;
+    im.src=url;
+  });
+}
+
+function renderAssetSlots(){
+  const root=assetCreatorEl("assetSlots");
+  root.innerHTML="";
+  MODEL_ASSETS.forEach(def=>{
+    const card=document.createElement("div");
+    card.className="asset-slot";
+
+    const title=document.createElement("strong");
+    title.textContent=def.label;
+
+    const preview=document.createElement("div");
+    preview.className="asset-preview";
+    const img=document.createElement("img");
+    img.alt=def.label;
+    if(assetState[def.key]?.dataUrl) img.src=assetState[def.key].dataUrl;
+    preview.appendChild(img);
+
+    const input=document.createElement("input");
+    input.type="file";
+    input.accept="image/png,image/jpeg,image/webp";
+    input.addEventListener("change",async e=>{
+      const f=e.target.files[0];
+      if(!f)return;
+      const url=URL.createObjectURL(f);
+      try{
+        const im=await makeImageFromDataURL(url);
+        const dataUrl=imageTo64DataURL(im);
+        assetState[def.key]={dataUrl,sourceName:f.name,width:im.naturalWidth,height:im.naturalHeight};
+        renderAssetSlots();
+        setAssetStatus("อัปโหลด "+def.label+" แล้ว • ปรับ Preview เป็น 64×64 และลบพื้นหลังขาวให้แล้ว");
+      }catch(err){
+        setAssetStatus("❌ อ่าน "+def.label+" ไม่สำเร็จ: "+err.message);
+      }finally{
+        URL.revokeObjectURL(url);
+      }
+    });
+
+    const info=document.createElement("div");
+    info.className="asset-info";
+    info.textContent=assetState[def.key]
+      ? assetState[def.key].sourceName+" → 64×64 PNG"
+      : "ยังไม่มีภาพ";
+
+    card.append(title,preview,input,info);
+    root.appendChild(card);
+  });
+}
+
+function setAssetStatus(text){
+  assetCreatorEl("assetStatus").textContent=text;
+}
+
+function openAssetCreator(){
+  assetCreatorEl("assetCreator").classList.remove("hidden");
+  renderAssetSlots();
+  assetCreatorEl("assetCreator").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function closeAssetCreator(){
+  assetCreatorEl("assetCreator").classList.add("hidden");
+}
+
+async function loadSheet(){
+  const f=assetCreatorEl("assetSheetFile").files[0];
+  if(!f)return null;
+  const url=URL.createObjectURL(f);
+  try{
+    return await makeImageFromDataURL(url);
+  }finally{
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function autoSplitSpriteSheet(){
+  const im=await loadSheet();
+  if(!im){
+    setAssetStatus("⚠️ เลือก Sprite Sheet ก่อน");
+    return;
+  }
+  assetSheetImage=im;
+
+  // Relative crop boxes are intentionally conservative: they target
+  // the character drawings and avoid the large labels in the supplied
+  // example sheet. The crop is then fitted to 64×64.
+  MODEL_ASSETS.forEach(def=>{
+    const b=def.box;
+    const sx=Math.round(im.naturalWidth*b[0]);
+    const sy=Math.round(im.naturalHeight*b[1]);
+    const sw=Math.round(im.naturalWidth*b[2]);
+    const sh=Math.round(im.naturalHeight*b[3]);
+
+    const canvas=document.createElement("canvas");
+    canvas.width=64;canvas.height=64;
+    const ctx=canvas.getContext("2d",{willReadFrequently:true});
+    ctx.imageSmoothingEnabled=false;
+
+    const scale=Math.min(60/sw,60/sh);
+    const dw=Math.max(1,Math.round(sw*scale));
+    const dh=Math.max(1,Math.round(sh*scale));
+    const dx=Math.round((64-dw)/2);
+    const dy=Math.round((64-dh)/2);
+
+    ctx.clearRect(0,0,64,64);
+    ctx.drawImage(im,sx,sy,sw,sh,dx,dy,dw,dh);
+    removeNearWhiteBackground(ctx,64,64);
+
+    assetState[def.key]={
+      dataUrl:canvas.toDataURL("image/png"),
+      sourceName:"Sprite Sheet / auto crop",
+      width:sw,height:sh
+    };
+  });
+
+  renderAssetSlots();
+  setAssetStatus(
+    "✅ แยก Sprite Sheet เป็น 7 Asset แล้ว\n"+
+    "ตรวจดูแต่ละช่องได้ และสามารถอัปโหลดทับทีละช่องได้หากตำแหน่งไม่ตรง"
+  );
+}
+
+function clearAssets(){
+  MODEL_ASSETS.forEach(def=>delete assetState[def.key]);
+  assetSheetImage=null;
+  assetCreatorEl("assetSheetFile").value="";
+  assetCreatorEl("assetResult").style.display="none";
+  renderAssetSlots();
+  setAssetStatus("ล้าง Asset แล้ว");
+}
+
+function validateAssets(){
+  const missing=MODEL_ASSETS.filter(def=>!assetState[def.key]);
+  if(missing.length){
+    setAssetStatus(
+      "⚠️ ยังไม่ครบ "+missing.length+" ช่อง:\n"+
+      missing.map(x=>"• "+x.label).join("\n")
+    );
+    return false;
+  }
+
+  const name=assetCreatorEl("assetModelName").value.trim()||"Untitled Model";
+  const id=assetCreatorEl("assetModelId").value.trim()||"AUTO";
+
+  setAssetStatus(
+    "✅ Model พร้อมสำหรับ Preview\n"+
+    "ชื่อ: "+name+"\n"+
+    "Model ID: "+id+"\n"+
+    "Assets: 7/7\n"+
+    "รูป Preview ทุกช่อง: 64×64 PNG"
+  );
+  return true;
+}
+
+function previewAssetSet(){
+  if(!validateAssets())return;
+  const root=assetCreatorEl("assetResultGrid");
+  root.innerHTML="";
+  MODEL_ASSETS.forEach(def=>{
+    const card=document.createElement("div");
+    card.className="asset-result-card";
+    const img=document.createElement("img");
+    img.src=assetState[def.key].dataUrl;
+    img.alt=def.label;
+    const span=document.createElement("span");
+    span.textContent=def.label;
+    card.append(img,span);
+    root.appendChild(card);
+  });
+  assetCreatorEl("assetResult").style.display="block";
+}
+
+function addModelCreatorButton(){
+  const head=document.querySelector("#modelEditor .model-head");
+  if(!head || document.getElementById("openAssetCreator"))return;
+
+  const btn=document.createElement("button");
+  btn.id="openAssetCreator";
+  btn.className="model-btn primary";
+  btn.textContent="＋ CREATE NEW MODEL";
+  btn.onclick=openAssetCreator;
+  head.insertBefore(btn,head.firstChild);
+}
+
+addModelCreatorButton();
+document.getElementById("closeAssetCreator").onclick=closeAssetCreator;
+document.getElementById("autoSplitSheet").onclick=()=>{
+  autoSplitSpriteSheet().catch(err=>setAssetStatus("❌ แยก Sheet ไม่สำเร็จ: "+err.message));
+};
+document.getElementById("clearAssets").onclick=clearAssets;
+document.getElementById("validateAssets").onclick=validateAssets;
+document.getElementById("previewAssetSet").onclick=previewAssetSet;
+renderAssetSlots();
+/* ===== END MODEL ASSET CREATOR v0.5 ===== */
+
 
 document.getElementById("saveFile").addEventListener("change",async e=>{
   const f=e.target.files[0];
