@@ -268,6 +268,25 @@ input[type=file]{
 @media(max-width:760px){
   .palette-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* ===== MODEL BUILDER v0.7 — additive only ===== */
+.model-builder{margin-top:18px;padding:16px;border:1px solid #315170;border-radius:16px;background:rgba(7,20,33,.72)}
+.model-builder h3{color:#ff9fbd;font-size:19px;margin:0 0 12px}
+.model-builder-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.model-view{border:1px solid #263b54;border-radius:13px;background:#091827;padding:8px;text-align:center}
+.model-view img{width:100%;height:120px;object-fit:contain;image-rendering:pixelated;background-color:#071321;border-radius:9px}
+.model-view span{display:block;margin-top:6px;font-size:12px;color:#c7d6e8}
+.model-data{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}
+.model-data-box{border:1px solid #263b54;border-radius:10px;padding:9px;background:#091827;color:#aebed1;font-size:12px}
+.model-data-box b{display:block;color:#fff;font-size:14px;margin-top:2px;word-break:break-word}
+.model-build-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.model-build-status{margin-top:12px;padding:11px;border-radius:11px;background:#0e2034;color:#9fd3ff;white-space:pre-line;font-size:13px;line-height:1.5}
+.model-builder-note{margin-top:12px;color:#8fa1b5;font-size:12px;line-height:1.55}
+@media(max-width:760px){
+  .model-builder-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .model-data{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
 </style>
 </head>
 <body>
@@ -275,7 +294,7 @@ input[type=file]{
 <header class="header">
   <div class="logo">PKSG</div>
   <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-  <div class="version">MODEL EDITOR v0.6</div>
+  <div class="version">MODEL EDITOR v0.7</div>
 </header>
 
 <main class="panel">
@@ -340,7 +359,7 @@ input[type=file]{
     <div id="modelSources" class="model-sources"></div>
 
     <div class="model-warning">
-      <b>โหมด Preview v0.6</b><br>
+      <b>โหมด Preview v0.7</b><br>
       ตอนนี้ระบบเปลี่ยนเฉพาะ Preview ในหน้าเว็บ ยังไม่เขียนทับข้อมูลใน Save หรือ ROM
       เพื่อรักษา Save Editor เดิมและ Reader ให้ปลอดภัยก่อน
     </div>
@@ -420,12 +439,45 @@ input[type=file]{
     <div id="assetResultGrid" class="asset-result-grid"></div>
   </div>
 
+  <div class="model-builder">
+    <h3>🧩 MODEL BUILDER v0.7</h3>
+    <div class="model-builder-grid" id="modelBuilderPreview">
+      <div class="model-view"><img id="builderFront" alt="Front"><span>FRONT</span></div>
+      <div class="model-view"><img id="builderBack" alt="Back"><span>BACK</span></div>
+      <div class="model-view"><img id="builderLeft" alt="Left"><span>LEFT</span></div>
+      <div class="model-view"><img id="builderRight" alt="Right"><span>RIGHT</span></div>
+      <div class="model-view"><img id="builderShiny" alt="Shiny"><span>SHINY</span></div>
+      <div class="model-view"><img id="builderIcon" alt="UI Icon"><span>UI ICON</span></div>
+      <div class="model-view"><img id="builderCry" alt="Cry"><span>CRY</span></div>
+    </div>
+
+    <div class="model-data" id="modelDataStats">
+      <div class="model-data-box">Model ID<b id="builderModelId">AUTO</b></div>
+      <div class="model-data-box">Model Name<b id="builderModelName">-</b></div>
+      <div class="model-data-box">Assets<b id="builderAssetCount">0/7</b></div>
+      <div class="model-data-box">Palette<b id="builderPaletteInfo">ยังไม่ได้ตรวจ</b></div>
+      <div class="model-data-box">Target<b id="builderTargetInfo">ยังไม่ได้เลือก</b></div>
+      <div class="model-data-box">Package<b>SOULGOLD-MODEL v1</b></div>
+    </div>
+
+    <div class="model-build-actions">
+      <button class="asset-btn primary" id="buildModelPackage">BUILD MODEL PACKAGE</button>
+      <button class="asset-btn" id="applyBuiltModel">ใช้ Model นี้กับ Target</button>
+      <button class="asset-btn" id="clearBuiltModel">ล้าง Builder</button>
+    </div>
+    <div class="model-build-status" id="modelBuildStatus">ยังไม่มี Model Package — กด BUILD หลังจากตรวจ Asset</div>
+    <div class="model-builder-note">
+      v0.7 สร้าง Package สำหรับ Model ของ SoulGold ในเบราว์เซอร์เท่านั้น<br>
+      ยังไม่เขียน Save หรือ ROM และยังไม่อ้างว่า Package นี้เป็นรูปแบบ byte จริงของ ROM
+    </div>
+  </div>
+
   <div class="asset-note">
-    <b>โหมด v0.6 — Asset + Palette Preview เท่านั้น</b><br>
+    <b>โหมด v0.7 — Asset + Palette + Model Builder Preview</b><br>
     ระบบนี้ยังไม่เขียน Save หรือ ROM และยังไม่สร้าง Model ID จริงใน ROM
     โดยจะช่วยเตรียม Front / Back / Left / Right / Shiny / Cry / UI Icon,
     ปรับพื้นหลังขาวเป็น Transparent, ย่อ Preview เป็น 64×64 และตรวจ/ลดจำนวนสีได้ตั้งแต่ 16 ถึง 256 สี
-    ขั้น ROM Patcher จะทำภายหลังหลังจากเราตรวจโครงสร้างกราฟิกของ ROM ให้แน่นอนแล้ว
+    ขั้น ROM Patcher จะทำภายหลังหลังจากเราตรวจโครงสร้างกราฟิกของ SoulGold ROM ให้แน่นอนแล้ว
   </div>
 </section>
 
@@ -1079,6 +1131,7 @@ function resetModelPreview(){
   setPreviewImage(document.getElementById("sourcePreview"),modelTarget.species);
   renderModelSources();
   updateModelButtons();
+  if(typeof updateModelBuilder==='function')updateModelBuilder();
 }
 
 function renderParty(){
@@ -1470,6 +1523,7 @@ async function applyPaletteToAll(){
   }
   renderAssetSlots();
   updatePaletteStats();
+  updateModelBuilder();
   setAssetStatus("✅ ลดสีทุก Asset แล้ว — เป้าหมายไม่เกิน "+limit+" สี\nภาพต้นฉบับยังถูกเก็บไว้สำหรับ Restore");
 }
 
@@ -1481,6 +1535,7 @@ async function restorePaletteAll(){
   });
   renderAssetSlots();
   updatePaletteStats();
+  updateModelBuilder();
   setAssetStatus(restored?"✅ คืนภาพต้นฉบับแล้ว — ยังไม่แตะ Save/ROM":"ยังไม่มีภาพต้นฉบับให้คืน");
 }
 
@@ -1526,6 +1581,119 @@ function previewAssetSet(){
   assetCreatorEl("assetResult").style.display="block";
 }
 
+
+/* ===== MODEL BUILDER v0.7 — additive only ===== */
+let builtModelPackage=null;
+
+function builderEl(id){return document.getElementById(id)}
+function setBuilderImage(id,key){
+  const img=builderEl(id); if(!img)return;
+  const st=assetState[key];
+  img.src=st?.dataUrl||'';
+}
+function updateModelBuilder(){
+  setBuilderImage('builderFront','front');
+  setBuilderImage('builderBack','back');
+  setBuilderImage('builderLeft','left');
+  setBuilderImage('builderRight','right');
+  setBuilderImage('builderShiny','shiny');
+  setBuilderImage('builderIcon','icon');
+  setBuilderImage('builderCry','cry');
+
+  const name=assetCreatorEl('assetModelName')?.value.trim()||'Untitled Model';
+  const id=assetCreatorEl('assetModelId')?.value.trim()||'AUTO';
+  const count=MODEL_ASSETS.filter(x=>assetState[x.key]).length;
+  builderEl('builderModelId').textContent=id;
+  builderEl('builderModelName').textContent=name;
+  builderEl('builderAssetCount').textContent=count+'/7';
+  const paletteLimits=MODEL_ASSETS.filter(x=>assetState[x.key]).map(x=>assetState[x.key].paletteLimit||0).filter(Boolean);
+  builderEl('builderPaletteInfo').textContent=paletteLimits.length
+    ? ('สูงสุด '+Math.max(...paletteLimits)+' สี')
+    : 'Original / ยังไม่ได้ลดสี';
+  builderEl('builderTargetInfo').textContent=modelTarget
+    ? (modelTarget.name+' #'+modelTarget.species)
+    : 'ยังไม่ได้เลือก';
+}
+function modelBuilderValidation(){
+  const missing=MODEL_ASSETS.filter(x=>!assetState[x.key]);
+  if(missing.length){
+    builderEl('modelBuildStatus').textContent='⚠️ Build ไม่ได้\nยังขาด: '+missing.map(x=>x.label).join(', ');
+    return false;
+  }
+  return true;
+}
+function buildModelPackage(){
+  updateModelBuilder();
+  if(!modelBuilderValidation())return;
+  const name=assetCreatorEl('assetModelName').value.trim()||'Untitled Model';
+  const id=assetCreatorEl('assetModelId').value.trim()||'AUTO';
+  const assets={};
+  MODEL_ASSETS.forEach(def=>{
+    const st=assetState[def.key];
+    assets[def.key]={
+      label:def.label,
+      width:64,height:64,
+      paletteLimit:st.paletteLimit||null,
+      sourceName:st.sourceName||'',
+      pngDataUrl:st.dataUrl
+    };
+  });
+  builtModelPackage={
+    format:'SOULGOLD-MODEL',
+    version:1,
+    createdAt:new Date().toISOString(),
+    model:{id,name},
+    target:modelTarget?{species:modelTarget.species,name:modelTarget.name,form:modelTarget.form,pid:modelTarget.pid}:null,
+    assets
+  };
+  const json=JSON.stringify(builtModelPackage,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=(name.replace(/[^a-z0-9ก-๙_-]+/gi,'_')||'soulgold_model')+'.sgmodel.json';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  builderEl('modelBuildStatus').textContent=
+    '✅ BUILD MODEL PACKAGE สำเร็จ\n'+
+    'ชื่อ: '+name+'\n'+
+    'Model ID: '+id+'\n'+
+    'Assets: 7/7\n'+
+    'ไฟล์ .sgmodel.json ถูกสร้างแล้ว\n'+
+    'ยังไม่แตะ Save/ROM';
+}
+function applyBuiltModel(){
+  updateModelBuilder();
+  if(!builtModelPackage){
+    builderEl('modelBuildStatus').textContent='⚠️ ยังไม่มี Package — กด BUILD MODEL PACKAGE ก่อน';
+    return;
+  }
+  if(!modelTarget){
+    builderEl('modelBuildStatus').textContent='⚠️ กรุณาเลือก Target Pokémon จาก Party หรือ PC ก่อน';
+    return;
+  }
+  const front=builtModelPackage.assets.front?.pngDataUrl;
+  if(front){
+    const targetImg=document.getElementById('targetPreview');
+    if(targetImg)targetImg.src=front;
+  }
+  document.getElementById('targetName').textContent=modelTarget.name+' ← '+builtModelPackage.model.name;
+  document.getElementById('targetForm').textContent='Preview Model: '+builtModelPackage.model.name;
+  builderEl('modelBuildStatus').textContent='✅ ใช้ Model ที่สร้างกับ Target ใน Preview แล้ว\nSpecies ID / PID ของ Target ไม่เปลี่ยน\nยังไม่เขียน Save/ROM';
+}
+function clearBuiltModel(){
+  builtModelPackage=null;
+  updateModelBuilder();
+  builderEl('modelBuildStatus').textContent='ล้าง Builder แล้ว — Asset เดิมยังอยู่';
+}
+
+assetCreatorEl('buildModelPackage').onclick=buildModelPackage;
+assetCreatorEl('applyBuiltModel').onclick=applyBuiltModel;
+assetCreatorEl('clearBuiltModel').onclick=clearBuiltModel;
+assetCreatorEl('assetModelName').addEventListener('input',updateModelBuilder);
+assetCreatorEl('assetModelId').addEventListener('input',updateModelBuilder);
+
+
 function addModelCreatorButton(){
   const head=document.querySelector("#modelEditor .model-head");
   if(!head || document.getElementById("openAssetCreator"))return;
@@ -1550,9 +1718,10 @@ document.getElementById("applyPalette").onclick=()=>{
   applyPaletteToAll().catch(err=>setAssetStatus("❌ ลดสีไม่สำเร็จ: "+err.message));
 };
 document.getElementById("restorePalette").onclick=()=>restorePaletteAll().catch(err=>setAssetStatus("❌ คืนภาพไม่สำเร็จ: "+err.message));
-document.getElementById("paletteLimit").onchange=updatePaletteStats;
+document.getElementById("paletteLimit").onchange=()=>{updatePaletteStats();updateModelBuilder();};
 renderAssetSlots();
 updatePaletteStats();
+updateModelBuilder();
 /* ===== END MODEL ASSET CREATOR v0.5 ===== */
 
 
