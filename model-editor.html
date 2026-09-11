@@ -160,7 +160,7 @@ input[type=file]{
   .poke-sprite{width:60px;height:60px}
 }
 
-/* ===== MODEL ASSET CREATOR v0.5.1 — additive only ===== */
+/* ===== MODEL ASSET CREATOR v0.5.2 — additive only ===== */
 .asset-creator{
   margin-top:28px;
   padding:22px;
@@ -370,7 +370,7 @@ input[type=file]{
   </div>
 
   <div class="asset-note">
-    <b>โหมด v0.5.1 — Asset Preview เท่านั้น</b><br>
+    <b>โหมด v0.5.2 — Asset Preview เท่านั้น</b><br>
     ระบบนี้ยังไม่เขียน Save หรือ ROM และยังไม่สร้าง Model ID จริงใน ROM
     โดยจะช่วยเตรียม Front / Back / Left / Right / Shiny / Cry / UI Icon,
     ปรับพื้นหลังขาวเป็น Transparent และย่อ Preview เป็น 64×64 ก่อน
@@ -1077,15 +1077,16 @@ document.getElementById("resetModel").onclick=resetModelPreview;
 
 /* ===== MODEL ASSET CREATOR v0.5 — additive only ===== */
 const MODEL_ASSETS = [
-  // Coordinates are relative to the supplied 2048×1143 reference sheet.
-  // They deliberately exclude the large text labels.
-  {key:"front", label:"FRONT", box:[0.025,0.105,0.205,0.395]},
-  {key:"back",  label:"BACK",  box:[0.255,0.105,0.205,0.395]},
-  {key:"left",  label:"LEFT",  box:[0.485,0.105,0.205,0.395]},
-  {key:"right", label:"RIGHT", box:[0.735,0.105,0.235,0.395]},
-  {key:"shiny", label:"SHINY", box:[0.025,0.495,0.235,0.405]},
-  {key:"cry",   label:"CRY",   box:[0.285,0.495,0.245,0.405]},
-  {key:"icon",  label:"UI ICON",box:[0.775,0.485,0.205,0.435]}
+  // Normalized crop boxes based on the actual supplied sprite sheet layout.
+  // These are intentionally tight around the artwork so the printed labels
+  // (FRONT/BACK/LEFT/etc.) are not imported into the 64×64 asset.
+  {key:"front", label:"FRONT", box:[0.040,0.125,0.205,0.350]},
+  {key:"back",  label:"BACK",  box:[0.285,0.125,0.205,0.350]},
+  {key:"left",  label:"LEFT",  box:[0.540,0.130,0.175,0.340]},
+  {key:"right", label:"RIGHT", box:[0.805,0.125,0.175,0.350]},
+  {key:"shiny", label:"SHINY", box:[0.045,0.545,0.215,0.330]},
+  {key:"cry",   label:"CRY",   box:[0.345,0.545,0.190,0.330]},
+  {key:"icon",  label:"UI ICON",box:[0.745,0.560,0.245,0.340]}
 ];
 
 const assetState = {};
@@ -1251,7 +1252,7 @@ async function autoSplitSpriteSheet(){
 
   renderAssetSlots();
   setAssetStatus(
-    "✅ แยก Sprite Sheet เป็น 7 Asset แล้ว (ปรับตำแหน่ง Crop สำหรับ Sheet ตัวอย่างแล้ว)\n"+
+    "✅ แยก Sprite Sheet เป็น 7 Asset แล้ว (ใช้ Tight Crop เพื่อตัดข้อความกำกับออก)\n"+
     "ตรวจดูแต่ละช่องได้ และสามารถอัปโหลดทับทีละช่องได้หากตำแหน่งไม่ตรง"
   );
 }
