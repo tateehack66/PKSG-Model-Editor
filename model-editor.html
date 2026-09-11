@@ -269,7 +269,7 @@ input[type=file]{
   .palette-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-/* ===== MODEL BUILDER v0.7 — additive only ===== */
+/* ===== MODEL BUILDER v0.9 — additive only ===== */
 .model-builder{margin-top:18px;padding:16px;border:1px solid #315170;border-radius:16px;background:rgba(7,20,33,.72)}
 .model-builder h3{color:#ff9fbd;font-size:19px;margin:0 0 12px}
 .model-builder-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -308,6 +308,37 @@ input[type=file]{
 .package-warn{color:#ffd27a!important}
 @media(max-width:760px){.package-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* ===== ROM-FIRST WORKSPACE v0.9 ===== */
+.rom-panel{margin-top:28px;padding:22px;border:2px solid #263b54;border-radius:22px;background:rgba(8,21,37,.72)}
+.rom-panel h2{font-size:28px;color:#ff6090;margin:0 0 10px}
+.rom-desc{color:#aebed1;line-height:1.6;font-size:14px;margin-bottom:14px}
+.rom-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.rom-tools input[type=file]{flex:1;min-width:220px}
+.rom-status{margin-top:12px;padding:12px;border-radius:12px;background:#0e2034;color:#9fd3ff;white-space:pre-line;line-height:1.5;font-size:13px}
+.rom-search{margin-top:16px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:9px}
+.rom-search input,.rom-search select{width:100%;padding:12px 13px;border-radius:11px;border:1px solid #315170;background:#071421;color:#fff;font:inherit}
+.rom-catalog-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;color:#8fa1b5;font-size:12px}
+.rom-catalog{margin-top:10px;max-height:520px;overflow:auto;border:1px solid #263b54;border-radius:14px;background:#071421}
+.rom-row{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:9px 11px;border-bottom:1px solid #1e3248;cursor:pointer}
+.rom-row:last-child{border-bottom:0}
+.rom-row:hover,.rom-row.selected{background:rgba(255,63,114,.10)}
+.rom-row-id{font-weight:900;color:#ff9fbd;font-size:13px}
+.rom-row-name{font-weight:800;color:#fff;font-size:14px;line-height:1.25}
+.rom-row-form{font-size:11px;color:#8fa1b5;margin-top:2px;line-height:1.35}
+.rom-row-offset{font-size:10px;color:#66809a;text-align:right}
+.rom-select-btn{border:1px solid #315170;background:#10263d;color:#dbeaff;border-radius:9px;padding:8px 10px;font-weight:700;cursor:pointer}
+.rom-select-btn.primary{background:#ff3d78;border-color:#ff3d78;color:#fff}
+.rom-editor{margin-top:20px;padding:18px;border:2px solid #ff3f72;border-radius:18px;background:linear-gradient(180deg,rgba(255,63,114,.08),rgba(8,21,37,.65))}
+.rom-editor.hidden{display:none}
+.rom-target{display:grid;grid-template-columns:120px 1fr;gap:15px;align-items:center}
+.rom-target-preview{width:120px;height:120px;border-radius:18px;background:#071321;border:1px solid #344c67;display:flex;align-items:center;justify-content:center}
+.rom-target-preview img{width:108px;height:108px;object-fit:contain;image-rendering:pixelated}
+.rom-target-meta{font-size:14px;color:#aebed1;line-height:1.7}
+.rom-target-meta strong{color:#fff}
+.rom-note{margin-top:14px;padding:12px;border:1px dashed #315170;border-radius:12px;background:#0d1c2d;color:#aebed1;font-size:12px;line-height:1.55}
+@media(max-width:760px){.rom-search{grid-template-columns:1fr}.rom-row{grid-template-columns:58px 1fr}.rom-row-offset{display:none}.rom-target{grid-template-columns:90px 1fr}.rom-target-preview{width:90px;height:90px}.rom-target-preview img{width:82px;height:82px}}
+
 </style>
 </head>
 <body>
@@ -315,7 +346,7 @@ input[type=file]{
 <header class="header">
   <div class="logo">PKSG</div>
   <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-  <div class="version">MODEL EDITOR v0.8</div>
+  <div class="version">MODEL EDITOR v0.9</div>
 </header>
 
 <main class="panel">
@@ -323,74 +354,75 @@ input[type=file]{
   <h1 class="title">MODEL EDITOR</h1>
   <div class="desc">แก้ไข Sprite และกราฟิก Pokémon</div>
 
-  <section class="reader">
-    <h2>SAVE FILE</h2>
-    <input id="saveFile" type="file" accept=".sav,.srm,.dat">
-    <div id="status" class="status">ยังไม่ได้เลือกไฟล์ Save</div>
-  </section>
-
-  <section class="section">
-    <h2>PARTY</h2>
-    <div id="partyGrid" class="party">
-      <div class="poke-card empty">ยังไม่ได้อ่านเซฟ</div>
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>PC</h2>
-    <div id="boxTabs" class="box-tabs"></div>
-    <div id="boxGrid" class="boxgrid"></div>
-  </section>
-
-
-  <section id="modelEditor" class="model-editor hidden">
-    <div class="model-head">
-      <h2>MODEL EDITOR</h2>
-      <button class="model-btn" id="closeModelEditor">ปิด</button>
+  <section class="rom-panel">
+    <h2>🎮 SOULGOLD ROM</h2>
+    <div class="rom-desc">
+      Model Editor ทำงานแบบ ROM-first: เลือก Pokémon จากฐานข้อมูล Pokémon ที่อยู่ใน SoulGold ROM
+      แล้วจึงเปิด Model Editor เพื่อแก้/สร้าง Model โดยไม่ต้องใช้ Save File
     </div>
 
-    <div class="model-target">
-      <div class="model-preview">
-        <img id="targetPreview" alt="Target Pokémon">
+    <div class="rom-tools">
+      <input id="romFile" type="file" accept=".gba,.bin,.rom">
+      <button class="asset-btn primary" id="verifyRom">ตรวจสอบ ROM</button>
+    </div>
+    <div id="romStatus" class="rom-status">ยังไม่ได้เลือก ROM — สามารถค้นหา Pokémon จาก ROM ID Catalog ได้ แต่ควรโหลด ROM ของ SoulGold ก่อนแก้ไขจริง</div>
+
+    <div class="rom-search">
+      <input id="pokemonSearch" type="search" placeholder="🔎 ค้นชื่อ Pokémon, Form หรือ ROM ID เช่น Ceruledge / Miraidon / 1325">
+      <select id="pokemonFormFilter">
+        <option value="all">ทุก Form</option>
+        <option value="base">Base / Standard</option>
+        <option value="alola">Alolan</option>
+        <option value="galar">Galarian</option>
+        <option value="hisui">Hisuian</option>
+        <option value="mega">Mega / Legends Z-A</option>
+        <option value="gmax">Gigantamax</option>
+        <option value="other">Form อื่น ๆ</option>
+      </select>
+      <select id="pokemonSort">
+        <option value="id">เรียงตาม ROM ID</option>
+        <option value="name">เรียงตามชื่อ</option>
+      </select>
+    </div>
+
+    <div class="rom-catalog-meta">
+      <span id="catalogCount">กำลังโหลด Catalog…</span>
+      <span>ฐานข้อมูล SoulGold ROM ID Catalog</span>
+    </div>
+    <div id="pokemonCatalog" class="rom-catalog"></div>
+
+    <div id="romModelEditor" class="rom-editor hidden">
+      <div class="model-head">
+        <h2>MODEL EDITOR</h2>
+        <button class="model-btn" id="closeRomModelEditor">ปิด</button>
       </div>
-
-      <div class="model-meta">
-        <strong>Target Pokémon</strong><br>
-        <span id="targetName">-</span><br>
-        Species ID: <strong id="targetId">-</strong><br>
-        Form: <strong id="targetForm">-</strong><br>
-        PID: <strong id="targetPid">-</strong>
+      <div class="rom-target">
+        <div class="rom-target-preview"><img id="targetPreview" alt="Target Pokémon"></div>
+        <div class="rom-target-meta">
+          <strong>Target Pokémon</strong><br>
+          <span id="targetName">-</span><br>
+          ROM Species ID: <strong id="targetId">-</strong><br>
+          Form: <strong id="targetForm">-</strong><br>
+          ROM Data Offset: <strong id="targetRomOffset">-</strong>
+        </div>
       </div>
-
-      <div class="model-preview">
-        <img id="sourcePreview" alt="New Model Preview">
+      <div class="model-actions">
+        <button class="model-btn primary" id="openAssetCreatorRom">＋ CREATE / EDIT MODEL</button>
       </div>
-    </div>
-
-    <div class="model-actions">
-      <button class="model-btn primary" id="applyModel" disabled>
-        ใช้ Model นี้กับ Pokémon ที่เลือก
-      </button>
-      <button class="model-btn" id="resetModel" disabled>
-        คืน Model เดิม
-      </button>
-    </div>
-
-    <div class="model-source-title">เลือก Pokémon ที่จะใช้เป็น Model</div>
-    <div id="modelSources" class="model-sources"></div>
-
-    <div class="model-warning">
-      <b>โหมด Preview v0.7</b><br>
-      ตอนนี้ระบบเปลี่ยนเฉพาะ Preview ในหน้าเว็บ ยังไม่เขียนทับข้อมูลใน Save หรือ ROM
-      เพื่อรักษา Save Editor เดิมและ Reader ให้ปลอดภัยก่อน
+      <div class="rom-note">
+        <b>ROM-first v0.9</b><br>
+        Save Reader ถูกนำออกจากหน้าหลัก เพราะการสร้าง/แก้ Model เป็นงานของ ROM โดยตรง
+        ตัวเลือก Pokémon ด้านบนมาจาก ROM ID Catalog ที่เรามีอยู่ใน Model Editor
+        ส่วนการอ่านโครงสร้างกราฟิกจริงจาก ROM จะเป็นขั้นของ ROM Patcher ต่อไป
+      </div>
     </div>
   </section>
 
   <div class="note">
-    <b>Reader v0.2</b><br>
-    เวอร์ชันนี้อ่าน Save อย่างเดียว ยังไม่แก้ไขหรือ Export Save
+    <b>v0.9 — ROM-first Model Editor</b><br>
+    หน้า Model Editor ไม่ต้องใช้ Save File แล้ว เพราะ Target Model ถูกเลือกจาก Pokémon Catalog ของ SoulGold ROM โดยตรง
     <br>
-    Pokémon จะแสดง ROM Species ID, Form และ PID เพื่อเตรียมเข้าสู่ระบบเปลี่ยน Model
+    ขั้นนี้ยังไม่เขียน byte ลง ROM และยังไม่สร้าง ROM Patcher จนกว่าจะยืนยันโครงสร้างกราฟิกจริงของ ROM
   </div>
 </main>
 
@@ -461,7 +493,7 @@ input[type=file]{
   </div>
 
   <div class="model-builder">
-    <h3>🧩 MODEL BUILDER v0.7</h3>
+    <h3>🧩 MODEL BUILDER v0.9</h3>
     <div class="model-builder-grid" id="modelBuilderPreview">
       <div class="model-view"><img id="builderFront" alt="Front"><span>FRONT</span></div>
       <div class="model-view"><img id="builderBack" alt="Back"><span>BACK</span></div>
@@ -1085,20 +1117,20 @@ function selectModelTarget(target){
   modelSource=null;
   originalModelSource={species:target.species};
 
-  const editor=document.getElementById("modelEditor");
+  const editor=document.getElementById("romModelEditor");
+  if(!editor)return;
   editor.classList.remove("hidden");
 
   document.getElementById("targetName").textContent=target.name;
   document.getElementById("targetId").textContent=target.species;
   document.getElementById("targetForm").textContent=target.form;
-  document.getElementById("targetPid").textContent=
-    "0x"+target.pid.toString(16).padStart(8,"0").toUpperCase();
+  const off=document.getElementById("targetRomOffset");
+  if(off)off.textContent=target.offset||"-";
 
   setPreviewImage(document.getElementById("targetPreview"),target.species);
-  setPreviewImage(document.getElementById("sourcePreview"),target.species);
-
   renderModelSources();
   updateModelButtons();
+  updateModelBuilder();
 
   editor.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1223,9 +1255,7 @@ function renderAll(){
 }
 
 
-document.getElementById("closeModelEditor").onclick=closeModelEditor;
-document.getElementById("applyModel").onclick=previewAppliedModel;
-document.getElementById("resetModel").onclick=resetModelPreview;
+
 
 
 /* ===== MODEL ASSET CREATOR v0.5 — additive only ===== */
@@ -1631,7 +1661,7 @@ function previewAssetSet(){
 }
 
 
-/* ===== MODEL BUILDER v0.7 — additive only ===== */
+/* ===== MODEL BUILDER v0.9 — additive only ===== */
 let builtModelPackage=null;
 
 function builderEl(id){return document.getElementById(id)}
@@ -1842,17 +1872,7 @@ assetCreatorEl('assetModelName').addEventListener('input',updateModelBuilder);
 assetCreatorEl('assetModelId').addEventListener('input',updateModelBuilder);
 
 
-function addModelCreatorButton(){
-  const head=document.querySelector("#modelEditor .model-head");
-  if(!head || document.getElementById("openAssetCreator"))return;
-
-  const btn=document.createElement("button");
-  btn.id="openAssetCreator";
-  btn.className="model-btn primary";
-  btn.textContent="＋ CREATE NEW MODEL";
-  btn.onclick=openAssetCreator;
-  head.insertBefore(btn,head.firstChild);
-}
+function addModelCreatorButton(){ return; }
 
 addModelCreatorButton();
 document.getElementById("closeAssetCreator").onclick=closeAssetCreator;
@@ -1873,51 +1893,150 @@ updateModelBuilder();
 /* ===== END MODEL ASSET CREATOR v0.5 ===== */
 
 
-document.getElementById("saveFile").addEventListener("change",async e=>{
+
+/* ===== ROM-FIRST CATALOG v0.9 ===== */
+let loadedRomBytes=null;
+let loadedRomFileName="";
+let catalogRecords=[...ROM_POKEMON_ID_MAP];
+let selectedCatalogId=null;
+
+function catalogFormGroup(form){
+  const f=String(form||"").toLowerCase();
+  if(f.includes("alolan"))return "alola";
+  if(f.includes("galarian"))return "galar";
+  if(f.includes("hisuian"))return "hisui";
+  if(f.includes("gigantamax"))return "gmax";
+  if(f.includes("mega")||f.includes("legends z-a"))return "mega";
+  if(f.includes("base / standard / special slot"))return "base";
+  return "other";
+}
+
+function renderPokemonCatalog(){
+  const root=document.getElementById("pokemonCatalog");
+  const q=(document.getElementById("pokemonSearch").value||"").trim().toLowerCase();
+  const fg=document.getElementById("pokemonFormFilter").value;
+  const sort=document.getElementById("pokemonSort").value;
+  let rows=catalogRecords.filter(r=>{
+    const hay=(String(r.id)+" "+String(r.name)+" "+String(r.form)+" "+String(r.offset)).toLowerCase();
+    return (!q||hay.includes(q)) && (fg==="all"||catalogFormGroup(r.form)===fg);
+  });
+  rows.sort((a,b)=>sort==="name"
+    ?String(a.name).localeCompare(String(b.name),'en',{sensitivity:'base'})||a.id-b.id
+    :a.id-b.id);
+
+  document.getElementById("catalogCount").textContent=
+    "แสดง "+rows.length.toLocaleString()+" / "+catalogRecords.length.toLocaleString()+" รายการ";
+
+  if(!rows.length){
+    root.innerHTML='<div class="rom-status">ไม่พบ Pokémon ที่ตรงกับคำค้น</div>';
+    return;
+  }
+
+  const frag=document.createDocumentFragment();
+  rows.forEach(r=>{
+    const row=document.createElement("div");
+    row.className="rom-row"+(selectedCatalogId===r.id?" selected":"");
+    row.dataset.id=r.id;
+
+    const id=document.createElement("div");
+    id.className="rom-row-id";
+    id.textContent="#"+r.id;
+
+    const info=document.createElement("div");
+    const name=document.createElement("div");
+    name.className="rom-row-name";
+    name.textContent=r.name;
+    const form=document.createElement("div");
+    form.className="rom-row-form";
+    form.textContent=r.form||"Base / standard / special slot";
+    info.append(name,form);
+
+    const action=document.createElement("div");
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className="rom-select-btn"+(selectedCatalogId===r.id?" primary":"");
+    btn.textContent=selectedCatalogId===r.id?"เลือกแล้ว":"EDIT MODEL";
+    btn.onclick=e=>{e.stopPropagation();selectCatalogPokemon(r);};
+    action.appendChild(btn);
+
+    row.append(id,info,action);
+    row.onclick=()=>selectCatalogPokemon(r);
+    frag.appendChild(row);
+  });
+  root.replaceChildren(frag);
+}
+
+function selectCatalogPokemon(rec){
+  selectedCatalogId=rec.id;
+  selectModelTarget({
+    species:rec.id,
+    pid:0,
+    formBits:0,
+    level:0,
+    shiny:0,
+    name:rec.name,
+    form:rec.form||"Base / standard / special slot",
+    offset:rec.offset,
+    slotLabel:"ROM Catalog"
+  });
+  renderPokemonCatalog();
+}
+
+function verifyLoadedRom(){
+  const status=document.getElementById("romStatus");
+  if(!loadedRomBytes){
+    status.textContent="⚠️ ยังไม่ได้เลือก ROM";
+    return;
+  }
+  const b=loadedRomBytes;
+  if(b.length<0xC0){
+    status.textContent="❌ ROM เล็กเกินไปสำหรับตรวจสอบ GBA Header";
+    return;
+  }
+  const title=new TextDecoder('ascii',{fatal:false}).decode(b.slice(0xA0,0xAC)).replace(/\0/g,'').trim();
+  const code=new TextDecoder('ascii',{fatal:false}).decode(b.slice(0xAC,0xB0)).replace(/\0/g,'').trim();
+  const size=loadedRomBytes.length;
+  const catalogOffsets=catalogRecords.filter(r=>{
+    const n=parseInt(String(r.offset||"0").replace(/^0x/i,""),16);
+    return Number.isFinite(n)&&n>=0&&n<size;
+  }).length;
+  status.textContent=
+    (code==="BPEE"?"✅":"⚠️")+" ROM ตรวจสอบแล้ว\n"+
+    "File: "+loadedRomFileName+"\n"+
+    "Size: "+formatBytes(size)+"\n"+
+    "Title: "+(title||"-")+"\n"+
+    "Game Code: "+(code||"-")+"\n"+
+    "Catalog offsets อยู่ในขอบเขต ROM: "+catalogOffsets+"/"+catalogRecords.length+"\n"+
+    (code==="BPEE"?"พร้อมสำหรับ SoulGold ROM workflow":"ไฟล์นี้ไม่ใช่ BPEE ที่เราคาดไว้ — ยังไม่เขียน ROM");
+}
+
+document.getElementById("romFile").addEventListener("change",async e=>{
   const f=e.target.files[0];
   if(!f)return;
-
-  const status=document.getElementById("status");
-  status.textContent="กำลังอ่าน "+f.name+" ...";
-
+  loadedRomFileName=f.name;
+  document.getElementById("romStatus").textContent="กำลังอ่าน ROM ใน Browser…";
   try{
-    const loadedBytes=new Uint8Array(await f.arrayBuffer());
-
-    if(loadedBytes.length===131072){
-      bytes=loadedBytes;
-    }else if(loadedBytes.length===131088){
-      bytes=loadedBytes.slice(0,131072);
-    }else{
-      throw Error("ไฟล์นี้ไม่ใช่ 128 KiB หรือ mGBA 128 KiB + 16 bytes");
-    }
-
-    current=parseSlots();
-    logical=buildLogical(current);
-    activeBox=0;
-
-    const format=loadedBytes.length===131088
-      ?"mGBA 128 KiB + 16 bytes"
-      :"128 KiB";
-
-    const party=getPartyData();
-
-    status.textContent=
-      "✅ อ่านเซฟสำเร็จ\n"+
-      f.name+" • "+format+"\n"+
-      "Save slot: "+(current.base===0?1:2)+
-      " • Counter: "+current.counter+"\n"+
-      "Party: "+party.count+"/6 • PC: 16 กล่อง × 30 ช่อง";
-
-    renderAll();
+    loadedRomBytes=new Uint8Array(await f.arrayBuffer());
+    verifyLoadedRom();
   }catch(err){
-    bytes=null;current=null;logical=null;
-    document.getElementById("partyGrid").innerHTML=
-      "<div class='poke-card empty'>อ่านเซฟไม่สำเร็จ</div>";
-    document.getElementById("boxGrid").innerHTML="";
-    document.getElementById("boxTabs").innerHTML="";
-    status.textContent="❌ อ่านเซฟไม่สำเร็จ: "+err.message;
+    loadedRomBytes=null;
+    document.getElementById("romStatus").textContent="❌ อ่าน ROM ไม่สำเร็จ: "+err.message;
   }
 });
+
+document.getElementById("verifyRom").onclick=verifyLoadedRom;
+document.getElementById("pokemonSearch").addEventListener("input",renderPokemonCatalog);
+document.getElementById("pokemonFormFilter").addEventListener("change",renderPokemonCatalog);
+document.getElementById("pokemonSort").addEventListener("change",renderPokemonCatalog);
+document.getElementById("closeRomModelEditor").onclick=()=>{
+  modelTarget=null;
+  selectedCatalogId=null;
+  document.getElementById("romModelEditor").classList.add("hidden");
+  renderPokemonCatalog();
+};
+document.getElementById("openAssetCreatorRom").onclick=openAssetCreator;
+
+renderPokemonCatalog();
 </script>
 </body>
 </html>
