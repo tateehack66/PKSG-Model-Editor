@@ -288,7 +288,7 @@ input[type=file]{
 }
 
 
-/* ===== MODEL PACKAGE INSPECTOR v0.9 — additive only ===== */
+/* ===== MODEL PACKAGE INSPECTOR v0.10 — additive only ===== */
 .package-inspector{margin-top:18px;padding:16px;border:1px solid #315170;border-radius:16px;background:rgba(7,20,33,.72);display:none}
 .package-inspector.show{display:block}
 .package-inspector h3{color:#ff9fbd;font-size:19px;margin:0 0 12px}
@@ -330,6 +330,10 @@ input[type=file]{
 .pokemon-search-card small{display:block;color:#8fa1b5;font-size:10px;line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pokemon-search-card .rom-poke-id{color:#9fd3ff;font-weight:800}
 .pokemon-search-empty{padding:16px;border:1px dashed #315170;border-radius:12px;color:#aebed1;text-align:center;grid-column:1/-1}
+ .model-source-tools{display:grid;grid-template-columns:1fr auto;gap:10px;margin:10px 0}
+.model-source-tools input{min-width:0}
+.model-source-info{padding:10px 12px;border:1px dashed #315170;border-radius:12px;color:#9fd3ff;font-size:13px;margin-bottom:10px}
+@media(max-width:760px){.model-source-tools{grid-template-columns:1fr}.model-source-tools .model-btn{width:100%}}
 @media(max-width:760px){.rom-db-toolbar{grid-template-columns:1fr}.pokemon-search-results{grid-template-columns:repeat(2,minmax(0,1fr))}.pokemon-selected.show{align-items:flex-start}}
 </style>
 </head>
@@ -338,7 +342,7 @@ input[type=file]{
 <header class="header">
   <div class="logo">PKSG</div>
   <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-  <div class="version">MODEL EDITOR v0.9.2</div>
+  <div class="version">MODEL EDITOR v0.10</div>
 </header>
 
 <main class="panel">
@@ -406,7 +410,12 @@ input[type=file]{
       </button>
     </div>
 
-    <div class="model-source-title">เลือก Pokémon ใน ROM ที่จะใช้เป็น Model</div>
+    <div class="model-source-title">MODEL SOURCE — เลือก Model ต้นแบบ</div>
+    <div class="model-source-tools">
+      <input id="modelSourceSearch" type="search" placeholder="ค้นหา Model Source ด้วยชื่อ หรือ ROM ID..." autocomplete="off">
+      <button class="model-btn" id="clearModelSourceSearch">ล้าง</button>
+    </div>
+    <div id="modelSourceInfo" class="model-source-info">เลือก Pokémon จาก ROM เพื่อใช้เป็น Model Source</div>
     <div id="modelSources" class="model-sources"></div>
 
     <div class="model-warning">
@@ -512,13 +521,13 @@ input[type=file]{
     </div>
     <div class="model-build-status" id="modelBuildStatus">ยังไม่มี Model Package — กด BUILD หลังจากตรวจ Asset</div>
     <div class="model-builder-note">
-      v0.9 สร้างและตรวจสอบ Package สำหรับ Model ของ SoulGold ในเบราว์เซอร์เท่านั้น<br>
+      v0.10 สร้างและตรวจสอบ Package สำหรับ Model ของ SoulGold ในเบราว์เซอร์เท่านั้น<br>
       ยังไม่เขียน Save หรือ ROM และยังไม่อ้างว่า Package นี้เป็นรูปแบบ byte จริงของ ROM
     </div>
   </div>
 
   <div class="package-inspector" id="packageInspector">
-    <h3>🔎 MODEL PACKAGE INSPECTOR v0.9</h3>
+    <h3>🔎 MODEL PACKAGE INSPECTOR v0.10</h3>
     <div class="package-summary" id="packageSummary">
       <div class="package-stat">สถานะ<b>-</b></div>
       <div class="package-stat">ขนาด Package<b>-</b></div>
@@ -539,14 +548,14 @@ input[type=file]{
     </details>
 
     <div class="asset-note" style="margin-top:13px">
-      <b>หมายเหตุ v0.9</b><br>
+      <b>หมายเหตุ v0.10</b><br>
       Inspector นี้ตรวจ Package ที่สร้างโดย Model Editor เท่านั้น
       และยังไม่อ้างว่าเป็นโครงสร้าง byte ของกราฟิกใน SoulGold ROM
     </div>
   </div>
 
   <div class="asset-note">
-    <b>โหมด v0.9 — ROM Pokémon Search + Asset + Palette + Model Builder + Package Inspector Preview</b><br>
+    <b>โหมด v0.10 — ROM Pokémon Search + Model Workspace + Asset + Palette + Package Inspector Preview</b><br>
     ระบบนี้ยังไม่เขียน Save หรือ ROM และยังไม่สร้าง Model ID จริงใน ROM
     โดยจะช่วยเตรียม Front / Back / Left / Right / Shiny / Cry / UI Icon,
     ปรับพื้นหลังขาวเป็น Transparent, ย่อ Preview เป็น 64×64 และตรวจ/ลดจำนวนสีได้ตั้งแต่ 16 ถึง 256 สี
@@ -1115,24 +1124,35 @@ function renderModelSources(){
     return;
   }
 
-  const query=(document.getElementById('pokemonSearch')?.value||'').trim().toLowerCase();
-  const filter=(document.getElementById('pokemonFormFilter')?.value||'');
+  const query=(document.getElementById('modelSourceSearch')?.value||'').trim().toLowerCase();
   const filtered=loadedPokemonPool.filter(p=>{
-    const text=(p.species+' '+p.name+' '+p.form+' '+p.offset).toLowerCase();
-    if(query && !text.includes(query))return false;
-    if(filter==='base' && p.form!=='Base / standard / special slot')return false;
-    if(filter==='form' && (p.form==='Base / standard / special slot' || /Mega \/ Legends Z-A form/i.test(p.form) || /Gigantamax/i.test(p.form)))return false;
-    if(filter==='mega' && !/Mega \/ Legends Z-A form/i.test(p.form))return false;
-    if(filter==='gmax' && !/Gigantamax/i.test(p.form))return false;
-    return true;
+    const text=(p.species+' '+p.name+' '+p.form).toLowerCase();
+    return !query || text.includes(query);
   });
+  const info=document.getElementById('modelSourceInfo');
+  if(info) info.textContent=query
+    ? 'Model Source: พบ '+filtered.length.toLocaleString()+' รายการจากการค้นหา “'+query+'”'
+    : 'Model Source: แสดงรายการ Model ต้นแบบ — ค้นหาด้วยชื่อหรือ ROM ID ได้';
 
   if(!filtered.length){
-    box.innerHTML="<div class='model-warning'>ไม่พบ Pokémon ที่ตรงกับการค้นหา</div>";
+    box.innerHTML="<div class='model-warning'>ไม่พบ Model Source ที่ตรงกับการค้นหา</div>";
     return;
   }
 
-  filtered.forEach(p=>{
+  const ranked=filtered.map(p=>{
+    let score=0;
+    if(query){
+      const id=String(p.species),name=p.name.toLowerCase();
+      if(id===query)score=10000;
+      else if(name===query)score=9000;
+      else if(id.startsWith(query))score=8000;
+      else if(name.startsWith(query))score=7000;
+      else if(name.includes(query))score=6000;
+    }
+    return {p,score};
+  }).sort((a,b)=>b.score-a.score||a.p.species-b.p.species).slice(0,24).map(x=>x.p);
+
+  ranked.forEach(p=>{
     const el=document.createElement('button');
     el.type='button';
     el.className='model-source'+(modelSource&&modelSource.species===p.species?' selected':'');
@@ -1987,6 +2007,11 @@ const clearPokemonSearchEl=document.getElementById('clearPokemonSearch');
 if(pokemonSearchEl)pokemonSearchEl.addEventListener('input',()=>{renderPokemonSearch();renderModelSources();});
 if(pokemonFormFilterEl)pokemonFormFilterEl.addEventListener('change',()=>{renderPokemonSearch();renderModelSources();});
 if(clearPokemonSearchEl)clearPokemonSearchEl.onclick=()=>{if(pokemonSearchEl)pokemonSearchEl.value='';if(pokemonFormFilterEl)pokemonFormFilterEl.value='';renderPokemonSearch();renderModelSources();};
+
+const modelSourceSearchEl=document.getElementById('modelSourceSearch');
+const clearModelSourceSearchEl=document.getElementById('clearModelSourceSearch');
+if(modelSourceSearchEl)modelSourceSearchEl.addEventListener('input',renderModelSources);
+if(clearModelSourceSearchEl)clearModelSourceSearchEl.onclick=()=>{if(modelSourceSearchEl)modelSourceSearchEl.value='';renderModelSources();};
 
 document.getElementById('romFile').addEventListener('change',async e=>{
   const f=e.target.files[0];
