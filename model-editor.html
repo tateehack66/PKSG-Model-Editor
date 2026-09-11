@@ -241,6 +241,33 @@ input[type=file]{
   .asset-preview{width:108px;height:108px}
 }
 
+
+/* ===== MODEL PALETTE TOOLS v0.6 — additive only ===== */
+.palette-tools{
+  margin-top:18px;padding:16px;border:1px solid #315170;border-radius:16px;
+  background:rgba(7,20,33,.72)
+}
+.palette-tools h3{color:#ff9fbd;font-size:18px;margin:0 0 10px}
+.palette-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.palette-row label{color:#b9c9dc;font-size:13px}
+.palette-row select{
+  min-width:150px;padding:10px 12px;border-radius:10px;border:1px solid #315170;
+  background:#071421;color:#fff;font:inherit
+}
+.palette-stats{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px
+}
+.palette-stat{
+  border:1px solid #263b54;border-radius:10px;padding:9px;background:#091827;
+  color:#aebed1;font-size:12px
+}
+.palette-stat b{display:block;color:#fff;font-size:14px;margin-top:2px}
+.palette-good{color:#86e6b2!important}
+.palette-warn{color:#ffd27a!important}
+.palette-bad{color:#ff8da9!important}
+@media(max-width:760px){
+  .palette-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
@@ -248,7 +275,7 @@ input[type=file]{
 <header class="header">
   <div class="logo">PKSG</div>
   <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-  <div class="version">MODEL EDITOR v0.2</div>
+  <div class="version">MODEL EDITOR v0.6</div>
 </header>
 
 <main class="panel">
@@ -313,7 +340,7 @@ input[type=file]{
     <div id="modelSources" class="model-sources"></div>
 
     <div class="model-warning">
-      <b>โหมด Preview v0.5</b><br>
+      <b>โหมด Preview v0.6</b><br>
       ตอนนี้ระบบเปลี่ยนเฉพาะ Preview ในหน้าเว็บ ยังไม่เขียนทับข้อมูลใน Save หรือ ROM
       เพื่อรักษา Save Editor เดิมและ Reader ให้ปลอดภัยก่อน
     </div>
@@ -364,16 +391,40 @@ input[type=file]{
     ยังไม่มี Asset — สามารถอัปโหลด Sprite Sheet หรือเลือกภาพทีละช่องได้
   </div>
 
+
+  <div class="palette-tools">
+    <h3>🎨 COLOR PALETTE</h3>
+    <div class="palette-row">
+      <label for="paletteLimit">จำนวนสีสูงสุด:</label>
+      <select id="paletteLimit">
+        <option value="0">Original — ไม่ลดสี</option>
+        <option value="16">16 Colors</option>
+        <option value="32">32 Colors</option>
+        <option value="64" selected>64 Colors</option>
+        <option value="128">128 Colors</option>
+        <option value="256">256 Colors</option>
+      </select>
+      <button class="asset-btn primary" id="applyPalette">ลดสีทุก Asset</button>
+      <button class="asset-btn" id="restorePalette">คืนภาพต้นฉบับ</button>
+    </div>
+    <div class="palette-stats" id="paletteStats">
+      <div class="palette-stat">Asset<b>-</b></div>
+      <div class="palette-stat">สีจริง<b>-</b></div>
+      <div class="palette-stat">Transparency<b>-</b></div>
+      <div class="palette-stat">สถานะ<b>-</b></div>
+    </div>
+  </div>
+
   <div id="assetResult" class="asset-result">
     <h3>MODEL PREVIEW</h3>
     <div id="assetResultGrid" class="asset-result-grid"></div>
   </div>
 
   <div class="asset-note">
-    <b>โหมด v0.5.2 — Asset Preview เท่านั้น</b><br>
+    <b>โหมด v0.6 — Asset + Palette Preview เท่านั้น</b><br>
     ระบบนี้ยังไม่เขียน Save หรือ ROM และยังไม่สร้าง Model ID จริงใน ROM
     โดยจะช่วยเตรียม Front / Back / Left / Right / Shiny / Cry / UI Icon,
-    ปรับพื้นหลังขาวเป็น Transparent และย่อ Preview เป็น 64×64 ก่อน
+    ปรับพื้นหลังขาวเป็น Transparent, ย่อ Preview เป็น 64×64 และตรวจ/ลดจำนวนสีได้ตั้งแต่ 16 ถึง 256 สี
     ขั้น ROM Patcher จะทำภายหลังหลังจากเราตรวจโครงสร้างกราฟิกของ ROM ให้แน่นอนแล้ว
   </div>
 </section>
@@ -1164,7 +1215,7 @@ function renderAssetSlots(){
       try{
         const im=await makeImageFromDataURL(url);
         const dataUrl=imageTo64DataURL(im);
-        assetState[def.key]={dataUrl,sourceName:f.name,width:im.naturalWidth,height:im.naturalHeight};
+        assetState[def.key]={dataUrl,originalDataUrl:dataUrl,sourceName:f.name,width:im.naturalWidth,height:im.naturalHeight};
         renderAssetSlots();
         setAssetStatus("อัปโหลด "+def.label+" แล้ว • ปรับ Preview เป็น 64×64 และลบพื้นหลังขาวให้แล้ว");
       }catch(err){
@@ -1177,7 +1228,8 @@ function renderAssetSlots(){
     const info=document.createElement("div");
     info.className="asset-info";
     info.textContent=assetState[def.key]
-      ? assetState[def.key].sourceName+" → 64×64 PNG"
+      ? assetState[def.key].sourceName+" → 64×64 PNG"+
+        (assetState[def.key].paletteLimit?" • ≤"+assetState[def.key].paletteLimit+" สี":"")
       : "ยังไม่มีภาพ";
 
     card.append(title,preview,input,info);
@@ -1243,8 +1295,10 @@ async function autoSplitSpriteSheet(){
     ctx.drawImage(im,sx,sy,sw,sh,dx,dy,dw,dh);
     removeNearWhiteBackground(ctx,64,64);
 
+    const croppedDataUrl=canvas.toDataURL("image/png");
     assetState[def.key]={
-      dataUrl:canvas.toDataURL("image/png"),
+      dataUrl:croppedDataUrl,
+      originalDataUrl:croppedDataUrl,
       sourceName:"Sprite Sheet / auto crop",
       width:sw,height:sh
     };
@@ -1266,6 +1320,170 @@ function clearAssets(){
   setAssetStatus("ล้าง Asset แล้ว");
 }
 
+
+function imageStatsFromDataURL(dataUrl){
+  return makeImageFromDataURL(dataUrl).then(im=>{
+    const c=document.createElement("canvas");
+    c.width=im.naturalWidth||im.width;c.height=im.naturalHeight||im.height;
+    const ctx=c.getContext("2d",{willReadFrequently:true});
+    ctx.drawImage(im,0,0);
+    const d=ctx.getImageData(0,0,c.width,c.height).data;
+    const colors=new Set();
+    let transparent=0,opaque=0;
+    for(let i=0;i<d.length;i+=4){
+      const a=d[i+3];
+      if(a<16){transparent++;continue;}
+      opaque++;
+      colors.add((d[i]<<16)|(d[i+1]<<8)|d[i+2]);
+    }
+    return {colors:colors.size,transparent,opaque,totalPixels:c.width*c.height};
+  });
+}
+
+function updatePaletteStats(){
+  const root=assetCreatorEl("paletteStats");
+  const keys=MODEL_ASSETS.filter(x=>assetState[x.key]).map(x=>x.key);
+  if(!keys.length){
+    root.innerHTML=
+      '<div class="palette-stat">Asset<b>-</b></div>'+
+      '<div class="palette-stat">สีจริง<b>-</b></div>'+
+      '<div class="palette-stat">Transparency<b>-</b></div>'+
+      '<div class="palette-stat">สถานะ<b>-</b></div>';
+    return;
+  }
+  Promise.all(keys.map(k=>imageStatsFromDataURL(assetState[k].dataUrl))).then(stats=>{
+    const max=Math.max(...stats.map(x=>x.colors));
+    const min=Math.min(...stats.map(x=>x.colors));
+    const avg=Math.round(stats.reduce((a,x)=>a+x.colors,0)/stats.length);
+    const transparentAssets=stats.filter(x=>x.transparent>0).length;
+    const limit=parseInt(assetCreatorEl("paletteLimit").value,10);
+    let state="Original";
+    let cls="";
+    if(limit>0){
+      if(max<=limit){state="ผ่านทุก Asset";cls="palette-good";}
+      else{state="ยังมี Asset เกิน";cls="palette-warn";}
+    }
+    root.innerHTML=
+      '<div class="palette-stat">Asset<b>'+keys.length+'/7</b></div>'+
+      '<div class="palette-stat">สีจริง (min–max)<b>'+min+'–'+max+' / เฉลี่ย '+avg+'</b></div>'+ 
+      '<div class="palette-stat">Transparency<b>'+transparentAssets+'/'+keys.length+' ช่อง</b></div>'+ 
+      '<div class="palette-stat '+cls+'">สถานะ<b>'+state+'</b></div>';
+  }).catch(()=>{});
+}
+
+function medianCutPalette(pixels,target){
+  const freq=new Map();
+  for(const p of pixels) freq.set(p,(freq.get(p)||0)+1);
+  let colors=[...freq.keys()];
+  if(colors.length<=target)return colors;
+
+  const boxes=[colors];
+  while(boxes.length<target){
+    let bestIndex=-1,bestRange=-1;
+    for(let i=0;i<boxes.length;i++){
+      const box=boxes[i];
+      if(box.length<2)continue;
+      let rmin=255,rmax=0,gmin=255,gmax=0,bmin=255,bmax=0;
+      for(const p of box){
+        const r=(p>>16)&255,g=(p>>8)&255,b=p&255;
+        if(r<rmin)rmin=r;if(r>rmax)rmax=r;
+        if(g<gmin)gmin=g;if(g>gmax)gmax=g;
+        if(b<bmin)bmin=b;if(b>bmax)bmax=b;
+      }
+      const range=Math.max(rmax-rmin,gmax-gmin,bmax-bmin);
+      if(range>bestRange){bestRange=range;bestIndex=i;}
+    }
+    if(bestIndex<0)break;
+    const box=boxes.splice(bestIndex,1)[0];
+    let rmin=255,rmax=0,gmin=255,gmax=0,bmin=255,bmax=0;
+    for(const p of box){
+      const r=(p>>16)&255,g=(p>>8)&255,b=p&255;
+      if(r<rmin)rmin=r;if(r>rmax)rmax=r;
+      if(g<gmin)gmin=g;if(g>gmax)gmax=g;
+      if(b<bmin)bmin=b;if(b>bmax)bmax=b;
+    }
+    const rr=rmax-rmin,gg=gmax-gmin,bb=bmax-bmin;
+    const channel=rr>=gg&&rr>=bb?16:gg>=bb?8:0;
+    box.sort((a,b)=>((a>>channel)&255)-((b>>channel)&255));
+    let total=0;
+    for(const p of box)total+=freq.get(p)||1;
+    let acc=0,cut=1;
+    for(let i=0;i<box.length;i++){
+      acc+=freq.get(box[i])||1;
+      if(acc>=total/2){cut=Math.max(1,Math.min(box.length-1,i+1));break;}
+    }
+    boxes.push(box.slice(0,cut),box.slice(cut));
+  }
+
+  return boxes.map(box=>{
+    let sr=0,sg=0,sb=0,total=0;
+    for(const p of box){
+      const n=freq.get(p)||1;
+      sr+=((p>>16)&255)*n;sg+=((p>>8)&255)*n;sb+=(p&255)*n;total+=n;
+    }
+    return (Math.round(sr/total)<<16)|(Math.round(sg/total)<<8)|Math.round(sb/total);
+  });
+}
+
+function quantizeDataURL(dataUrl,target){
+  return makeImageFromDataURL(dataUrl).then(im=>{
+    const w=im.naturalWidth||im.width,h=im.naturalHeight||im.height;
+    const c=document.createElement("canvas");c.width=w;c.height=h;
+    const ctx=c.getContext("2d",{willReadFrequently:true});
+    ctx.drawImage(im,0,0);
+    const img=ctx.getImageData(0,0,w,h),d=img.data;
+    const opaque=[];
+    for(let i=0;i<d.length;i+=4){
+      if(d[i+3]>=16)opaque.push((d[i]<<16)|(d[i+1]<<8)|d[i+2]);
+    }
+    const palette=medianCutPalette(opaque,Math.max(1,target));
+    const out=ctx.createImageData(w,h);
+    const od=out.data;
+    for(let i=0;i<d.length;i+=4){
+      const a=d[i+3];
+      if(a<16){od[i]=0;od[i+1]=0;od[i+2]=0;od[i+3]=0;continue;}
+      let best=palette[0],bd=Infinity;
+      for(const p of palette){
+        const pr=(p>>16)&255,pg=(p>>8)&255,pb=p&255;
+        const dr=d[i]-pr,dg=d[i+1]-pg,db=d[i+2]-pb;
+        const dist=dr*dr+dg*dg+db*db;
+        if(dist<bd){bd=dist;best=p;}
+      }
+      od[i]=(best>>16)&255;od[i+1]=(best>>8)&255;od[i+2]=best&255;od[i+3]=a;
+    }
+    ctx.putImageData(out,0,0);
+    return c.toDataURL("image/png");
+  });
+}
+
+async function applyPaletteToAll(){
+  const limit=parseInt(assetCreatorEl("paletteLimit").value,10);
+  const keys=MODEL_ASSETS.filter(x=>assetState[x.key]).map(x=>x.key);
+  if(!keys.length){setAssetStatus("⚠️ ยังไม่มี Asset ให้ลดสี");return;}
+  if(!limit){await restorePaletteAll();return;}
+  setAssetStatus("กำลังลดสีทุก Asset เหลือไม่เกิน "+limit+" สี...");
+  for(const key of keys){
+    const st=assetState[key];
+    if(!st.originalDataUrl)st.originalDataUrl=st.dataUrl;
+    st.dataUrl=await quantizeDataURL(st.originalDataUrl,limit);
+    st.paletteLimit=limit;
+  }
+  renderAssetSlots();
+  updatePaletteStats();
+  setAssetStatus("✅ ลดสีทุก Asset แล้ว — เป้าหมายไม่เกิน "+limit+" สี\nภาพต้นฉบับยังถูกเก็บไว้สำหรับ Restore");
+}
+
+async function restorePaletteAll(){
+  let restored=0;
+  MODEL_ASSETS.forEach(def=>{
+    const st=assetState[def.key];
+    if(st?.originalDataUrl){st.dataUrl=st.originalDataUrl;delete st.paletteLimit;restored++;}
+  });
+  renderAssetSlots();
+  updatePaletteStats();
+  setAssetStatus(restored?"✅ คืนภาพต้นฉบับแล้ว — ยังไม่แตะ Save/ROM":"ยังไม่มีภาพต้นฉบับให้คืน");
+}
+
 function validateAssets(){
   const missing=MODEL_ASSETS.filter(def=>!assetState[def.key]);
   if(missing.length){
@@ -1284,7 +1502,8 @@ function validateAssets(){
     "ชื่อ: "+name+"\n"+
     "Model ID: "+id+"\n"+
     "Assets: 7/7\n"+
-    "รูป Preview ทุกช่อง: 64×64 PNG"
+    "รูป Preview ทุกช่อง: 64×64 PNG\n"+
+    "Palette: ตรวจได้ใน COLOR PALETTE ด้านล่าง"
   );
   return true;
 }
@@ -1327,7 +1546,13 @@ document.getElementById("autoSplitSheet").onclick=()=>{
 document.getElementById("clearAssets").onclick=clearAssets;
 document.getElementById("validateAssets").onclick=validateAssets;
 document.getElementById("previewAssetSet").onclick=previewAssetSet;
+document.getElementById("applyPalette").onclick=()=>{
+  applyPaletteToAll().catch(err=>setAssetStatus("❌ ลดสีไม่สำเร็จ: "+err.message));
+};
+document.getElementById("restorePalette").onclick=()=>restorePaletteAll().catch(err=>setAssetStatus("❌ คืนภาพไม่สำเร็จ: "+err.message));
+document.getElementById("paletteLimit").onchange=updatePaletteStats;
 renderAssetSlots();
+updatePaletteStats();
 /* ===== END MODEL ASSET CREATOR v0.5 ===== */
 
 
