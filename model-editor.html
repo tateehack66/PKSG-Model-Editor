@@ -335,6 +335,19 @@ input[type=file]{
 .model-source-info{padding:10px 12px;border:1px dashed #315170;border-radius:12px;color:#9fd3ff;font-size:13px;margin-bottom:10px}
 @media(max-width:760px){.model-source-tools{grid-template-columns:1fr}.model-source-tools .model-btn{width:100%}}
 @media(max-width:760px){.rom-db-toolbar{grid-template-columns:1fr}.pokemon-search-results{grid-template-columns:repeat(2,minmax(0,1fr))}.pokemon-selected.show{align-items:flex-start}}
+
+/* v0.11 ROM MODEL ANALYZER */
+.rom-analyzer{margin-top:18px;padding:16px;border:1px solid #315170;border-radius:18px;background:#08192b}
+.rom-analyzer h2{color:#ff6b9d;margin:0 0 10px;font-size:22px}
+.analyzer-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.analyzer-status{padding:12px;border:1px dashed #315170;border-radius:12px;color:#a9d7ff;white-space:pre-line;line-height:1.45}
+.analyzer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.analyzer-card{padding:12px;border:1px solid #315170;border-radius:12px;background:#0b2035;min-width:0}
+.analyzer-card b{display:block;color:#ffd0df;margin-bottom:5px}
+.analyzer-card small{display:block;color:#aebed1;line-height:1.45;word-break:break-word}
+.analyzer-card .ptr{color:#9fd3ff;font-weight:800}
+.analyzer-note{margin-top:12px;padding:12px;border-radius:12px;background:#102943;color:#a9d7ff;line-height:1.5}
+@media(max-width:760px){.analyzer-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -342,7 +355,7 @@ input[type=file]{
 <header class="header">
   <div class="logo">PKSG</div>
   <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-  <div class="version">MODEL EDITOR v0.10</div>
+  <div class="version">MODEL EDITOR v0.11</div>
 </header>
 
 <main class="panel">
@@ -376,6 +389,18 @@ input[type=file]{
     <div id="pokemonSearchResults" class="pokemon-search-results"></div>
   </section>
 
+
+
+  <section id="romAnalyzer" class="rom-analyzer hidden">
+    <h2>🔬 ROM MODEL ANALYZER v0.11</h2>
+    <div class="analyzer-toolbar">
+      <button class="model-btn primary" id="analyzeSelectedModel">วิเคราะห์ Model ของ Pokémon ที่เลือก</button>
+      <button class="model-btn" id="clearRomAnalyzer">ล้างผลวิเคราะห์</button>
+    </div>
+    <div id="romAnalyzerStatus" class="analyzer-status">เลือก ROM และ Pokémon ก่อน แล้วกดวิเคราะห์</div>
+    <div id="romAnalyzerGrid" class="analyzer-grid"></div>
+    <div class="analyzer-note">v0.11 ยังเป็นโหมดอ่านอย่างเดียว: ตรวจโครงสร้าง Record และ Pointer ใน ROM เท่านั้น ยังไม่แก้ byte ใด ๆ ใน ROM</div>
+  </section>
 
   <section id="modelEditor" class="model-editor hidden">
     <div class="model-head">
@@ -2029,6 +2054,82 @@ document.getElementById('romFile').addEventListener('change',async e=>{
 });
 /* ===== END MODEL ASSET CREATOR v0.5 ===== */
 
+
+
+/* ===== ROM MODEL ANALYZER v0.11 ===== */
+let analyzerRomBytes=null;
+function gbaPtrToFile(ptr){
+  if(ptr>=0x08000000 && ptr<0x0A000000){
+    const off=ptr-0x08000000;
+    return off<analyzerRomBytes.length?off:null;
+  }
+  return null;
+}
+function hexN(v,n=8){return '0x'+Number(v>>>0).toString(16).toUpperCase().padStart(n,'0');}
+function analyzerBytes(off,count=16){
+  if(off==null||!analyzerRomBytes)return '';
+  return Array.from(analyzerRomBytes.slice(off,off+count)).map(x=>x.toString(16).padStart(2,'0')).join(' ');
+}
+function classifyAsset(off){
+  if(off==null)return 'Pointer ไม่อยู่ในช่วง ROM';
+  const x=analyzerRomBytes[off];
+  if(x===0x10)return 'LZ77 header (0x10) — มีโอกาสเป็นข้อมูลบีบอัด';
+  if(x===0x00)return 'เริ่มด้วย 00 — ต้องวิเคราะห์โครงสร้างต่อ';
+  return 'Raw/Custom data — ยังไม่ฟันธง format';
+}
+function analyzeSelectedModel(){
+  const st=document.getElementById('romAnalyzerStatus');
+  const grid=document.getElementById('romAnalyzerGrid');
+  grid.innerHTML='';
+  if(!analyzerRomBytes){st.textContent='❌ ยังไม่ได้เลือก ROM';return;}
+  if(!modelTarget){st.textContent='❌ กรุณาเลือก Pokémon จาก POKÉMON IN ROM ก่อน';return;}
+  const rec=ROM_POKEMON_ID_MAP.find(r=>r.id===Number(modelTarget.species));
+  if(!rec){st.textContent='❌ ไม่พบ ROM record ของ ID '+modelTarget.species;return;}
+  const recordOff=parseInt(rec.offset,16);
+  if(!Number.isFinite(recordOff)||recordOff<0||recordOff+0x118>analyzerRomBytes.length){st.textContent='❌ Record offset อยู่นอก ROM: '+rec.offset;return;}
+  const view=new DataView(analyzerRomBytes.buffer,analyzerRomBytes.byteOffset,analyzerRomBytes.byteLength);
+  const fields=[
+    ['Front / field +0x48',0x48],
+    ['Back / field +0x4C',0x4C],
+    ['Normal Palette / field +0x50',0x50],
+    ['Shiny Palette / field +0x54',0x54],
+    ['Asset / field +0x58',0x58],
+    ['Aux pointer / field +0x3C',0x3C],
+    ['Name/Data pointer / field +0x44',0x44]
+  ];
+  st.textContent='✅ พบ ROM Record\n'+rec.name+' #'+rec.id+' · '+rec.form+'\nRecord file offset: '+hexN(recordOff,6)+' · Record size: 0x118 bytes';
+  const header=document.createElement('div');header.className='analyzer-card';header.style.gridColumn='1/-1';
+  header.innerHTML='<b>SOULGOLD RECORD</b><small>ROM ID #'+rec.id+' · '+rec.name+'</small><small>Record: '+hexN(recordOff,6)+' → '+hexN(recordOff+0x118,6)+'</small><small>ข้อมูลนี้มาจาก ROM จริง ไม่ได้อ่านจาก Save</small>';
+  grid.appendChild(header);
+  for(const [label,field] of fields){
+    const ptr=view.getUint32(recordOff+field,true);
+    const off=gbaPtrToFile(ptr);
+    const card=document.createElement('div');card.className='analyzer-card';
+    card.innerHTML='<b>'+label+'</b><small class="ptr">Pointer: '+hexN(ptr)+'</small><small>File offset: '+(off==null?'—':hexN(off,6))+'</small><small>Format hint: '+classifyAsset(off)+'</small><small>Bytes: '+(off==null?'—':analyzerBytes(off,16))+'</small>';
+    grid.appendChild(card);
+  }
+}
+function clearRomAnalyzer(){
+  const st=document.getElementById('romAnalyzerStatus'),grid=document.getElementById('romAnalyzerGrid');
+  if(st)st.textContent='เลือก ROM และ Pokémon ก่อน แล้วกดวิเคราะห์';
+  if(grid)grid.innerHTML='';
+}
+const analyzerRomFile=document.getElementById('romFile');
+if(analyzerRomFile)analyzerRomFile.addEventListener('change',async e=>{
+  const f=e.target.files?.[0];
+  if(!f)return;
+  try{
+    analyzerRomBytes=new Uint8Array(await f.arrayBuffer());
+    document.getElementById('romAnalyzer').classList.remove('hidden');
+    document.getElementById('romAnalyzerStatus').textContent='✅ โหลด ROM เข้า Analyzer แล้ว · '+formatBytes(analyzerRomBytes.length)+'\nเลือก Pokémon แล้วกด “วิเคราะห์ Model ของ Pokémon ที่เลือก”';
+  }catch(err){
+    analyzerRomBytes=null;
+    document.getElementById('romAnalyzerStatus').textContent='❌ อ่าน ROM ไม่สำเร็จ: '+err.message;
+  }
+});
+document.getElementById('analyzeSelectedModel').onclick=analyzeSelectedModel;
+document.getElementById('clearRomAnalyzer').onclick=clearRomAnalyzer;
+/* ===== END ROM MODEL ANALYZER v0.11 ===== */
 
 // v0.9: Save Reader UI is intentionally removed from the Model Editor.
 // Model selection is now driven by the SoulGold ROM database.
