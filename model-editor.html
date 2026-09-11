@@ -348,6 +348,10 @@ input[type=file]{
 .analyzer-card .ptr{color:#9fd3ff;font-weight:800}
 .analyzer-note{margin-top:12px;padding:12px;border-radius:12px;background:#102943;color:#a9d7ff;line-height:1.5}
 @media(max-width:760px){.analyzer-grid{grid-template-columns:1fr}}
+.analyzer-hex{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#b9d9f2;word-break:break-all}
+.analyzer-chip{display:inline-block;padding:2px 7px;border-radius:999px;background:#123250;color:#9fd3ff;margin:2px 3px 2px 0;font-size:11px}
+.analyzer-good{color:#8ff0b0!important}.analyzer-warn{color:#ffd58a!important}.analyzer-danger{color:#ff9fb8!important}
+
 </style>
 </head>
 <body>
@@ -355,7 +359,7 @@ input[type=file]{
 <header class="header">
   <div class="logo">PKSG</div>
   <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-  <div class="version">MODEL EDITOR v0.11</div>
+  <div class="version">MODEL EDITOR v0.12</div>
 </header>
 
 <main class="panel">
@@ -392,14 +396,16 @@ input[type=file]{
 
 
   <section id="romAnalyzer" class="rom-analyzer hidden">
-    <h2>🔬 ROM MODEL ANALYZER v0.11</h2>
+    <h2>🔬 ROM MODEL ANALYZER v0.12</h2>
     <div class="analyzer-toolbar">
       <button class="model-btn primary" id="analyzeSelectedModel">วิเคราะห์ Model ของ Pokémon ที่เลือก</button>
       <button class="model-btn" id="clearRomAnalyzer">ล้างผลวิเคราะห์</button>
+      <button class="model-btn" id="deepAnalyzeRom">วิเคราะห์โครงสร้างปลายทาง</button>
     </div>
     <div id="romAnalyzerStatus" class="analyzer-status">เลือก ROM และ Pokémon ก่อน แล้วกดวิเคราะห์</div>
     <div id="romAnalyzerGrid" class="analyzer-grid"></div>
-    <div class="analyzer-note">v0.11 ยังเป็นโหมดอ่านอย่างเดียว: ตรวจโครงสร้าง Record และ Pointer ใน ROM เท่านั้น ยังไม่แก้ byte ใด ๆ ใน ROM</div>
+    <div id="romDeepGrid" class="analyzer-grid"></div>
+    <div class="analyzer-note">v0.12 ยังเป็นโหมดอ่านอย่างเดียว: ตรวจ Record, Pointer, ข้อมูลปลายทาง, XREF และโครงสร้างที่เกี่ยวข้อง ยังไม่แก้ byte ใด ๆ ใน ROM</div>
   </section>
 
   <section id="modelEditor" class="model-editor hidden">
@@ -2129,7 +2135,113 @@ if(analyzerRomFile)analyzerRomFile.addEventListener('change',async e=>{
 });
 document.getElementById('analyzeSelectedModel').onclick=analyzeSelectedModel;
 document.getElementById('clearRomAnalyzer').onclick=clearRomAnalyzer;
-/* ===== END ROM MODEL ANALYZER v0.11 ===== */
+/* ===== v0.12 DEEP ROM STRUCTURE ANALYZER ===== */
+function analyzerU16(off){
+  if(!analyzerRomBytes || off==null || off<0 || off+2>analyzerRomBytes.length) return null;
+  return analyzerRomBytes[off] | (analyzerRomBytes[off+1]<<8);
+}
+function analyzerU32(off){
+  if(!analyzerRomBytes || off==null || off<0 || off+4>analyzerRomBytes.length) return null;
+  return (analyzerRomBytes[off] | (analyzerRomBytes[off+1]<<8) | (analyzerRomBytes[off+2]<<16) | (analyzerRomBytes[off+3]<<24))>>>0;
+}
+function analyzerLzInfo(off){
+  if(off==null || off+4>analyzerRomBytes.length || analyzerRomBytes[off]!==0x10) return null;
+  const size=analyzerRomBytes[off+1] | (analyzerRomBytes[off+2]<<8) | (analyzerRomBytes[off+3]<<16);
+  return {size};
+}
+function analyzerPointerAt(off){
+  const p=analyzerU32(off);
+  return p==null?null:gbaPtrToFile(p);
+}
+function analyzerScore4bpp(off,bytes=0x200){
+  if(off==null)return null;
+  const end=Math.min(analyzerRomBytes.length,off+bytes);
+  let nonZero=0, highNibble=0, zero=0;
+  for(let i=off;i<end;i++){
+    const v=analyzerRomBytes[i];
+    if(v===0)zero++;
+    else nonZero++;
+    if((v&0xF0)!==0)highNibble++;
+  }
+  const total=Math.max(1,end-off);
+  return {nonZeroRatio:nonZero/total, highNibbleRatio:highNibble/total, zeroRatio:zero/total};
+}
+function analyzerFindXrefsToFileOffset(target,max=24){
+  const out=[];
+  if(target==null)return out;
+  const gba=0x08000000+target;
+  for(let i=0;i+4<=analyzerRomBytes.length && out.length<max;i+=4){
+    if(analyzerU32(i)===gba)out.push(i);
+  }
+  return out;
+}
+function analyzerDescribeBlock(off){
+  if(off==null)return {kind:'invalid'};
+  const lz=analyzerLzInfo(off);
+  if(lz)return {kind:'lz77',detail:'LZ77 0x10',size:lz.size};
+  const u16=analyzerU16(off), u32=analyzerU32(off);
+  const score=analyzerScore4bpp(off,0x200);
+  const ptr=analyzerPointerAt(off);
+  let kind='raw/custom';
+  if(ptr!=null && ptr!==off && ptr<analyzerRomBytes.length) kind='pointer-like';
+  if(score && score.nonZeroRatio>0.55 && score.highNibbleRatio>0.75) kind='dense/raw tile candidate';
+  return {kind, u16,u32,score,ptr};
+}
+function deepAnalyzeRom(){
+  const grid=document.getElementById('romDeepGrid');
+  if(!grid)return;
+  grid.innerHTML='';
+  if(!analyzerRomBytes){
+    grid.innerHTML='<div class="analyzer-card"><b>ยังไม่มี ROM</b><small>เลือก ROM ก่อน</small></div>';return;
+  }
+  if(!modelTarget){
+    grid.innerHTML='<div class="analyzer-card"><b>ยังไม่ได้เลือก Pokémon</b><small>เลือก Pokémon ใน ROM ก่อน</small></div>';return;
+  }
+  const rec=ROM_POKEMON_ID_MAP.find(r=>r.id===Number(modelTarget.species));
+  if(!rec){grid.innerHTML='<div class="analyzer-card"><b>ไม่พบ Record</b></div>';return;}
+  const recordOff=parseInt(rec.offset,16);
+  const view=new DataView(analyzerRomBytes.buffer,analyzerRomBytes.byteOffset,analyzerRomBytes.byteLength);
+  const fields=[
+    ['FRONT candidate',0x48],['BACK candidate',0x4C],['NORMAL PALETTE candidate',0x50],['SHINY PALETTE candidate',0x54],['ASSET/ICON candidate',0x58],['AUX candidate',0x3C],['NAME/DATA candidate',0x44]
+  ];
+  let html='';
+  html+='<div class="analyzer-card" style="grid-column:1/-1"><b>🔎 DEEP STRUCTURE · '+rec.name+' #'+rec.id+'</b><small>Record '+hexN(recordOff,6)+' · ตรวจปลายทางของ Pointer แบบอ่านอย่างเดียว</small><small class="analyzer-warn">คำว่า candidate หมายถึงตำแหน่งที่โครงสร้างชี้ไป — ยังไม่ตีความเป็น Left/Right/Cry/Icon จนกว่าจะมีหลักฐานจาก XREF/รูปแบบข้อมูล</small></div>';
+  for(const [label,field] of fields){
+    const ptr=view.getUint32(recordOff+field,true)>>>0;
+    const off=gbaPtrToFile(ptr);
+    if(off==null){
+      html+='<div class="analyzer-card"><b>'+label+' · +0x'+field.toString(16).toUpperCase()+'</b><small class="analyzer-danger">Pointer ไม่อยู่ใน ROM: '+hexN(ptr)+'</small></div>';
+      continue;
+    }
+    const info=analyzerDescribeBlock(off);
+    const xrefs=analyzerFindXrefsToFileOffset(off,12);
+    const bytes=analyzerBytes(off,32);
+    const lz=analyzerLzInfo(off);
+    const score=info.score;
+    let metrics='';
+    if(lz)metrics+='<span class="analyzer-chip">LZ77 output '+lz.size+' bytes</span>';
+    if(score)metrics+='<span class="analyzer-chip">non-zero '+(score.nonZeroRatio*100).toFixed(1)+'%</span><span class="analyzer-chip">high-nibble '+(score.highNibbleRatio*100).toFixed(1)+'%</span>';
+    html+='<div class="analyzer-card"><b>'+label+' · +0x'+field.toString(16).toUpperCase()+'</b>'+
+      '<small class="ptr">Pointer '+hexN(ptr)+' → file '+hexN(off,6)+'</small>'+ 
+      '<small>ประเภทเบื้องต้น: <strong>'+info.kind+'</strong></small>'+ 
+      '<small>'+metrics+'</small>'+ 
+      '<small>U16: '+(info.u16==null?'—':hexN(info.u16,4))+' · U32: '+(info.u32==null?'—':hexN(info.u32))+'</small>'+ 
+      '<small class="analyzer-hex">Bytes: '+bytes+'</small>'+ 
+      '<small>XREF ที่ชี้มายัง offset นี้ (สูงสุด 12): '+(xrefs.length?xrefs.map(x=>hexN(x,6)).join(', '):'ไม่พบแบบ aligned 4-byte')+'</small></div>';
+  }
+  grid.innerHTML=html;
+}
+const deepAnalyzeBtn=document.getElementById('deepAnalyzeRom');
+if(deepAnalyzeBtn)deepAnalyzeBtn.onclick=deepAnalyzeRom;
+const oldClearRomAnalyzer=clearRomAnalyzer;
+clearRomAnalyzer=function(){
+  oldClearRomAnalyzer();
+  const deep=document.getElementById('romDeepGrid');
+  if(deep)deep.innerHTML='';
+};
+/* ===== END v0.12 DEEP ROM STRUCTURE ANALYZER ===== */
+
+/* ===== END ROM MODEL ANALYZER v0.12 ===== */
 
 // v0.9: Save Reader UI is intentionally removed from the Model Editor.
 // Model selection is now driven by the SoulGold ROM database.
