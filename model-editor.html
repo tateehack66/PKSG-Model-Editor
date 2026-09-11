@@ -160,7 +160,7 @@ input[type=file]{
   .poke-sprite{width:60px;height:60px}
 }
 
-/* ===== MODEL ASSET CREATOR v0.5 — additive only ===== */
+/* ===== MODEL ASSET CREATOR v0.5.1 — additive only ===== */
 .asset-creator{
   margin-top:28px;
   padding:22px;
@@ -370,7 +370,7 @@ input[type=file]{
   </div>
 
   <div class="asset-note">
-    <b>โหมด v0.5 — Asset Preview เท่านั้น</b><br>
+    <b>โหมด v0.5.1 — Asset Preview เท่านั้น</b><br>
     ระบบนี้ยังไม่เขียน Save หรือ ROM และยังไม่สร้าง Model ID จริงใน ROM
     โดยจะช่วยเตรียม Front / Back / Left / Right / Shiny / Cry / UI Icon,
     ปรับพื้นหลังขาวเป็น Transparent และย่อ Preview เป็น 64×64 ก่อน
@@ -1077,13 +1077,15 @@ document.getElementById("resetModel").onclick=resetModelPreview;
 
 /* ===== MODEL ASSET CREATOR v0.5 — additive only ===== */
 const MODEL_ASSETS = [
-  {key:"front", label:"FRONT", box:[0.03,0.10,0.20,0.38]},
-  {key:"back",  label:"BACK",  box:[0.22,0.10,0.20,0.38]},
-  {key:"left",  label:"LEFT",  box:[0.41,0.10,0.20,0.38]},
-  {key:"right", label:"RIGHT", box:[0.60,0.10,0.20,0.38]},
-  {key:"shiny", label:"SHINY", box:[0.03,0.49,0.22,0.43]},
-  {key:"cry",   label:"CRY",   box:[0.29,0.49,0.22,0.43]},
-  {key:"icon",  label:"UI ICON",box:[0.59,0.49,0.24,0.43]}
+  // Coordinates are relative to the supplied 2048×1143 reference sheet.
+  // They deliberately exclude the large text labels.
+  {key:"front", label:"FRONT", box:[0.025,0.105,0.205,0.395]},
+  {key:"back",  label:"BACK",  box:[0.255,0.105,0.205,0.395]},
+  {key:"left",  label:"LEFT",  box:[0.485,0.105,0.205,0.395]},
+  {key:"right", label:"RIGHT", box:[0.735,0.105,0.235,0.395]},
+  {key:"shiny", label:"SHINY", box:[0.025,0.495,0.235,0.405]},
+  {key:"cry",   label:"CRY",   box:[0.285,0.495,0.245,0.405]},
+  {key:"icon",  label:"UI ICON",box:[0.775,0.485,0.205,0.435]}
 ];
 
 const assetState = {};
@@ -1249,7 +1251,7 @@ async function autoSplitSpriteSheet(){
 
   renderAssetSlots();
   setAssetStatus(
-    "✅ แยก Sprite Sheet เป็น 7 Asset แล้ว\n"+
+    "✅ แยก Sprite Sheet เป็น 7 Asset แล้ว (ปรับตำแหน่ง Crop สำหรับ Sheet ตัวอย่างแล้ว)\n"+
     "ตรวจดูแต่ละช่องได้ และสามารถอัปโหลดทับทีละช่องได้หากตำแหน่งไม่ตรง"
   );
 }
