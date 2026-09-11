@@ -309,20 +309,28 @@ input[type=file]{
 @media(max-width:760px){.package-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 
-/* ===== SOULGOLD ROM POKEMON SEARCH v0.9 ===== */
+/* ===== SOULGOLD ROM POKEMON SEARCH v0.9.2 ===== */
 .rom-reader{border-color:#ff3f72;background:rgba(255,63,114,.05)}
 .rom-db-toolbar{display:grid;grid-template-columns:1fr 190px auto;gap:10px;margin-top:10px}
 .rom-db-toolbar input,.rom-db-toolbar select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #315170;background:#071421;color:#fff;font:inherit}
 .rom-db-info{margin-top:12px;padding:11px 13px;border:1px dashed #315170;border-radius:12px;background:#0b1b2c;color:#9fd3ff;font-size:13px;line-height:1.5}
-.pokemon-search-results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px}
-.pokemon-search-card{border:1px solid #263b54;border-radius:14px;background:#0b1b2c;padding:10px;cursor:pointer;text-align:left;color:#fff}
+.pokemon-selected{display:none;margin-top:12px;padding:12px;border:1px solid #ff3f72;border-radius:14px;background:rgba(255,63,114,.07)}
+.pokemon-selected.show{display:flex;align-items:center;gap:12px}
+.pokemon-selected img{width:58px;height:58px;object-fit:contain;image-rendering:pixelated;background:#071321;border-radius:10px}
+.pokemon-selected b{display:block;font-size:16px}
+.pokemon-selected small{display:block;color:#aebed1;margin-top:3px}
+.pokemon-results-title{margin-top:14px;color:#9fd3ff;font-size:13px}
+.pokemon-search-results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}
+.pokemon-search-card{border:1px solid #263b54;border-radius:12px;background:#0b1b2c;padding:9px;cursor:pointer;text-align:left;color:#fff;min-width:0}
 .pokemon-search-card:hover,.pokemon-search-card.selected{border-color:#ff3f72;box-shadow:0 0 0 2px rgba(255,63,114,.16)}
-.pokemon-search-card .rom-poke-top{display:flex;align-items:center;gap:8px}
-.pokemon-search-card img{width:58px;height:58px;object-fit:contain;image-rendering:pixelated;background:#071321;border-radius:10px;flex:0 0 auto}
-.pokemon-search-card b{display:block;font-size:13px;line-height:1.25}
-.pokemon-search-card small{display:block;color:#8fa1b5;font-size:10px;line-height:1.35;margin-top:3px}
-.pokemon-search-empty{padding:16px;border:1px dashed #315170;border-radius:12px;color:#aebed1;text-align:center}
-@media(max-width:760px){.rom-db-toolbar{grid-template-columns:1fr}.pokemon-search-results{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pokemon-search-card .rom-poke-top{display:flex;align-items:center;gap:8px;min-width:0}
+.pokemon-search-card img{width:46px;height:46px;object-fit:contain;image-rendering:pixelated;background:#071321;border-radius:9px;flex:0 0 auto}
+.pokemon-search-card .rom-poke-text{min-width:0}
+.pokemon-search-card b{display:block;font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pokemon-search-card small{display:block;color:#8fa1b5;font-size:10px;line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pokemon-search-card .rom-poke-id{color:#9fd3ff;font-weight:800}
+.pokemon-search-empty{padding:16px;border:1px dashed #315170;border-radius:12px;color:#aebed1;text-align:center;grid-column:1/-1}
+@media(max-width:760px){.rom-db-toolbar{grid-template-columns:1fr}.pokemon-search-results{grid-template-columns:repeat(2,minmax(0,1fr))}.pokemon-selected.show{align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -330,7 +338,7 @@ input[type=file]{
 <header class="header">
   <div class="logo">PKSG</div>
   <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-  <div class="version">MODEL EDITOR v0.9.1</div>
+  <div class="version">MODEL EDITOR v0.9.2</div>
 </header>
 
 <main class="panel">
@@ -359,6 +367,8 @@ input[type=file]{
       <button class="asset-btn" id="clearPokemonSearch">ล้างค้นหา</button>
     </div>
     <div class="rom-db-info" id="romDbInfo">ฐานข้อมูล Pokémon ของ SoulGold ROM: กำลังเตรียม...</div>
+    <div id="pokemonSelected" class="pokemon-selected"></div>
+    <div id="pokemonResultsTitle" class="pokemon-results-title"></div>
     <div id="pokemonSearchResults" class="pokemon-search-results"></div>
   </section>
 
@@ -1089,6 +1099,7 @@ function selectModelTarget(target){
 
   renderModelSources();
   updateModelButtons();
+  renderPokemonSearch();
 
   editor.scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1180,40 +1191,109 @@ function resetModelPreview(){
   if(typeof updateModelBuilder==='function')updateModelBuilder();
 }
 
+function pokemonSearchScore(rec,query){
+  const q=String(query||'').trim().toLowerCase();
+  if(!q)return 0;
+  const id=String(rec.id),name=String(rec.name||'').toLowerCase(),form=String(rec.form||'').toLowerCase();
+  if(id===q)return 10000;
+  if(name===q)return 9000;
+  if(name.startsWith(q))return 8000-q.length;
+  if(name.includes(q))return 7000-q.length;
+  if(form.includes(q))return 5000-q.length;
+  if(id.startsWith(q))return 6000-q.length;
+  if(/\d+/.test(q)){
+    const n=Number(q),d=Math.abs(rec.id-n);
+    if(d<=100)return 3000-d;
+  }
+  return -1;
+}
+
+function renderSelectedPokemon(){
+  const root=document.getElementById('pokemonSelected');
+  if(!root)return;
+  if(!modelTarget){
+    root.classList.remove('show');
+    root.innerHTML='';
+    return;
+  }
+  root.classList.add('show');
+  const img=document.createElement('img');
+  img.alt=modelTarget.name;
+  setPreviewImage(img,modelTarget.species);
+  const text=document.createElement('div');
+  const b=document.createElement('b');
+  b.textContent='เลือกแล้ว: '+modelTarget.name;
+  const id=document.createElement('small');
+  id.textContent='ROM ID '+modelTarget.species+' · '+modelTarget.form;
+  text.append(b,id);
+  root.innerHTML='';
+  root.append(img,text);
+}
+
 function renderPokemonSearch(){
   const root=document.getElementById('pokemonSearchResults');
   const info=document.getElementById('romDbInfo');
+  const title=document.getElementById('pokemonResultsTitle');
   if(!root)return;
-  const query=(document.getElementById('pokemonSearch')?.value||'').trim().toLowerCase();
+
+  const query=(document.getElementById('pokemonSearch')?.value||'').trim();
+  const q=query.toLowerCase();
   const filter=(document.getElementById('pokemonFormFilter')?.value||'');
   const all=ROM_POKEMON_ID_MAP;
-  const filtered=all.filter(r=>{
-    const text=(r.id+' '+r.name+' '+r.form+' '+r.offset).toLowerCase();
-    if(query&&!text.includes(query))return false;
+  const matches=all.filter(r=>{
+    const text=(r.id+' '+r.name+' '+r.form).toLowerCase();
+    if(q&&!text.includes(q)){
+      if(!/^\d+$/.test(q))return false;
+      const n=Number(q);
+      if(Math.abs(r.id-n)>8)return false;
+    }
     if(filter==='base'&&r.form!=='Base / standard / special slot')return false;
     if(filter==='form'&&(r.form==='Base / standard / special slot'||/Mega \/ Legends Z-A form/i.test(r.form)||/Gigantamax/i.test(r.form)))return false;
     if(filter==='mega'&&!/Mega \/ Legends Z-A form/i.test(r.form))return false;
     if(filter==='gmax'&&!/Gigantamax/i.test(r.form))return false;
     return true;
   });
-  info.textContent='ฐานข้อมูล Pokémon ของ SoulGold ROM: '+all.length.toLocaleString()+' รายการ'+(query||filter?' · พบ '+filtered.length.toLocaleString()+' รายการ':'');
+
+  let results=[];
+  if(!q&&!filter){
+    results=all.slice().sort((a,b)=>a.id-b.id).slice(0,24);
+    title.textContent='Pokémon ID ต้น ๆ · แสดง '+results.length+' รายการแรก — พิมพ์ชื่อหรือ ID เพื่อค้นหา';
+  }else if(q){
+    const ranked=matches.map(r=>({r,score:pokemonSearchScore(r,q)})).sort((a,b)=>b.score-a.score||a.r.id-b.r.id);
+    results=ranked.slice(0,16).map(x=>x.r);
+    title.textContent=results.length
+      ? 'ผลการค้นหา + ตัวที่ใกล้เคียง · แสดงสูงสุด '+results.length+' รายการ'
+      : 'ไม่พบผลตรง — ลองชื่อหรือ ROM ID ใกล้เคียง';
+  }else{
+    results=matches.slice().sort((a,b)=>a.id-b.id).slice(0,24);
+    title.textContent='ผลตาม Form · แสดง '+results.length+' รายการแรก';
+  }
+
+  info.textContent='ฐานข้อมูล Pokémon ของ SoulGold ROM: '+all.length.toLocaleString()+' รายการ'+(q||filter?' · ตรงเงื่อนไข '+matches.length.toLocaleString()+' รายการ':'');
   root.innerHTML='';
-  if(!filtered.length){root.innerHTML='<div class="pokemon-search-empty">ไม่พบ Pokémon ที่ตรงกับการค้นหา</div>';return;}
-  filtered.forEach(r=>{
+  renderSelectedPokemon();
+
+  if(!results.length){
+    root.innerHTML='<div class="pokemon-search-empty">ไม่พบ Pokémon ที่ตรงกับการค้นหา<br><small>ค้นหาได้ทั้งชื่อ Pokémon และ ROM ID</small></div>';
+    return;
+  }
+
+  results.forEach(r=>{
     const card=document.createElement('button');
     card.type='button';
     card.className='pokemon-search-card'+(modelTarget&&modelTarget.species===r.id?' selected':'');
     const top=document.createElement('div');top.className='rom-poke-top';
     const img=document.createElement('img');img.alt=r.name;setPreviewImage(img,r.id);
-    const text=document.createElement('div');
-    text.innerHTML='<b>'+escapeHtml(r.name)+'</b><small>ROM ID '+r.id+'</small><small>'+escapeHtml(r.form)+'</small>';
+    const text=document.createElement('div');text.className='rom-poke-text';
+    const name=document.createElement('b');name.textContent=r.name;
+    const id=document.createElement('small');id.className='rom-poke-id';id.textContent='#'+r.id;
+    const form=document.createElement('small');form.textContent=r.form;
+    text.append(name,id,form);
     top.append(img,text);card.appendChild(top);
-    const off=document.createElement('small');off.textContent='Data offset '+r.offset;card.appendChild(off);
     card.onclick=()=>selectModelTarget({species:r.id,pid:null,formBits:0,level:null,shiny:false,name:r.name,form:r.form,slotLabel:'ROM'});
     root.appendChild(card);
   });
 }
-
 function renderParty(){
   const grid=document.getElementById("partyGrid");
   grid.innerHTML="";
