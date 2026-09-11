@@ -287,6 +287,27 @@ input[type=file]{
   .model-data{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
+
+/* ===== MODEL PACKAGE INSPECTOR v0.8 — additive only ===== */
+.package-inspector{margin-top:18px;padding:16px;border:1px solid #315170;border-radius:16px;background:rgba(7,20,33,.72);display:none}
+.package-inspector.show{display:block}
+.package-inspector h3{color:#ff9fbd;font-size:19px;margin:0 0 12px}
+.package-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.package-stat{border:1px solid #263b54;border-radius:10px;padding:9px;background:#091827;color:#aebed1;font-size:12px}
+.package-stat b{display:block;color:#fff;font-size:14px;margin-top:2px;word-break:break-word}
+.package-asset-table{margin-top:13px;overflow:auto;border:1px solid #263b54;border-radius:12px}
+.package-asset-row{display:grid;grid-template-columns:1.1fr .8fr .8fr 1fr;min-width:520px;border-bottom:1px solid #1e3248}
+.package-asset-row:last-child{border-bottom:0}
+.package-asset-row>div{padding:9px;font-size:12px;color:#b9c9dc}
+.package-asset-row.head>div{color:#ff9fbd;font-weight:800;background:#0d1c2d}
+.package-json{margin-top:13px}
+.package-json summary{cursor:pointer;color:#9fd3ff;font-size:13px}
+.package-json pre{margin:10px 0 0;padding:12px;max-height:280px;overflow:auto;border:1px solid #263b54;border-radius:10px;background:#050d16;color:#b9c9dc;font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-all}
+.package-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.package-ok{color:#86e6b2!important}
+.package-warn{color:#ffd27a!important}
+@media(max-width:760px){.package-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -294,7 +315,7 @@ input[type=file]{
 <header class="header">
   <div class="logo">PKSG</div>
   <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-  <div class="version">MODEL EDITOR v0.7</div>
+  <div class="version">MODEL EDITOR v0.8</div>
 </header>
 
 <main class="panel">
@@ -467,13 +488,41 @@ input[type=file]{
     </div>
     <div class="model-build-status" id="modelBuildStatus">ยังไม่มี Model Package — กด BUILD หลังจากตรวจ Asset</div>
     <div class="model-builder-note">
-      v0.7 สร้าง Package สำหรับ Model ของ SoulGold ในเบราว์เซอร์เท่านั้น<br>
+      v0.8 สร้างและตรวจสอบ Package สำหรับ Model ของ SoulGold ในเบราว์เซอร์เท่านั้น<br>
       ยังไม่เขียน Save หรือ ROM และยังไม่อ้างว่า Package นี้เป็นรูปแบบ byte จริงของ ROM
     </div>
   </div>
 
+  <div class="package-inspector" id="packageInspector">
+    <h3>🔎 MODEL PACKAGE INSPECTOR v0.8</h3>
+    <div class="package-summary" id="packageSummary">
+      <div class="package-stat">สถานะ<b>-</b></div>
+      <div class="package-stat">ขนาด Package<b>-</b></div>
+      <div class="package-stat">Assets<b>-</b></div>
+      <div class="package-stat">SHA-256<b>-</b></div>
+    </div>
+
+    <div class="package-asset-table" id="packageAssetTable"></div>
+
+    <div class="package-actions">
+      <button class="asset-btn" id="copyModelPackage">คัดลอก Package JSON</button>
+      <button class="asset-btn" id="downloadModelManifest">บันทึก Manifest</button>
+    </div>
+
+    <details class="package-json">
+      <summary>ดูโครงสร้าง Package JSON</summary>
+      <pre id="packageJsonPreview"></pre>
+    </details>
+
+    <div class="asset-note" style="margin-top:13px">
+      <b>หมายเหตุ v0.8</b><br>
+      Inspector นี้ตรวจ Package ที่สร้างโดย Model Editor เท่านั้น
+      และยังไม่อ้างว่าเป็นโครงสร้าง byte ของกราฟิกใน SoulGold ROM
+    </div>
+  </div>
+
   <div class="asset-note">
-    <b>โหมด v0.7 — Asset + Palette + Model Builder Preview</b><br>
+    <b>โหมด v0.8 — Asset + Palette + Model Builder + Package Inspector Preview</b><br>
     ระบบนี้ยังไม่เขียน Save หรือ ROM และยังไม่สร้าง Model ID จริงใน ROM
     โดยจะช่วยเตรียม Front / Back / Left / Right / Shiny / Cry / UI Icon,
     ปรับพื้นหลังขาวเป็น Transparent, ย่อ Preview เป็น 64×64 และตรวจ/ลดจำนวนสีได้ตั้งแต่ 16 ถึง 256 สี
@@ -1622,6 +1671,99 @@ function modelBuilderValidation(){
   }
   return true;
 }
+
+function bytesFromDataUrl(dataUrl){
+  if(!dataUrl||typeof dataUrl!=='string')return 0;
+  const comma=dataUrl.indexOf(',');
+  if(comma<0)return 0;
+  const b64=dataUrl.slice(comma+1);
+  return Math.floor(b64.length*3/4)-((b64.endsWith('=='))?2:(b64.endsWith('='))?1:0);
+}
+function formatBytes(n){
+  if(n<1024)return n+' B';
+  if(n<1024*1024)return (n/1024).toFixed(1)+' KB';
+  return (n/(1024*1024)).toFixed(2)+' MB';
+}
+function escapeHtml(v){
+  return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+}
+function renderPackageInspector(json){
+  const root=builderEl('packageInspector');
+  if(!root)return;
+  root.classList.add('show');
+  const summary=builderEl('packageSummary');
+  const table=builderEl('packageAssetTable');
+  const preview=builderEl('packageJsonPreview');
+  const pkg=builtModelPackage;
+  const packageBytes=new Blob([json]).size;
+  const assetRows=MODEL_ASSETS.map(def=>{
+    const a=pkg?.assets?.[def.key];
+    return {label:def.label,key:def.key,bytes:bytesFromDataUrl(a?.pngDataUrl),palette:a?.paletteLimit||'Original',size:(a?.width||0)+'×'+(a?.height||0)};
+  });
+  const totalAssetBytes=assetRows.reduce((n,x)=>n+x.bytes,0);
+  summary.innerHTML=
+    '<div class="package-stat">สถานะ<b class="package-ok">พร้อมใช้งาน</b></div>'+
+    '<div class="package-stat">ขนาด Package<b>'+formatBytes(packageBytes)+'</b></div>'+
+    '<div class="package-stat">Assets<b>'+assetRows.length+'/7 • '+formatBytes(totalAssetBytes)+'</b></div>'+
+    '<div class="package-stat">SHA-256<b id="packageHash">กำลังคำนวณ…</b></div>';
+  table.innerHTML=
+    '<div class="package-asset-row head"><div>Asset</div><div>ขนาด</div><div>Palette</div><div>ข้อมูล PNG</div></div>'+
+    assetRows.map(x=>'<div class="package-asset-row"><div><b>'+escapeHtml(x.label)+'</b></div><div>'+escapeHtml(x.size)+'</div><div>'+escapeHtml(x.palette=== 'Original' ? 'Original' : '≤'+x.palette+' สี')+'</div><div>'+formatBytes(x.bytes)+'</div></div>').join('');
+  preview.textContent=json;
+  if(window.crypto?.subtle){
+    crypto.subtle.digest('SHA-256',new TextEncoder().encode(json)).then(buf=>{
+      const hex=[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+      const h=builderEl('packageHash'); if(h)h.textContent=hex;
+    }).catch(()=>{const h=builderEl('packageHash');if(h)h.textContent='ไม่สามารถคำนวณได้';});
+  }else{
+    const h=builderEl('packageHash');if(h)h.textContent='ไม่รองรับ SHA-256';
+  }
+}
+function copyModelPackage(){
+  if(!builtModelPackage){
+    builderEl('modelBuildStatus').textContent='⚠️ ยังไม่มี Package ให้คัดลอก';
+    return;
+  }
+  const json=JSON.stringify(builtModelPackage,null,2);
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(json).then(()=>{
+      builderEl('modelBuildStatus').textContent='✅ คัดลอก Package JSON แล้ว';
+    }).catch(()=>fallbackCopyPackage(json));
+  }else fallbackCopyPackage(json);
+}
+function fallbackCopyPackage(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');builderEl('modelBuildStatus').textContent='✅ คัดลอก Package JSON แล้ว';}
+  catch(e){builderEl('modelBuildStatus').textContent='⚠️ คัดลอกอัตโนมัติไม่ได้ — เปิดดู JSON แล้วคัดลอกเองได้';}
+  ta.remove();
+}
+function downloadModelManifest(){
+  if(!builtModelPackage){
+    builderEl('modelBuildStatus').textContent='⚠️ ยังไม่มี Package ให้สร้าง Manifest';
+    return;
+  }
+  const json=JSON.stringify(builtModelPackage,null,2);
+  const manifest={
+    format:builtModelPackage.format,
+    version:builtModelPackage.version,
+    model:builtModelPackage.model,
+    target:builtModelPackage.target,
+    assetCount:Object.keys(builtModelPackage.assets||{}).length,
+    assets:Object.fromEntries(MODEL_ASSETS.map(def=>{
+      const a=builtModelPackage.assets[def.key];
+      return [def.key,{label:a.label,width:a.width,height:a.height,paletteLimit:a.paletteLimit||null,pngBytes:bytesFromDataUrl(a.pngDataUrl)}];
+    })),
+    packageJsonBytes:new Blob([json]).size,
+    generatedAt:new Date().toISOString()
+  };
+  const blob=new Blob([JSON.stringify(manifest,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=(builtModelPackage.model.name.replace(/[^a-z0-9ก-๙_-]+/gi,'_')||'soulgold_model')+'.manifest.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  builderEl('modelBuildStatus').textContent='✅ บันทึก Manifest แล้ว — ยังไม่แตะ Save/ROM';
+}
+
 function buildModelPackage(){
   updateModelBuilder();
   if(!modelBuilderValidation())return;
@@ -1660,7 +1802,9 @@ function buildModelPackage(){
     'Model ID: '+id+'\n'+
     'Assets: 7/7\n'+
     'ไฟล์ .sgmodel.json ถูกสร้างแล้ว\n'+
+    'Package Inspector v0.8 พร้อมตรวจสอบด้านล่าง\n'+
     'ยังไม่แตะ Save/ROM';
+  renderPackageInspector(json);
 }
 function applyBuiltModel(){
   updateModelBuilder();
@@ -1683,6 +1827,8 @@ function applyBuiltModel(){
 }
 function clearBuiltModel(){
   builtModelPackage=null;
+  const inspector=builderEl('packageInspector');
+  if(inspector)inspector.classList.remove('show');
   updateModelBuilder();
   builderEl('modelBuildStatus').textContent='ล้าง Builder แล้ว — Asset เดิมยังอยู่';
 }
@@ -1690,6 +1836,8 @@ function clearBuiltModel(){
 assetCreatorEl('buildModelPackage').onclick=buildModelPackage;
 assetCreatorEl('applyBuiltModel').onclick=applyBuiltModel;
 assetCreatorEl('clearBuiltModel').onclick=clearBuiltModel;
+assetCreatorEl('copyModelPackage').onclick=copyModelPackage;
+assetCreatorEl('downloadModelManifest').onclick=downloadModelManifest;
 assetCreatorEl('assetModelName').addEventListener('input',updateModelBuilder);
 assetCreatorEl('assetModelId').addEventListener('input',updateModelBuilder);
 
