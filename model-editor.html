@@ -288,10 +288,276 @@ function romInfo(id){
   return{name:rec.name,form:rec.form||"Base / standard / special slot",offset:rec.offset};
 }
 
+// Sprite lookup copied from the working PKSG sprite resolver.
+// ROM IDs are not always National Dex IDs, so custom/form IDs must be
+// resolved by their ROM name/form slug first.
+let ROM_SPRITE_DEX_BY_NAME=null;
+
+function buildRomSpriteDexMap(){
+  if(ROM_SPRITE_DEX_BY_NAME)return ROM_SPRITE_DEX_BY_NAME;
+  ROM_SPRITE_DEX_BY_NAME={};
+  for(const r of ROM_POKEMON_ID_MAP){
+    if(r.form==="Base / standard / special slot" && !ROM_SPRITE_DEX_BY_NAME[r.name]){
+      ROM_SPRITE_DEX_BY_NAME[r.name]=r.id;
+    }
+  }
+  for(const [id,m] of Object.entries(SPECIAL_SPECIES_MAPPING)){
+    if(m&&m.name&&m.dexId)ROM_SPRITE_DEX_BY_NAME[m.name]=m.dexId;
+  }
+  return ROM_SPRITE_DEX_BY_NAME;
+}
+
+function spriteNameSlug(name){
+  const n=String(name||"")
+    .replace(/<1B>/g,"")
+    .replace(/♀/g,"-f").replace(/♂/g,"-m")
+    .replace(/[’']/g,"")
+    .replace(/[^A-Za-z0-9]+/g,"-")
+    .replace(/^-+|-+$/g,"")
+    .replace(/-+/g,"-")
+    .toLowerCase();
+
+  const aliases={
+    "mr-mime":"mr-mime","mime-jr":"mime-jr","type-null":"type-null",
+    "farfetchd":"farfetchd","sirfetchd":"sirfetchd",
+    "flab-b":"flabebe","mimejr":"mime-jr",
+    "tapukoko":"tapu-koko","tapulele":"tapu-lele",
+    "tapubulu":"tapu-bulu","tapufini":"tapu-fini",
+    "greattusk":"great-tusk","screamtail":"scream-tail",
+    "brutebonnet":"brute-bonnet","fluttermane":"flutter-mane",
+    "slitherwing":"slither-wing","sandyshocks":"sandy-shocks",
+    "irontreads":"iron-treads","ironbundle":"iron-bundle",
+    "ironhands":"iron-hands","ironjugulis":"iron-jugulis",
+    "ironmoth":"iron-moth","ironthorns":"iron-thorns",
+    "roaringmoon":"roaring-moon","ironvaliant":"iron-valiant",
+    "walkingwake":"walking-wake","ironleaves":"iron-leaves",
+    "gougingfire":"gouging-fire","ragingbolt":"raging-bolt",
+    "ironboulder":"iron-boulder","ironcrown":"iron-crown"
+  };
+  return aliases[n]||n;
+}
+
+function pokemonFormInfo(id){
+  const n=+id;
+  const rec=ROM_POKEMON_ID_MAP.find(r=>r.id===n);
+  if(!rec)return {name:"Species #"+n,slug:String(n)};
+
+  const base=rec.name;
+  const f=rec.form||"";
+
+  const special={
+    907:{name:"Charizard Mega X",slug:"charizard-mega-x",spriteId:10034},
+    908:{name:"Charizard Mega Y",slug:"charizard-mega-y",spriteId:10035},
+    919:{name:"Mewtwo Mega X",slug:"mewtwo-mega-x",spriteId:10043},
+    920:{name:"Mewtwo Mega Y",slug:"mewtwo-mega-y",spriteId:10044},
+    1491:{name:"Charizard Gigantamax",slug:"charizard-gmax",spriteId:10196},
+    954:{name:"Kyogre Primal",slug:"kyogre-primal"},
+    955:{name:"Groudon Primal",slug:"groudon-primal"},
+    1402:{name:"Tauros Combat Breed",slug:"tauros-paldea-combat-breed"},
+    1403:{name:"Tauros Blaze Breed",slug:"tauros-paldea-blaze-breed"},
+    1404:{name:"Tauros Aqua Breed",slug:"tauros-paldea-aqua-breed"},
+    1405:{name:"Wooper Paldean",slug:"wooper-paldea"},
+    1409:{name:"Poltchageist Counterfeit",slug:"poltchageist-counterfeit"},
+    1410:{name:"Poltchageist Artisan",slug:"poltchageist-artisan"},
+    1411:{name:"Sinistcha Unremarkable",slug:"sinistcha-unremarkable"},
+    1412:{name:"Sinistcha Masterpiece",slug:"sinistcha-masterpiece"}
+  };
+
+  if(special[n])return special[n];
+
+  let name=base,slug=spriteNameSlug(base);
+
+  if(f==="Base / standard / special slot")return {name,slug};
+  if(f==="Alolan form slot")return {name:base+" Alolan",slug:slug+"-alola"};
+  if(f==="Galarian form slot")return {name:base+" Galarian",slug:slug+"-galar"};
+  if(f==="Hisuian form slot")return {name:base+" Hisuian",slug:slug+"-hisui"};
+  if(f==="Gigantamax")return {name:base+" Gigantamax",slug:slug+"-gmax"};
+  if(f==="Mega / special form slot")return {name:base+" Mega",slug:slug+"-mega"};
+  if(f==="Mega / Legends Z-A form")return {name:base+" Mega",slug:slug+"-mega"};
+  if(/^Unown Form /.test(f)){
+    const v=f.replace("Unown Form ","");
+    return {name:"Unown "+v,slug:"unown-"+v.toLowerCase()};
+  }
+  if(/^Oricorio form slot /.test(f)){
+    const v=+f.match(/\d+$/)[0];
+    const forms=["baile","pom-pom","pau","sensu"];
+    return {name:"Oricorio "+(forms[v-1]||("Form "+v)),slug:"oricorio-"+(forms[v-1]||"baile")};
+  }
+  if(f==="Ash-Greninja")return {name:"Ash-Greninja",slug:"greninja-ash"};
+  if(f==="Greninja Battle Bond")return {name:"Greninja Battle Bond",slug:"greninja-battle-bond"};
+
+  const clean=f.replace(/\s*form slot\s*\d*$/i,"").trim();
+  if(clean&&clean!=="Base / standard / special slot"){
+    const suffix=clean.replace(/^"|"$/g,"").trim();
+    return {name:base+" "+suffix,slug:spriteNameSlug(base+" "+suffix)};
+  }
+  return {name,slug};
+}
+
+function spriteSlugCandidates(id){
+  const n=+id;
+  const rec=ROM_POKEMON_ID_MAP.find(r=>r.id===n);
+  const info=pokemonFormInfo(n)||{};
+  const base=spriteNameSlug(rec&&rec.name?rec.name:"");
+  const f=String(rec&&rec.form||"");
+  const out=[];
+  const add=v=>{
+    if(!v)return;
+    if(!out.includes(v))out.push(v);
+    const c=String(v).replace(/-/g,"");
+    if(c&&c!==v&&!out.includes(c))out.push(c);
+  };
+
+  const special={
+    907:["charizard-megax","charizard-mega-x"],
+    908:["charizard-megay","charizard-mega-y"],
+    919:["mewtwo-megax","mewtwo-mega-x"],
+    920:["mewtwo-megay","mewtwo-mega-y"],
+    1491:["charizard-gmax"],
+    954:["kyogre-primal"],955:["groudon-primal"],
+    1402:["tauros-paldeacombat"],1403:["tauros-paldeablaze"],1404:["tauros-paldeaaqua"],
+    1405:["wooper-paldea"],1409:["poltchageist"],1410:["poltchageist-artisan"],
+    1411:["sinistcha"],1412:["sinistcha-masterpiece"],
+    1553:["raichu-megax"],1554:["raichu-megay"],
+    1561:["meowstic-mmega"],1562:["meowstic-fmega"],
+    1565:["magearna-mega"],1566:["magearna-originalmega"],
+    1569:["tatsugiri-curlymega"],1570:["tatsugiri-droopymega"],1571:["tatsugiri-stretchymega"],
+    1577:["dialga-mega"]
+  };
+
+  if(special[n])special[n].forEach(add);
+  if(info.slug)add(info.slug);
+
+  if(base&&f){
+    const formSlug={
+      "Alolan form slot":base+"-alola",
+      "Galarian form slot":base+"-galar",
+      "Hisuian form slot":base+"-hisui",
+      "Gigantamax":base+"-gmax",
+      "Mega / special form slot":base+"-mega",
+      "Mega / Legends Z-A form":base+"-mega"
+    }[f];
+
+    add(formSlug);
+
+    if(f==="Deoxys Attack")add("deoxys-attack");
+    if(f==="Deoxys Defense")add("deoxys-defense");
+    if(f==="Deoxys Speed")add("deoxys-speed");
+    if(/^Rotom /.test(f))add("rotom-"+f.slice(6).toLowerCase());
+    if(/^(Dialga|Palkia|Giratina) Origin$/.test(f))add(base+"-origin");
+    if(f==="Shaymin Sky")add("shaymin-sky");
+    if(/^Arceus /.test(f))add("arceus-"+f.slice(7).toLowerCase());
+    if(/^Basculin /.test(f))add("basculin-"+f.slice(9).toLowerCase().replace(/-/g,""));
+    if(f==="Darmanitan Zen")add("darmanitan-zen");
+    if(f==="Darmanitan Galarian Zen")add("darmanitan-galarzen");
+    if(/ (Therian|Resolute|Pirouette|Douse|Shock|Burn|Chill)$/.test(f))add(base+"-"+f.split(" ").pop().toLowerCase());
+    if(/^(Tornadus|Thundurus|Landorus|Enamorus) Therian$/.test(f))add(base+"-therian");
+    if(f==="Kyurem White"||f==="Kyurem Black")add("kyurem-"+f.split(" ")[1].toLowerCase());
+    if(f==="Keldeo Resolute")add("keldeo-resolute");
+    if(f==="Meloetta Pirouette")add("meloetta-pirouette");
+    if(/^Genesect (Douse|Shock|Burn|Chill)$/.test(f))add("genesect-"+f.split(" ")[1].toLowerCase());
+    if(f==="Greninja Battle Bond")add("greninja-bond");
+    if(f==="Ash-Greninja")add("greninja-ash");
+    if(/^Flabebe\/Floette\/Florges color form slot /.test(f)){
+      const slot=+f.match(/\d+$/)[0];
+      const colors=["red","orange","yellow","blue","white"];
+      add(base+"-"+colors[Math.max(0,Math.min(4,slot-1))]);
+    }
+    if(f==="Meowstic Female")add("meowstic-fmega");
+    if(f==="Aegislash Blade")add("aegislash-blade");
+    if(f==="Xerneas Active")add("xerneas-active");
+    if(/^Zygarde /.test(f))add("zygarde-"+f.slice(8).replace("%","").toLowerCase());
+    if(f==="Hoopa Unbound")add("hoopa-unbound");
+    if(/^Oricorio form slot /.test(f)){
+      const v=+f.match(/\d+$/)[0];
+      const forms=["baile","pom-pom","pau","sensu"];
+      add("oricorio-"+(forms[v-1]||"baile"));
+    }
+    if(f==="Rockruff Own Tempo")add("rockruff-own");
+    if(f==="Lycanroc Dusk")add("lycanroc-dusk");
+    if(f==="Lycanroc Midnight")add("lycanroc-midnight");
+    if(f==="Mimikyu Busted")add("mimikyu-busted");
+    if(f==="Necrozma Dusk Mane")add("necrozma-dusk-mane");
+    if(f==="Necrozma Dawn Wings")add("necrozma-dawn-wings");
+    if(f==="Ultra Necrozma")add("necrozma-ultra");
+    if(f==="Magearna Original")add("magearna-original");
+    if(f==="Indeedee Female")add("indeedee-f");
+    if(f==="Zacian Crowned")add("zacian-crowned");
+    if(f==="Zamazenta Crowned")add("zamazenta-crowned");
+    if(f==="Eternatus Eternamax")add("eternatus-eternamax");
+    if(f==="Urshifu Single-Strike")add("urshifu-single");
+    if(f==="Calyrex Ice Rider")add("calyrex-ice");
+    if(f==="Calyrex Shadow Rider")add("calyrex-shadow");
+    if(f==="Basculegion Female")add("basculegion-f");
+    if(f==="Maushold Family of Three")add("maushold-family3");
+    if(f==="Maushold Family of Four")add("maushold");
+    if(f==="Palafin Hero")add("palafin-hero");
+    if(f==="Palafin Zero")add("palafin");
+    if(f==="Tatsugiri Curly")add("tatsugiri-curly");
+    if(f==="Tatsugiri Droopy")add("tatsugiri-droopy");
+    if(f==="Tatsugiri Stretchy")add("tatsugiri-stretchy");
+    if(f==="Dudunsparce Two-Segment")add("dudunsparce");
+    if(f==="Dudunsparce Three-Segment")add("dudunsparce-three");
+    if(f==="Gimmighoul Chest")add("gimmighoul-chest");
+    if(f==="Gimmighoul Roaming")add("gimmighoul-roaming");
+    if(f==="Terapagos Normal")add("terapagos");
+    if(f==="Terapagos Terastal")add("terapagos-terastal");
+    if(f==="Terapagos Stellar")add("terapagos-stellar");
+    if(f==="Pecharunt")add("pecharunt");
+    if(f==="Raticate Alola Totem")add("raticate-alola");
+    if(f==="Vikavolt Totem")add("vikavolt-totem");
+    if(f==="Mimikyu Totem Disguised")add("mimikyu-totem");
+    if(f==="Kommo-o Totem")add("kommo-o-totem");
+    if(f==="Marowak Alola Totem")add("marowak-alola");
+    if(f==="Ribombee Totem")add("ribombee-totem");
+    if(f==="Pikachu Starter")add("pikachu-starter");
+    if(f==="Eevee Starter")add("eevee-starter");
+    if(f==="Urshifu Single-Strike G-Max")add("urshifu-single-gmax");
+    if(f==="Urshifu Rapid-Strike G-Max")add("urshifu-rapid-gmax");
+    if(f==="Mimikyu Busted Totem")add("mimikyu-bustedtotem");
+    if(f==="Gouging Fire")add("gougingfire");
+    if(f==="Raging Bolt")add("ragingbolt");
+    if(f==="Iron Boulder")add("ironboulder");
+    if(f==="Iron Crown")add("ironcrown");
+    if(f==="Walking Wake")add("walkingwake");
+    if(f==="Iron Leaves")add("ironleaves");
+  }
+
+  if(/^Unown Form /.test(f)){
+    add("unown-"+f.replace("Unown Form ","").toLowerCase());
+  }
+
+  return out;
+}
+
+function spriteUrls(id){
+  const n=+id;
+  const urls=[];
+  const add=u=>{if(u&&!urls.includes(u))urls.push(u)};
+
+  const mapped=SPECIAL_SPECIES_MAPPING[n];
+  if(mapped&&mapped.dexId){
+    add("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+mapped.dexId+".png");
+  }
+
+  const info=pokemonFormInfo(n)||{};
+  if(info.spriteId){
+    add("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+info.spriteId+".png");
+  }
+
+  const slugs=spriteSlugCandidates(n);
+  slugs.forEach(slug=>{
+    add("https://play.pokemonshowdown.com/sprites/home/"+slug+".png");
+    add("https://img.pokemondb.net/sprites/home/normal/"+slug+".png");
+  });
+
+  // Standard IDs can still use PokeAPI as the final fallback.
+  add("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+n+".png");
+  return urls;
+}
+
 function spriteUrl(id){
-  const special=SPECIAL_SPECIES_MAPPING[id];
-  const dex=special?.dexId||id;
-  return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+dex+".png";
+  return spriteUrls(id)[0];
 }
 
 function escapeHtml(v){
@@ -315,8 +581,17 @@ function makeCard(m,slotLabel){
   const img=document.createElement("img");
   img.className="poke-sprite";
   img.alt=info.name;
-  img.src=spriteUrl(m.species);
-  img.onerror=()=>{img.style.visibility="hidden"};
+  const spriteCandidates=spriteUrls(m.species);
+  let spriteIndex=0;
+  img.src=spriteCandidates[spriteIndex];
+  img.onerror=()=>{
+    spriteIndex++;
+    if(spriteIndex<spriteCandidates.length){
+      img.src=spriteCandidates[spriteIndex];
+    }else{
+      img.style.visibility="hidden";
+    }
+  };
 
   const top=document.createElement("div");
   top.className="poke-top";
