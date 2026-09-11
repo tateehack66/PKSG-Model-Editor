@@ -88,6 +88,68 @@ input[type=file]{
   background:#181321;color:#ff9ab5;line-height:1.6
 }
 .footer{text-align:center;color:#66788c;font-size:12px;margin:35px 0 20px}
+.model-editor{
+  margin-top:30px;
+  padding:22px;
+  border:2px solid #ff3f72;
+  border-radius:22px;
+  background:linear-gradient(180deg,rgba(255,63,114,.08),rgba(8,21,37,.65));
+}
+.model-editor.hidden{display:none}
+.model-head{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  margin-bottom:16px;flex-wrap:wrap
+}
+.model-head h2{font-size:28px;color:#ff6090;margin:0}
+.model-target{
+  display:grid;grid-template-columns:110px 1fr 110px;gap:15px;align-items:center
+}
+.model-preview{
+  width:110px;height:110px;border-radius:18px;background:#071321;
+  border:1px solid #344c67;display:flex;align-items:center;justify-content:center
+}
+.model-preview img{
+  width:100px;height:100px;object-fit:contain;image-rendering:pixelated
+}
+.model-arrow{text-align:center;font-size:38px;color:#ff6090}
+.model-meta{font-size:15px;color:#aebed1;line-height:1.7}
+.model-meta strong{color:#fff}
+.model-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.model-btn{
+  border:1px solid #3a5978;background:#10243a;color:#b9d4ee;
+  border-radius:11px;padding:10px 14px;font:inherit;cursor:pointer
+}
+.model-btn.primary{background:#ff3f72;border-color:#ff3f72;color:#fff}
+.model-btn:disabled{opacity:.45;cursor:not-allowed}
+.model-source-title{margin-top:22px;color:#dce8f5;font-size:18px}
+.model-sources{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:10px
+}
+.model-source{
+  border:1px solid #263b54;border-radius:14px;background:#0b1b2c;
+  padding:9px;text-align:center;cursor:pointer
+}
+.model-source.selected{border-color:#ff3f72;box-shadow:0 0 0 2px rgba(255,63,114,.18)}
+.model-source img{width:65px;height:65px;object-fit:contain;image-rendering:pixelated}
+.model-source b{display:block;font-size:12px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.model-source small{display:block;font-size:10px;color:#8fa1b5;margin-top:3px}
+.model-warning{
+  margin-top:16px;padding:12px;border-radius:12px;background:#151421;
+  border:1px solid #54354a;color:#ff9ab5;font-size:13px;line-height:1.55
+}
+.edit-model-btn{
+  margin-top:10px;width:100%;border:1px solid #ff3f72;
+  background:#151421;color:#ff7fa1;border-radius:10px;padding:9px;
+  font:inherit;cursor:pointer
+}
+@media(max-width:700px){
+  .model-target{grid-template-columns:85px 1fr;gap:10px}
+  .model-arrow{display:none}
+  .model-preview{width:85px;height:85px}
+  .model-preview img{width:78px;height:78px}
+  .model-sources{grid-template-columns:repeat(3,1fr)}
+}
+
 @media(max-width:700px){
   .logo{font-size:48px}
   .subtitle{font-size:17px}
@@ -129,6 +191,50 @@ input[type=file]{
     <h2>PC</h2>
     <div id="boxTabs" class="box-tabs"></div>
     <div id="boxGrid" class="boxgrid"></div>
+  </section>
+
+
+  <section id="modelEditor" class="model-editor hidden">
+    <div class="model-head">
+      <h2>MODEL EDITOR</h2>
+      <button class="model-btn" id="closeModelEditor">ปิด</button>
+    </div>
+
+    <div class="model-target">
+      <div class="model-preview">
+        <img id="targetPreview" alt="Target Pokémon">
+      </div>
+
+      <div class="model-meta">
+        <strong>Target Pokémon</strong><br>
+        <span id="targetName">-</span><br>
+        Species ID: <strong id="targetId">-</strong><br>
+        Form: <strong id="targetForm">-</strong><br>
+        PID: <strong id="targetPid">-</strong>
+      </div>
+
+      <div class="model-preview">
+        <img id="sourcePreview" alt="New Model Preview">
+      </div>
+    </div>
+
+    <div class="model-actions">
+      <button class="model-btn primary" id="applyModel" disabled>
+        ใช้ Model นี้กับ Pokémon ที่เลือก
+      </button>
+      <button class="model-btn" id="resetModel" disabled>
+        คืน Model เดิม
+      </button>
+    </div>
+
+    <div class="model-source-title">เลือก Pokémon ที่จะใช้เป็น Model</div>
+    <div id="modelSources" class="model-sources"></div>
+
+    <div class="model-warning">
+      <b>โหมด Preview v0.4</b><br>
+      ตอนนี้ระบบเปลี่ยนเฉพาะ Preview ในหน้าเว็บ ยังไม่เขียนทับข้อมูลใน Save หรือ ROM
+      เพื่อรักษา Save Editor เดิมและ Reader ให้ปลอดภัยก่อน
+    </div>
   </section>
 
   <div class="note">
@@ -615,9 +721,186 @@ function makeCard(m,slotLabel){
     "Level: <b>"+m.level+"</b>"+
     (m.shiny?"<br>✨ Shiny":"");
 
+  const editBtn=document.createElement("button");
+  editBtn.className="edit-model-btn";
+  editBtn.textContent="EDIT MODEL";
+  editBtn.onclick=()=>{
+    selectModelTarget({
+      species:m.species,
+      pid:m.pid,
+      formBits:m.formBits,
+      level:m.level,
+      shiny:m.shiny,
+      name:info.name,
+      form:info.form,
+      slotLabel
+    });
+  };
+
   d.appendChild(top);
   d.appendChild(infoBox);
+  d.appendChild(editBtn);
   return d;
+}
+
+
+let modelTarget=null;
+let modelSource=null;
+let originalModelSource=null;
+let loadedPokemonPool=[];
+
+function getLoadedPokemonPool(){
+  const pool=[];
+  const seen=new Set();
+
+  if(!logical)return pool;
+
+  const add=(m,label)=>{
+    if(!m || !m.species || seen.has(m.species))return;
+    seen.add(m.species);
+    const info=romInfo(m.species);
+    pool.push({
+      species:m.species,
+      pid:m.pid,
+      formBits:m.formBits,
+      name:info.name,
+      form:info.form,
+      label
+    });
+  };
+
+  try{
+    const party=getPartyData();
+    party.mons.forEach((m,i)=>add(m,"Party Slot "+(i+1)));
+
+    const storage=getStorage();
+    for(let box=0;box<16;box++){
+      for(let slot=0;slot<30;slot++){
+        const m=readMonFrom(storage,boxMonAt(box,slot));
+        if(m.species)add(m,"Box "+(box+1)+" / "+(slot+1));
+      }
+    }
+  }catch(e){}
+
+  return pool;
+}
+
+function setPreviewImage(img,id){
+  if(!img)return;
+  const candidates=spriteUrls(id);
+  let i=0;
+  img.style.visibility="visible";
+  img.src=candidates[i]||"";
+  img.onerror=()=>{
+    i++;
+    if(i<candidates.length)img.src=candidates[i];
+    else{
+      img.removeAttribute("src");
+      img.style.visibility="hidden";
+    }
+  };
+}
+
+function selectModelTarget(target){
+  modelTarget=target;
+  modelSource=null;
+  originalModelSource={species:target.species};
+
+  const editor=document.getElementById("modelEditor");
+  editor.classList.remove("hidden");
+
+  document.getElementById("targetName").textContent=target.name;
+  document.getElementById("targetId").textContent=target.species;
+  document.getElementById("targetForm").textContent=target.form;
+  document.getElementById("targetPid").textContent=
+    "0x"+target.pid.toString(16).padStart(8,"0").toUpperCase();
+
+  setPreviewImage(document.getElementById("targetPreview"),target.species);
+  setPreviewImage(document.getElementById("sourcePreview"),target.species);
+
+  renderModelSources();
+  updateModelButtons();
+
+  editor.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function renderModelSources(){
+  const box=document.getElementById("modelSources");
+  box.innerHTML="";
+
+  loadedPokemonPool=getLoadedPokemonPool();
+
+  if(!loadedPokemonPool.length){
+    box.innerHTML="<div class='model-warning'>ยังไม่มี Pokémon สำหรับใช้เป็น Model</div>";
+    return;
+  }
+
+  loadedPokemonPool.forEach(p=>{
+    const el=document.createElement("button");
+    el.type="button";
+    el.className="model-source"+
+      (modelSource&&modelSource.species===p.species?" selected":"");
+
+    const img=document.createElement("img");
+    img.alt=p.name;
+    setPreviewImage(img,p.species);
+
+    const name=document.createElement("b");
+    name.textContent=p.name;
+
+    const meta=document.createElement("small");
+    meta.textContent="ID "+p.species+" · "+p.label;
+
+    el.appendChild(img);
+    el.appendChild(name);
+    el.appendChild(meta);
+
+    el.onclick=()=>{
+      modelSource=p;
+      setPreviewImage(document.getElementById("sourcePreview"),p.species);
+      renderModelSources();
+      updateModelButtons();
+    };
+
+    box.appendChild(el);
+  });
+}
+
+function updateModelButtons(){
+  const apply=document.getElementById("applyModel");
+  const reset=document.getElementById("resetModel");
+  apply.disabled=!modelTarget||!modelSource;
+  reset.disabled=!modelTarget;
+}
+
+function closeModelEditor(){
+  modelTarget=null;
+  modelSource=null;
+  document.getElementById("modelEditor").classList.add("hidden");
+}
+
+function previewAppliedModel(){
+  if(!modelTarget||!modelSource)return;
+
+  // v0.4 intentionally changes only the visual preview.
+  // No save/ROM bytes are modified.
+  setPreviewImage(document.getElementById("targetPreview"),modelSource.species);
+  document.getElementById("targetName").textContent=
+    modelTarget.name+" ← "+modelSource.name;
+  document.getElementById("targetForm").textContent=
+    "Preview Model: "+modelSource.name;
+}
+
+function resetModelPreview(){
+  if(!modelTarget)return;
+
+  setPreviewImage(document.getElementById("targetPreview"),modelTarget.species);
+  document.getElementById("targetName").textContent=modelTarget.name;
+  document.getElementById("targetForm").textContent=modelTarget.form;
+  modelSource=null;
+  setPreviewImage(document.getElementById("sourcePreview"),modelTarget.species);
+  renderModelSources();
+  updateModelButtons();
 }
 
 function renderParty(){
@@ -658,6 +941,11 @@ function renderAll(){
   renderBoxTabs();
   renderBox();
 }
+
+
+document.getElementById("closeModelEditor").onclick=closeModelEditor;
+document.getElementById("applyModel").onclick=previewAppliedModel;
+document.getElementById("resetModel").onclick=resetModelPreview;
 
 document.getElementById("saveFile").addEventListener("change",async e=>{
   const f=e.target.files[0];
