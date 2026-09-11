@@ -1,239 +1,434 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PKSG Model Editor</title>
-
 <style>
 *{box-sizing:border-box}
-
 body{
-    margin:0;
-    min-height:100vh;
-    background:#081525;
-    color:#aebed2;
-    font-family:Arial,Helvetica,sans-serif;
+  margin:0;
+  background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  min-height:100vh
 }
-
-.header{
-    text-align:center;
-    padding:28px 20px 24px;
-}
-
+.container{width:100%;max-width:1100px;margin:auto;padding:15px}
+.header{text-align:center;padding:30px 20px 22px}
 .logo{
-    margin:0;
-    font-size:58px;
-    line-height:1;
-    font-weight:900;
-    letter-spacing:-4px;
-    color:#9bd0ff;
+  margin:0;font-size:58px;font-weight:900;letter-spacing:-4px;
+  background:linear-gradient(135deg,#fff,#36a9ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent
 }
-
-.subtitle{
-    margin-top:18px;
-    font-size:22px;
-}
-
+.subtitle{margin-top:8px;font-size:19px;color:#aebed1}
 .version{
-    display:inline-block;
-    margin-top:25px;
-    padding:10px 24px;
-    border:2px solid #1765a5;
-    border-radius:30px;
-    color:#62b8ff;
-    font-size:17px;
+  display:inline-block;margin-top:15px;padding:7px 16px;border-radius:22px;
+  background:rgba(30,130,255,.12);border:1px solid rgba(60,160,255,.35);
+  color:#65b9ff;font-size:13px
 }
-
-.container{
-    width:min(900px,calc(100% - 32px));
-    margin:10px auto 40px;
-}
-
 .panel{
-    border:2px solid #263b54;
-    border-radius:28px;
-    padding:28px;
-    background:#091625;
-    box-shadow:0 12px 35px rgba(0,0,0,.18);
+  border:2px solid #263b54;border-radius:28px;padding:28px;
+  background:rgba(8,21,37,.78);box-shadow:0 20px 50px rgba(0,0,0,.35)
 }
-
 .back{
-    display:inline-block;
-    text-decoration:none;
-    color:#6abaff;
-    border:1px solid #23669d;
-    padding:9px 18px;
-    border-radius:24px;
-    margin-bottom:24px;
+  display:inline-block;text-decoration:none;color:#65b9ff;
+  border:2px solid #1765a5;border-radius:28px;padding:10px 22px;margin-bottom:28px
 }
-
-.back:active{transform:scale(.98)}
-
-.title{
-    margin:0;
-    color:#ff6090;
-    font-size:34px;
-}
-
-.desc{
-    margin-top:12px;
-    font-size:19px;
-    line-height:1.6;
-}
-
+h1,h2,h3{margin:0}
+.title{font-size:34px;color:#ff6090}
+.desc{font-size:19px;color:#b0bfd1;margin-top:10px;line-height:1.6}
 .reader{
-    margin-top:28px;
-    padding:22px;
-    border:1px dashed #40536b;
-    border-radius:20px;
+  margin-top:28px;padding:22px;border:1px dashed #40536b;
+  border-radius:20px;background:rgba(8,21,37,.5)
 }
-
-.reader-title{
-    margin:0 0 14px;
-    color:#d7e5f5;
-    font-size:21px;
+.reader h2,.section h2{font-size:28px;color:#ff6090;margin-bottom:15px}
+input[type=file]{
+  width:100%;padding:14px;border:1px solid #344c67;border-radius:12px;
+  background:#101f31;color:#c5d4e5;font:inherit
 }
-
-.file-input{
-    width:100%;
-    padding:13px;
-    border-radius:12px;
-    border:1px solid #344c67;
-    background:#101f31;
-    color:#b9c9dc;
-}
-
 .status{
-    margin-top:14px;
-    padding:13px 15px;
-    border-radius:12px;
-    background:#0e2034;
-    color:#79c4ff;
-    font-size:16px;
+  margin-top:14px;padding:14px;border-radius:12px;
+  background:#0e2034;color:#79c4ff;white-space:pre-wrap;line-height:1.5
 }
-
-.section{
-    margin-top:30px;
+.section{margin-top:30px}
+.party{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.poke-card{
+  border:1px solid #263b54;border-radius:18px;padding:13px;
+  background:#0b1b2c;min-width:0
 }
-
-.section h2{
-    margin:0;
-    color:#ff6090;
-    font-size:28px;
+.poke-card.empty{opacity:.5}
+.poke-top{display:flex;align-items:center;gap:10px}
+.poke-sprite{
+  width:70px;height:70px;object-fit:contain;image-rendering:pixelated;
+  background:#071321;border-radius:12px
 }
-
-.card{
-    margin-top:15px;
-    padding:20px;
-    border:1px solid #263b54;
-    border-radius:18px;
-    background:#0b1b2c;
+.poke-name{font-size:17px;font-weight:800;color:#fff}
+.poke-form{font-size:13px;color:#ff9ab5;margin-top:3px;line-height:1.35}
+.info{margin-top:10px;font-size:14px;color:#aebed1;line-height:1.7}
+.info b{color:#e7f0fa}
+.box-tabs{
+  display:flex;gap:7px;overflow:auto;padding-bottom:8px;margin-bottom:12px
 }
-
-.card h3{
-    margin:0 0 12px;
-    color:#fff;
+.box-tab{
+  flex:0 0 auto;border:1px solid #344c67;background:#0d1c2d;
+  color:#aebed1;border-radius:10px;padding:8px 12px;cursor:pointer
 }
-
-.info{
-    line-height:1.9;
-    font-size:17px;
+.box-tab.active{background:#ff3f72;color:#fff;border-color:#ff3f72}
+.boxgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.boxslot{
+  min-height:108px;border:1px solid #263b54;border-radius:12px;
+  padding:7px;text-align:center;background:#0b1b2c
 }
-
-.future{
-    margin-top:24px;
-    padding:18px;
-    border-radius:18px;
-    border:1px solid #54354a;
-    background:#181321;
-    color:#ff8aac;
-    line-height:1.6;
+.boxslot.empty{opacity:.42}
+.boxslot img{width:55px;height:55px;object-fit:contain;image-rendering:pixelated}
+.boxslot b{display:block;font-size:11px;color:#fff;line-height:1.2}
+.boxslot small{display:block;font-size:10px;color:#8395aa;margin-top:3px}
+.note{
+  margin-top:24px;padding:17px;border-radius:17px;border:1px solid #54354a;
+  background:#181321;color:#ff9ab5;line-height:1.6
 }
-
-@media(max-width:600px){
-    .logo{font-size:52px}
-    .subtitle{font-size:19px}
-    .panel{padding:22px}
-    .title{font-size:30px}
+.footer{text-align:center;color:#66788c;font-size:12px;margin:35px 0 20px}
+@media(max-width:700px){
+  .logo{font-size:48px}
+  .subtitle{font-size:17px}
+  .panel{padding:22px}
+  .title{font-size:30px}
+  .party{grid-template-columns:repeat(2,1fr)}
+  .boxgrid{grid-template-columns:repeat(5,1fr)}
+  .poke-sprite{width:60px;height:60px}
 }
 </style>
 </head>
-
 <body>
-
+<div class="container">
 <header class="header">
-    <h1 class="logo">PKSG</h1>
-    <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
-    <div class="version">MODEL EDITOR v0.1</div>
+  <div class="logo">PKSG</div>
+  <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
+  <div class="version">MODEL EDITOR v0.2</div>
 </header>
 
-<main class="container">
-    <section class="panel">
+<main class="panel">
+  <a class="back" href="index.html">← BACK</a>
+  <h1 class="title">MODEL EDITOR</h1>
+  <div class="desc">แก้ไข Sprite และกราฟิก Pokémon</div>
 
-        <a class="back" href="index.html">← BACK</a>
+  <section class="reader">
+    <h2>SAVE FILE</h2>
+    <input id="saveFile" type="file" accept=".sav,.srm,.dat">
+    <div id="status" class="status">ยังไม่ได้เลือกไฟล์ Save</div>
+  </section>
 
-        <h2 class="title">MODEL EDITOR</h2>
+  <section class="section">
+    <h2>PARTY</h2>
+    <div id="partyGrid" class="party">
+      <div class="poke-card empty">ยังไม่ได้อ่านเซฟ</div>
+    </div>
+  </section>
 
-        <div class="desc">
-            แก้ไข Sprite และกราฟิก Pokémon
-        </div>
+  <section class="section">
+    <h2>PC</h2>
+    <div id="boxTabs" class="box-tabs"></div>
+    <div id="boxGrid" class="boxgrid"></div>
+  </section>
 
-        <div class="reader">
-            <h3 class="reader-title">SAVE FILE</h3>
-
-            <input
-                class="file-input"
-                type="file"
-                id="saveFile"
-                accept=".sav,.srm,.dat"
-            >
-
-            <div class="status" id="status">
-                ยังไม่ได้เลือกไฟล์ Save
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>POKÉMON</h2>
-
-            <div class="card">
-                <h3>Pokémon Reader</h3>
-
-                <div class="info">
-                    Species ID: -
-                    <br>
-                    Form: -
-                    <br>
-                    PID: -
-                </div>
-            </div>
-        </div>
-
-        <div class="future">
-            <strong>MODEL REPLACEMENT</strong>
-            <br>
-            ระบบเปลี่ยนรูปร่าง Pokémon จะเพิ่มในขั้นต่อไป
-        </div>
-
-    </section>
+  <div class="note">
+    <b>Reader v0.2</b><br>
+    เวอร์ชันนี้อ่าน Save อย่างเดียว ยังไม่แก้ไขหรือ Export Save
+    <br>
+    Pokémon จะแสดง ROM Species ID, Form และ PID เพื่อเตรียมเข้าสู่ระบบเปลี่ยน Model
+  </div>
 </main>
 
+<footer class="footer">
+  PKSG Model Editor · Experimental Project<br>
+  Pokémon SoulGold GBA ROM Hack
+</footer>
+</div>
+
 <script>
-const saveFile = document.getElementById("saveFile");
-const status = document.getElementById("status");
+const SPECIAL_SPECIES_MAPPING={
+  937:{dexId:323,name:"Camerupt"},
+  1401:{dexId:1008,name:"Miraidon"}
+};
 
-saveFile.addEventListener("change", () => {
-    const file = saveFile.files[0];
+const ROM_POKEMON_ID_MAP=[{"id":1,"name":"Bulbasaur","form":"Base / standard / special slot","offset":"0x7C2E50"},{"id":2,"name":"Ivysaur","form":"Base / standard / special slot","offset":"0x7C2F68"},{"id":3,"name":"Venusaur","form":"Base / standard / special slot","offset":"0x7C3080"},{"id":4,"name":"Charmander","form":"Base / standard / special slot","offset":"0x7C3198"},{"id":5,"name":"Charmeleon","form":"Base / standard / special slot","offset":"0x7C32B0"},{"id":6,"name":"Charizard","form":"Base / standard / special slot","offset":"0x7C33C8"},{"id":7,"name":"Squirtle","form":"Base / standard / special slot","offset":"0x7C34E0"},{"id":8,"name":"Wartortle","form":"Base / standard / special slot","offset":"0x7C35F8"},{"id":9,"name":"Blastoise","form":"Base / standard / special slot","offset":"0x7C3710"},{"id":10,"name":"Caterpie","form":"Base / standard / special slot","offset":"0x7C3828"},{"id":11,"name":"Metapod","form":"Base / standard / special slot","offset":"0x7C3940"},{"id":12,"name":"Butterfree","form":"Base / standard / special slot","offset":"0x7C3A58"},{"id":13,"name":"Weedle","form":"Base / standard / special slot","offset":"0x7C3B70"},{"id":14,"name":"Kakuna","form":"Base / standard / special slot","offset":"0x7C3C88"},{"id":15,"name":"Beedrill","form":"Base / standard / special slot","offset":"0x7C3DA0"},{"id":16,"name":"Pidgey","form":"Base / standard / special slot","offset":"0x7C3EB8"},{"id":17,"name":"Pidgeotto","form":"Base / standard / special slot","offset":"0x7C3FD0"},{"id":18,"name":"Pidgeot","form":"Base / standard / special slot","offset":"0x7C40E8"},{"id":19,"name":"Rattata","form":"Base / standard / special slot","offset":"0x7C4200"},{"id":20,"name":"Raticate","form":"Base / standard / special slot","offset":"0x7C4318"},{"id":23,"name":"Ekans","form":"Base / standard / special slot","offset":"0x7C4660"},{"id":24,"name":"Arbok","form":"Base / standard / special slot","offset":"0x7C4778"},{"id":25,"name":"Pikachu","form":"Base / standard / special slot","offset":"0x7C4890"},{"id":26,"name":"Raichu","form":"Base / standard / special slot","offset":"0x7C49A8"},{"id":27,"name":"Sandshrew","form":"Base / standard / special slot","offset":"0x7C4AC0"},{"id":28,"name":"Sandslash","form":"Base / standard / special slot","offset":"0x7C4BD8"},{"id":29,"name":"Nidoran♀","form":"Base / standard / special slot","offset":"0x7C4CF0"},{"id":30,"name":"Nidorina","form":"Base / standard / special slot","offset":"0x7C4E08"},{"id":31,"name":"Nidoqueen","form":"Base / standard / special slot","offset":"0x7C4F20"},{"id":32,"name":"Nidoran♂","form":"Base / standard / special slot","offset":"0x7C5038"},{"id":33,"name":"Nidorino","form":"Base / standard / special slot","offset":"0x7C5150"},{"id":34,"name":"Nidoking","form":"Base / standard / special slot","offset":"0x7C5268"},{"id":35,"name":"Clefairy","form":"Base / standard / special slot","offset":"0x7C5380"},{"id":36,"name":"Clefable","form":"Base / standard / special slot","offset":"0x7C5498"},{"id":37,"name":"Vulpix","form":"Base / standard / special slot","offset":"0x7C55B0"},{"id":38,"name":"Ninetales","form":"Base / standard / special slot","offset":"0x7C56C8"},{"id":39,"name":"Jigglypuff","form":"Base / standard / special slot","offset":"0x7C57E0"},{"id":40,"name":"Wigglytuff","form":"Base / standard / special slot","offset":"0x7C58F8"},{"id":41,"name":"Zubat","form":"Base / standard / special slot","offset":"0x7C5A10"},{"id":42,"name":"Golbat","form":"Base / standard / special slot","offset":"0x7C5B28"},{"id":43,"name":"Oddish","form":"Base / standard / special slot","offset":"0x7C5C40"},{"id":44,"name":"Gloom","form":"Base / standard / special slot","offset":"0x7C5D58"},{"id":45,"name":"Vileplume","form":"Base / standard / special slot","offset":"0x7C5E70"},{"id":50,"name":"Diglett","form":"Base / standard / special slot","offset":"0x7C63E8"},{"id":51,"name":"Dugtrio","form":"Base / standard / special slot","offset":"0x7C6500"},{"id":52,"name":"Meowth","form":"Base / standard / special slot","offset":"0x7C6618"},{"id":53,"name":"Persian","form":"Base / standard / special slot","offset":"0x7C6730"},{"id":56,"name":"Mankey","form":"Base / standard / special slot","offset":"0x7C6A78"},{"id":57,"name":"Primeape","form":"Base / standard / special slot","offset":"0x7C6B90"},{"id":58,"name":"Growlithe","form":"Base / standard / special slot","offset":"0x7C6CA8"},{"id":59,"name":"Arcanine","form":"Base / standard / special slot","offset":"0x7C6DC0"},{"id":60,"name":"Poliwag","form":"Base / standard / special slot","offset":"0x7C6ED8"},{"id":61,"name":"Poliwhirl","form":"Base / standard / special slot","offset":"0x7C6FF0"},{"id":62,"name":"Poliwrath","form":"Base / standard / special slot","offset":"0x7C7108"},{"id":63,"name":"Abra","form":"Base / standard / special slot","offset":"0x7C7220"},{"id":64,"name":"Kadabra","form":"Base / standard / special slot","offset":"0x7C7338"},{"id":65,"name":"Alakazam","form":"Base / standard / special slot","offset":"0x7C7450"},{"id":66,"name":"Machop","form":"Base / standard / special slot","offset":"0x7C7568"},{"id":67,"name":"Machoke","form":"Base / standard / special slot","offset":"0x7C7680"},{"id":68,"name":"Machamp","form":"Base / standard / special slot","offset":"0x7C7798"},{"id":69,"name":"Bellsprout","form":"Base / standard / special slot","offset":"0x7C78B0"},{"id":70,"name":"Weepinbell","form":"Base / standard / special slot","offset":"0x7C79C8"},{"id":71,"name":"Victreebel","form":"Base / standard / special slot","offset":"0x7C7AE0"},{"id":72,"name":"Tentacool","form":"Base / standard / special slot","offset":"0x7C7BF8"},{"id":73,"name":"Tentacruel","form":"Base / standard / special slot","offset":"0x7C7D10"},{"id":74,"name":"Geodude","form":"Base / standard / special slot","offset":"0x7C7E28"},{"id":75,"name":"Graveler","form":"Base / standard / special slot","offset":"0x7C7F40"},{"id":76,"name":"Golem","form":"Base / standard / special slot","offset":"0x7C8058"},{"id":77,"name":"Ponyta","form":"Base / standard / special slot","offset":"0x7C8170"},{"id":78,"name":"Rapidash","form":"Base / standard / special slot","offset":"0x7C8288"},{"id":79,"name":"Slowpoke","form":"Base / standard / special slot","offset":"0x7C83A0"},{"id":80,"name":"Slowbro","form":"Base / standard / special slot","offset":"0x7C84B8"},{"id":81,"name":"Magnemite","form":"Base / standard / special slot","offset":"0x7C85D0"},{"id":82,"name":"Magneton","form":"Base / standard / special slot","offset":"0x7C86E8"},{"id":83,"name":"Farfetch'd","form":"Base / standard / special slot","offset":"0x7C8800"},{"id":86,"name":"Seel","form":"Base / standard / special slot","offset":"0x7C8B48"},{"id":87,"name":"Dewgong","form":"Base / standard / special slot","offset":"0x7C8C60"},{"id":88,"name":"Grimer","form":"Base / standard / special slot","offset":"0x7C8D78"},{"id":89,"name":"Muk","form":"Base / standard / special slot","offset":"0x7C8E90"},{"id":90,"name":"Shellder","form":"Base / standard / special slot","offset":"0x7C8FA8"},{"id":91,"name":"Cloyster","form":"Base / standard / special slot","offset":"0x7C90C0"},{"id":92,"name":"Gastly","form":"Base / standard / special slot","offset":"0x7C91D8"},{"id":93,"name":"Haunter","form":"Base / standard / special slot","offset":"0x7C92F0"},{"id":94,"name":"Gengar","form":"Base / standard / special slot","offset":"0x7C9408"},{"id":95,"name":"Onix","form":"Base / standard / special slot","offset":"0x7C9520"},{"id":100,"name":"Voltorb","form":"Base / standard / special slot","offset":"0x7C9A98"},{"id":101,"name":"Electrode","form":"Base / standard / special slot","offset":"0x7C9BB0"},{"id":102,"name":"Exeggcute","form":"Base / standard / special slot","offset":"0x7C9CC8"},{"id":103,"name":"Exeggutor","form":"Base / standard / special slot","offset":"0x7C9DE0"},{"id":104,"name":"Cubone","form":"Base / standard / special slot","offset":"0x7C9EF8"},{"id":105,"name":"Marowak","form":"Base / standard / special slot","offset":"0x7CA010"},{"id":106,"name":"Hitmonlee","form":"Base / standard / special slot","offset":"0x7CA128"},{"id":107,"name":"Hitmonchan","form":"Base / standard / special slot","offset":"0x7CA240"},{"id":108,"name":"Lickitung","form":"Base / standard / special slot","offset":"0x7CA358"},{"id":109,"name":"Koffing","form":"Base / standard / special slot","offset":"0x7CA470"},{"id":110,"name":"Weezing","form":"Base / standard / special slot","offset":"0x7CA588"},{"id":111,"name":"Rhyhorn","form":"Base / standard / special slot","offset":"0x7CA6A0"},{"id":112,"name":"Rhydon","form":"Base / standard / special slot","offset":"0x7CA7B8"},{"id":113,"name":"Chansey","form":"Base / standard / special slot","offset":"0x7CA8D0"},{"id":114,"name":"Tangela","form":"Base / standard / special slot","offset":"0x7CA9E8"},{"id":115,"name":"Kangaskhan","form":"Base / standard / special slot","offset":"0x7CAB00"},{"id":116,"name":"Horsea","form":"Base / standard / special slot","offset":"0x7CAC18"},{"id":117,"name":"Seadra","form":"Base / standard / special slot","offset":"0x7CAD30"},{"id":120,"name":"Staryu","form":"Base / standard / special slot","offset":"0x7CB078"},{"id":121,"name":"Starmie","form":"Base / standard / special slot","offset":"0x7CB190"},{"id":122,"name":"Mr.Mime","form":"Base / standard / special slot","offset":"0x7CB2A8"},{"id":123,"name":"Scyther","form":"Base / standard / special slot","offset":"0x7CB3C0"},{"id":125,"name":"Electabuzz","form":"Base / standard / special slot","offset":"0x7CB5F0"},{"id":126,"name":"Magmar","form":"Base / standard / special slot","offset":"0x7CB708"},{"id":127,"name":"Pinsir","form":"Base / standard / special slot","offset":"0x7CB820"},{"id":128,"name":"Tauros","form":"Base / standard / special slot","offset":"0x7CB938"},{"id":129,"name":"Magikarp","form":"Base / standard / special slot","offset":"0x7CBA50"},{"id":130,"name":"Gyarados","form":"Base / standard / special slot","offset":"0x7CBB68"},{"id":131,"name":"Lapras","form":"Base / standard / special slot","offset":"0x7CBC80"},{"id":132,"name":"Ditto","form":"Base / standard / special slot","offset":"0x7CBD98"},{"id":133,"name":"Eevee","form":"Base / standard / special slot","offset":"0x7CBEB0"},{"id":134,"name":"Vaporeon","form":"Base / standard / special slot","offset":"0x7CBFC8"},{"id":135,"name":"Jolteon","form":"Base / standard / special slot","offset":"0x7CC0E0"},{"id":136,"name":"Flareon","form":"Base / standard / special slot","offset":"0x7CC1F8"},{"id":137,"name":"Porygon","form":"Base / standard / special slot","offset":"0x7CC310"},{"id":140,"name":"Kabuto","form":"Base / standard / special slot","offset":"0x7CC658"},{"id":141,"name":"Kabutops","form":"Base / standard / special slot","offset":"0x7CC770"},{"id":142,"name":"Aerodactyl","form":"Base / standard / special slot","offset":"0x7CC888"},{"id":143,"name":"Snorlax","form":"Base / standard / special slot","offset":"0x7CC9A0"},{"id":144,"name":"Articuno","form":"Base / standard / special slot","offset":"0x7CCAB8"},{"id":145,"name":"Zapdos","form":"Base / standard / special slot","offset":"0x7CCBD0"},{"id":146,"name":"Moltres","form":"Base / standard / special slot","offset":"0x7CCCE8"},{"id":147,"name":"Dratini","form":"Base / standard / special slot","offset":"0x7CCE00"},{"id":148,"name":"Dragonair","form":"Base / standard / special slot","offset":"0x7CCF18"},{"id":149,"name":"Dragonite","form":"Base / standard / special slot","offset":"0x7CD030"},{"id":150,"name":"Mewtwo","form":"Base / standard / special slot","offset":"0x7CD148"},{"id":151,"name":"Mew","form":"Base / standard / special slot","offset":"0x7CD260"},{"id":152,"name":"Chikorita","form":"Base / standard / special slot","offset":"0x7CD378"},{"id":153,"name":"Bayleef","form":"Base / standard / special slot","offset":"0x7CD490"},{"id":154,"name":"Meganium","form":"Base / standard / special slot","offset":"0x7CD5A8"},{"id":155,"name":"Cyndaquil","form":"Base / standard / special slot","offset":"0x7CD6C0"},{"id":156,"name":"Quilava","form":"Base / standard / special slot","offset":"0x7CD7D8"},{"id":157,"name":"Typhlosion","form":"Base / standard / special slot","offset":"0x7CD8F0"},{"id":158,"name":"Totodile","form":"Base / standard / special slot","offset":"0x7CDA08"},{"id":159,"name":"Croconaw","form":"Base / standard / special slot","offset":"0x7CDB20"},{"id":160,"name":"Feraligatr","form":"Base / standard / special slot","offset":"0x7CDC38"},{"id":163,"name":"Hoothoot","form":"Base / standard / special slot","offset":"0x7CDF80"},{"id":164,"name":"Noctowl","form":"Base / standard / special slot","offset":"0x7CE098"},{"id":167,"name":"Spinarak","form":"Base / standard / special slot","offset":"0x7CE3E0"},{"id":168,"name":"Ariados","form":"Base / standard / special slot","offset":"0x7CE4F8"},{"id":169,"name":"Crobat","form":"Base / standard / special slot","offset":"0x7CE610"},{"id":170,"name":"Chinchou","form":"Base / standard / special slot","offset":"0x7CE728"},{"id":171,"name":"Lanturn","form":"Base / standard / special slot","offset":"0x7CE840"},{"id":172,"name":"Pichu","form":"Base / standard / special slot","offset":"0x7CE958"},{"id":173,"name":"Cleffa","form":"Base / standard / special slot","offset":"0x7CEA70"},{"id":174,"name":"Igglybuff","form":"Base / standard / special slot","offset":"0x7CEB88"},{"id":175,"name":"Togepi","form":"Base / standard / special slot","offset":"0x7CECA0"},{"id":176,"name":"Togetic","form":"Base / standard / special slot","offset":"0x7CEDB8"},{"id":177,"name":"Natu","form":"Base / standard / special slot","offset":"0x7CEED0"},{"id":178,"name":"Xatu","form":"Base / standard / special slot","offset":"0x7CEFE8"},{"id":179,"name":"Mareep","form":"Base / standard / special slot","offset":"0x7CF100"},{"id":180,"name":"Flaaffy","form":"Base / standard / special slot","offset":"0x7CF218"},{"id":181,"name":"Ampharos","form":"Base / standard / special slot","offset":"0x7CF330"},{"id":182,"name":"Bellossom","form":"Base / standard / special slot","offset":"0x7CF448"},{"id":183,"name":"Marill","form":"Base / standard / special slot","offset":"0x7CF560"},{"id":184,"name":"Azumarill","form":"Base / standard / special slot","offset":"0x7CF678"},{"id":185,"name":"Sudowoodo","form":"Base / standard / special slot","offset":"0x7CF790"},{"id":186,"name":"Politoed","form":"Base / standard / special slot","offset":"0x7CF8A8"},{"id":187,"name":"Hoppip","form":"Base / standard / special slot","offset":"0x7CF9C0"},{"id":188,"name":"Skiploom","form":"Base / standard / special slot","offset":"0x7CFAD8"},{"id":189,"name":"Jumpluff","form":"Base / standard / special slot","offset":"0x7CFBF0"},{"id":190,"name":"Aipom","form":"Base / standard / special slot","offset":"0x7CFD08"},{"id":193,"name":"Yanma","form":"Base / standard / special slot","offset":"0x7D0050"},{"id":194,"name":"Wooper","form":"Base / standard / special slot","offset":"0x7D0168"},{"id":195,"name":"Quagsire","form":"Base / standard / special slot","offset":"0x7D0280"},{"id":196,"name":"Espeon","form":"Base / standard / special slot","offset":"0x7D0398"},{"id":197,"name":"Umbreon","form":"Base / standard / special slot","offset":"0x7D04B0"},{"id":198,"name":"Murkrow","form":"Base / standard / special slot","offset":"0x7D05C8"},{"id":199,"name":"Slowking","form":"Base / standard / special slot","offset":"0x7D06E0"},{"id":200,"name":"Misdreavus","form":"Base / standard / special slot","offset":"0x7D07F8"},{"id":201,"name":"Unown","form":"Base / standard / special slot","offset":"0x7D0910"},{"id":202,"name":"Wobbuffet","form":"Base / standard / special slot","offset":"0x7D0A28"},{"id":203,"name":"Girafarig","form":"Base / standard / special slot","offset":"0x7D0B40"},{"id":206,"name":"Dunsparce","form":"Base / standard / special slot","offset":"0x7D0E88"},{"id":207,"name":"Gligar","form":"Base / standard / special slot","offset":"0x7D0FA0"},{"id":208,"name":"Steelix","form":"Base / standard / special slot","offset":"0x7D10B8"},{"id":211,"name":"Qwilfish","form":"Base / standard / special slot","offset":"0x7D1400"},{"id":212,"name":"Scizor","form":"Base / standard / special slot","offset":"0x7D1518"},{"id":214,"name":"Heracross","form":"Base / standard / special slot","offset":"0x7D1748"},{"id":215,"name":"Sneasel","form":"Base / standard / special slot","offset":"0x7D1860"},{"id":216,"name":"Teddiursa","form":"Base / standard / special slot","offset":"0x7D1978"},{"id":217,"name":"Ursaring","form":"Base / standard / special slot","offset":"0x7D1A90"},{"id":220,"name":"Swinub","form":"Base / standard / special slot","offset":"0x7D1DD8"},{"id":221,"name":"Piloswine","form":"Base / standard / special slot","offset":"0x7D1EF0"},{"id":222,"name":"Corsola","form":"Base / standard / special slot","offset":"0x7D2008"},{"id":225,"name":"Delibird","form":"Base / standard / special slot","offset":"0x7D2350"},{"id":226,"name":"Mantine","form":"Base / standard / special slot","offset":"0x7D2468"},{"id":227,"name":"Skarmory","form":"Base / standard / special slot","offset":"0x7D2580"},{"id":228,"name":"Houndour","form":"Base / standard / special slot","offset":"0x7D2698"},{"id":229,"name":"Houndoom","form":"Base / standard / special slot","offset":"0x7D27B0"},{"id":230,"name":"Kingdra","form":"Base / standard / special slot","offset":"0x7D28C8"},{"id":231,"name":"Phanpy","form":"Base / standard / special slot","offset":"0x7D29E0"},{"id":232,"name":"Donphan","form":"Base / standard / special slot","offset":"0x7D2AF8"},{"id":233,"name":"Porygon2","form":"Base / standard / special slot","offset":"0x7D2C10"},{"id":234,"name":"Stantler","form":"Base / standard / special slot","offset":"0x7D2D28"},{"id":236,"name":"Tyrogue","form":"Base / standard / special slot","offset":"0x7D2F58"},{"id":237,"name":"Hitmontop","form":"Base / standard / special slot","offset":"0x7D3070"},{"id":239,"name":"Elekid","form":"Base / standard / special slot","offset":"0x7D32A0"},{"id":240,"name":"Magby","form":"Base / standard / special slot","offset":"0x7D33B8"},{"id":241,"name":"Miltank","form":"Base / standard / special slot","offset":"0x7D34D0"},{"id":242,"name":"Blissey","form":"Base / standard / special slot","offset":"0x7D35E8"},{"id":243,"name":"Raikou","form":"Base / standard / special slot","offset":"0x7D3700"},{"id":244,"name":"Entei","form":"Base / standard / special slot","offset":"0x7D3818"},{"id":245,"name":"Suicune","form":"Base / standard / special slot","offset":"0x7D3930"},{"id":246,"name":"Larvitar","form":"Base / standard / special slot","offset":"0x7D3A48"},{"id":247,"name":"Pupitar","form":"Base / standard / special slot","offset":"0x7D3B60"},{"id":248,"name":"Tyranitar","form":"Base / standard / special slot","offset":"0x7D3C78"},{"id":249,"name":"Lugia","form":"Base / standard / special slot","offset":"0x7D3D90"},{"id":250,"name":"Ho-Oh","form":"Base / standard / special slot","offset":"0x7D3EA8"},{"id":251,"name":"Celebi","form":"Base / standard / special slot","offset":"0x7D3FC0"},{"id":252,"name":"Treecko","form":"Base / standard / special slot","offset":"0x7D40D8"},{"id":253,"name":"Grovyle","form":"Base / standard / special slot","offset":"0x7D41F0"},{"id":254,"name":"Sceptile","form":"Base / standard / special slot","offset":"0x7D4308"},{"id":255,"name":"Torchic","form":"Base / standard / special slot","offset":"0x7D4420"},{"id":256,"name":"Combusken","form":"Base / standard / special slot","offset":"0x7D4538"},{"id":257,"name":"Blaziken","form":"Base / standard / special slot","offset":"0x7D4650"},{"id":258,"name":"Mudkip","form":"Base / standard / special slot","offset":"0x7D4768"},{"id":259,"name":"Marshtomp","form":"Base / standard / special slot","offset":"0x7D4880"},{"id":260,"name":"Swampert","form":"Base / standard / special slot","offset":"0x7D4998"},{"id":263,"name":"Zigzagoon","form":"Base / standard / special slot","offset":"0x7D4CE0"},{"id":264,"name":"Linoone","form":"Base / standard / special slot","offset":"0x7D4DF8"},{"id":278,"name":"Wingull","form":"Base / standard / special slot","offset":"0x7D5D48"},{"id":279,"name":"Pelipper","form":"Base / standard / special slot","offset":"0x7D5E60"},{"id":280,"name":"Ralts","form":"Base / standard / special slot","offset":"0x7D5F78"},{"id":281,"name":"Kirlia","form":"Base / standard / special slot","offset":"0x7D6090"},{"id":282,"name":"Gardevoir","form":"Base / standard / special slot","offset":"0x7D61A8"},{"id":285,"name":"Shroomish","form":"Base / standard / special slot","offset":"0x7D64F0"},{"id":286,"name":"Breloom","form":"Base / standard / special slot","offset":"0x7D6608"},{"id":290,"name":"Nincada","form":"Base / standard / special slot","offset":"0x7D6A68"},{"id":291,"name":"Ninjask","form":"Base / standard / special slot","offset":"0x7D6B80"},{"id":292,"name":"Shedinja","form":"Base / standard / special slot","offset":"0x7D6C98"},{"id":296,"name":"Makuhita","form":"Base / standard / special slot","offset":"0x7D70F8"},{"id":297,"name":"Hariyama","form":"Base / standard / special slot","offset":"0x7D7210"},{"id":298,"name":"Azurill","form":"Base / standard / special slot","offset":"0x7D7328"},{"id":299,"name":"Nosepass","form":"Base / standard / special slot","offset":"0x7D7440"},{"id":302,"name":"Sableye","form":"Base / standard / special slot","offset":"0x7D7788"},{"id":303,"name":"Mawile","form":"Base / standard / special slot","offset":"0x7D78A0"},{"id":304,"name":"Aron","form":"Base / standard / special slot","offset":"0x7D79B8"},{"id":305,"name":"Lairon","form":"Base / standard / special slot","offset":"0x7D7AD0"},{"id":306,"name":"Aggron","form":"Base / standard / special slot","offset":"0x7D7BE8"},{"id":307,"name":"Meditite","form":"Base / standard / special slot","offset":"0x7D7D00"},{"id":308,"name":"Medicham","form":"Base / standard / special slot","offset":"0x7D7E18"},{"id":309,"name":"Electrike","form":"Base / standard / special slot","offset":"0x7D7F30"},{"id":310,"name":"Manectric","form":"Base / standard / special slot","offset":"0x7D8048"},{"id":315,"name":"Roselia","form":"Base / standard / special slot","offset":"0x7D85C0"},{"id":318,"name":"Carvanha","form":"Base / standard / special slot","offset":"0x7D8908"},{"id":319,"name":"Sharpedo","form":"Base / standard / special slot","offset":"0x7D8A20"},{"id":322,"name":"Numel","form":"Base / standard / special slot","offset":"0x7D8D68"},{"id":323,"name":"Camerupt","form":"Base / standard / special slot","offset":"0x7D8E80"},{"id":324,"name":"Torkoal","form":"Base / standard / special slot","offset":"0x7D8F98"},{"id":328,"name":"Trapinch","form":"Base / standard / special slot","offset":"0x7D93F8"},{"id":329,"name":"Vibrava","form":"Base / standard / special slot","offset":"0x7D9510"},{"id":330,"name":"Flygon","form":"Base / standard / special slot","offset":"0x7D9628"},{"id":331,"name":"Cacnea","form":"Base / standard / special slot","offset":"0x7D9740"},{"id":332,"name":"Cacturne","form":"Base / standard / special slot","offset":"0x7D9858"},{"id":333,"name":"Swablu","form":"Base / standard / special slot","offset":"0x7D9970"},{"id":334,"name":"Altaria","form":"Base / standard / special slot","offset":"0x7D9A88"},{"id":339,"name":"Barboach","form":"Base / standard / special slot","offset":"0x7DA000"},{"id":340,"name":"Whiscash","form":"Base / standard / special slot","offset":"0x7DA118"},{"id":343,"name":"Baltoy","form":"Base / standard / special slot","offset":"0x7DA460"},{"id":344,"name":"Claydol","form":"Base / standard / special slot","offset":"0x7DA578"},{"id":345,"name":"Lileep","form":"Base / standard / special slot","offset":"0x7DA690"},{"id":346,"name":"Cradily","form":"Base / standard / special slot","offset":"0x7DA7A8"},{"id":349,"name":"Feebas","form":"Base / standard / special slot","offset":"0x7DAAF0"},{"id":350,"name":"Milotic","form":"Base / standard / special slot","offset":"0x7DAC08"},{"id":353,"name":"Shuppet","form":"Base / standard / special slot","offset":"0x7DAF50"},{"id":354,"name":"Banette","form":"Base / standard / special slot","offset":"0x7DB068"},{"id":355,"name":"Duskull","form":"Base / standard / special slot","offset":"0x7DB180"},{"id":356,"name":"Dusclops","form":"Base / standard / special slot","offset":"0x7DB298"},{"id":357,"name":"Tropius","form":"Base / standard / special slot","offset":"0x7DB3B0"},{"id":358,"name":"Chimecho","form":"Base / standard / special slot","offset":"0x7DB4C8"},{"id":359,"name":"Absol","form":"Base / standard / special slot","offset":"0x7DB5E0"},{"id":360,"name":"Wynaut","form":"Base / standard / special slot","offset":"0x7DB6F8"},{"id":361,"name":"Snorunt","form":"Base / standard / special slot","offset":"0x7DB810"},{"id":362,"name":"Glalie","form":"Base / standard / special slot","offset":"0x7DB928"},{"id":363,"name":"Spheal","form":"Base / standard / special slot","offset":"0x7DBA40"},{"id":364,"name":"Sealeo","form":"Base / standard / special slot","offset":"0x7DBB58"},{"id":365,"name":"Walrein","form":"Base / standard / special slot","offset":"0x7DBC70"},{"id":371,"name":"Bagon","form":"Base / standard / special slot","offset":"0x7DC300"},{"id":372,"name":"Shelgon","form":"Base / standard / special slot","offset":"0x7DC418"},{"id":373,"name":"Salamence","form":"Base / standard / special slot","offset":"0x7DC530"},{"id":374,"name":"Beldum","form":"Base / standard / special slot","offset":"0x7DC648"},{"id":375,"name":"Metang","form":"Base / standard / special slot","offset":"0x7DC760"},{"id":376,"name":"Metagross","form":"Base / standard / special slot","offset":"0x7DC878"},{"id":377,"name":"Regirock","form":"Base / standard / special slot","offset":"0x7DC990"},{"id":378,"name":"Regice","form":"Base / standard / special slot","offset":"0x7DCAA8"},{"id":379,"name":"Registeel","form":"Base / standard / special slot","offset":"0x7DCBC0"},{"id":380,"name":"Latias","form":"Base / standard / special slot","offset":"0x7DCCD8"},{"id":381,"name":"Latios","form":"Base / standard / special slot","offset":"0x7DCDF0"},{"id":382,"name":"Kyogre","form":"Base / standard / special slot","offset":"0x7DCF08"},{"id":383,"name":"Groudon","form":"Base / standard / special slot","offset":"0x7DD020"},{"id":384,"name":"Rayquaza","form":"Base / standard / special slot","offset":"0x7DD138"},{"id":385,"name":"Jirachi","form":"Base / standard / special slot","offset":"0x7DD250"},{"id":386,"name":"Deoxys","form":"Base / standard / special slot","offset":"0x7DD368"},{"id":387,"name":"Turtwig","form":"Base / standard / special slot","offset":"0x7DD480"},{"id":388,"name":"Grotle","form":"Base / standard / special slot","offset":"0x7DD598"},{"id":389,"name":"Torterra","form":"Base / standard / special slot","offset":"0x7DD6B0"},{"id":390,"name":"Chimchar","form":"Base / standard / special slot","offset":"0x7DD7C8"},{"id":391,"name":"Monferno","form":"Base / standard / special slot","offset":"0x7DD8E0"},{"id":392,"name":"Infernape","form":"Base / standard / special slot","offset":"0x7DD9F8"},{"id":393,"name":"Piplup","form":"Base / standard / special slot","offset":"0x7DDB10"},{"id":394,"name":"Prinplup","form":"Base / standard / special slot","offset":"0x7DDC28"},{"id":395,"name":"Empoleon","form":"Base / standard / special slot","offset":"0x7DDD40"},{"id":396,"name":"Starly","form":"Base / standard / special slot","offset":"0x7DDE58"},{"id":397,"name":"Staravia","form":"Base / standard / special slot","offset":"0x7DDF70"},{"id":398,"name":"Staraptor","form":"Base / standard / special slot","offset":"0x7DE088"},{"id":403,"name":"Shinx","form":"Base / standard / special slot","offset":"0x7DE600"},{"id":404,"name":"Luxio","form":"Base / standard / special slot","offset":"0x7DE718"},{"id":405,"name":"Luxray","form":"Base / standard / special slot","offset":"0x7DE830"},{"id":406,"name":"Budew","form":"Base / standard / special slot","offset":"0x7DE948"},{"id":407,"name":"Roserade","form":"Base / standard / special slot","offset":"0x7DEA60"},{"id":417,"name":"Pachirisu","form":"Base / standard / special slot","offset":"0x7DF550"},{"id":418,"name":"Buizel","form":"Base / standard / special slot","offset":"0x7DF668"},{"id":419,"name":"Floatzel","form":"Base / standard / special slot","offset":"0x7DF780"},{"id":422,"name":"Shellos","form":"Base / standard / special slot","offset":"0x7DFAC8"},{"id":423,"name":"Gastrodon","form":"Base / standard / special slot","offset":"0x7DFBE0"},{"id":424,"name":"Ambipom","form":"Base / standard / special slot","offset":"0x7DFCF8"},{"id":425,"name":"Drifloon","form":"Base / standard / special slot","offset":"0x7DFE10"},{"id":426,"name":"Drifblim","form":"Base / standard / special slot","offset":"0x7DFF28"},{"id":427,"name":"Buneary","form":"Base / standard / special slot","offset":"0x7E0040"},{"id":428,"name":"Lopunny","form":"Base / standard / special slot","offset":"0x7E0158"},{"id":429,"name":"Mismagius","form":"Base / standard / special slot","offset":"0x7E0270"},{"id":430,"name":"Honchkrow","form":"Base / standard / special slot","offset":"0x7E0388"},{"id":433,"name":"Chingling","form":"Base / standard / special slot","offset":"0x7E06D0"},{"id":438,"name":"Bonsly","form":"Base / standard / special slot","offset":"0x7E0C48"},{"id":439,"name":"MimeJr.","form":"Base / standard / special slot","offset":"0x7E0D60"},{"id":440,"name":"Happiny","form":"Base / standard / special slot","offset":"0x7E0E78"},{"id":442,"name":"Spiritomb","form":"Base / standard / special slot","offset":"0x7E10A8"},{"id":443,"name":"Gible","form":"Base / standard / special slot","offset":"0x7E11C0"},{"id":444,"name":"Gabite","form":"Base / standard / special slot","offset":"0x7E12D8"},{"id":445,"name":"Garchomp","form":"Base / standard / special slot","offset":"0x7E13F0"},{"id":446,"name":"Munchlax","form":"Base / standard / special slot","offset":"0x7E1508"},{"id":447,"name":"Riolu","form":"Base / standard / special slot","offset":"0x7E1620"},{"id":448,"name":"Lucario","form":"Base / standard / special slot","offset":"0x7E1738"},{"id":449,"name":"Hippopotas","form":"Base / standard / special slot","offset":"0x7E1850"},{"id":450,"name":"Hippowdon","form":"Base / standard / special slot","offset":"0x7E1968"},{"id":451,"name":"Skorupi","form":"Base / standard / special slot","offset":"0x7E1A80"},{"id":452,"name":"Drapion","form":"Base / standard / special slot","offset":"0x7E1B98"},{"id":456,"name":"Finneon","form":"Base / standard / special slot","offset":"0x7E1FF8"},{"id":457,"name":"Lumineon","form":"Base / standard / special slot","offset":"0x7E2110"},{"id":458,"name":"Mantyke","form":"Base / standard / special slot","offset":"0x7E2228"},{"id":459,"name":"Snover","form":"Base / standard / special slot","offset":"0x7E2340"},{"id":460,"name":"Abomasnow","form":"Base / standard / special slot","offset":"0x7E2458"},{"id":461,"name":"Weavile","form":"Base / standard / special slot","offset":"0x7E2570"},{"id":462,"name":"Magnezone","form":"Base / standard / special slot","offset":"0x7E2688"},{"id":463,"name":"Lickilicky","form":"Base / standard / special slot","offset":"0x7E27A0"},{"id":464,"name":"Rhyperior","form":"Base / standard / special slot","offset":"0x7E28B8"},{"id":465,"name":"Tangrowth","form":"Base / standard / special slot","offset":"0x7E29D0"},{"id":466,"name":"Electivire","form":"Base / standard / special slot","offset":"0x7E2AE8"},{"id":467,"name":"Magmortar","form":"Base / standard / special slot","offset":"0x7E2C00"},{"id":468,"name":"Togekiss","form":"Base / standard / special slot","offset":"0x7E2D18"},{"id":469,"name":"Yanmega","form":"Base / standard / special slot","offset":"0x7E2E30"},{"id":470,"name":"Leafeon","form":"Base / standard / special slot","offset":"0x7E2F48"},{"id":471,"name":"Glaceon","form":"Base / standard / special slot","offset":"0x7E3060"},{"id":472,"name":"Gliscor","form":"Base / standard / special slot","offset":"0x7E3178"},{"id":473,"name":"Mamoswine","form":"Base / standard / special slot","offset":"0x7E3290"},{"id":474,"name":"Porygon-Z","form":"Base / standard / special slot","offset":"0x7E33A8"},{"id":475,"name":"Gallade","form":"Base / standard / special slot","offset":"0x7E34C0"},{"id":476,"name":"Probopass","form":"Base / standard / special slot","offset":"0x7E35D8"},{"id":477,"name":"Dusknoir","form":"Base / standard / special slot","offset":"0x7E36F0"},{"id":478,"name":"Froslass","form":"Base / standard / special slot","offset":"0x7E3808"},{"id":479,"name":"Rotom","form":"Base / standard / special slot","offset":"0x7E3920"},{"id":480,"name":"Uxie","form":"Base / standard / special slot","offset":"0x7E3A38"},{"id":481,"name":"Mesprit","form":"Base / standard / special slot","offset":"0x7E3B50"},{"id":482,"name":"Azelf","form":"Base / standard / special slot","offset":"0x7E3C68"},{"id":483,"name":"Dialga","form":"Base / standard / special slot","offset":"0x7E3D80"},{"id":484,"name":"Palkia","form":"Base / standard / special slot","offset":"0x7E3E98"},{"id":485,"name":"Heatran","form":"Base / standard / special slot","offset":"0x7E3FB0"},{"id":486,"name":"Regigigas","form":"Base / standard / special slot","offset":"0x7E40C8"},{"id":487,"name":"Giratina","form":"Base / standard / special slot","offset":"0x7E41E0"},{"id":488,"name":"Cresselia","form":"Base / standard / special slot","offset":"0x7E42F8"},{"id":489,"name":"Phione","form":"Base / standard / special slot","offset":"0x7E4410"},{"id":490,"name":"Manaphy","form":"Base / standard / special slot","offset":"0x7E4528"},{"id":491,"name":"Darkrai","form":"Base / standard / special slot","offset":"0x7E4640"},{"id":492,"name":"Shaymin","form":"Base / standard / special slot","offset":"0x7E4758"},{"id":493,"name":"Arceus","form":"Base / standard / special slot","offset":"0x7E4870"},{"id":494,"name":"Victini","form":"Base / standard / special slot","offset":"0x7E4988"},{"id":495,"name":"Snivy","form":"Base / standard / special slot","offset":"0x7E4AA0"},{"id":496,"name":"Servine","form":"Base / standard / special slot","offset":"0x7E4BB8"},{"id":497,"name":"Serperior","form":"Base / standard / special slot","offset":"0x7E4CD0"},{"id":498,"name":"Tepig","form":"Base / standard / special slot","offset":"0x7E4DE8"},{"id":499,"name":"Pignite","form":"Base / standard / special slot","offset":"0x7E4F00"},{"id":500,"name":"Emboar","form":"Base / standard / special slot","offset":"0x7E5018"},{"id":501,"name":"Oshawott","form":"Base / standard / special slot","offset":"0x7E5130"},{"id":502,"name":"Dewott","form":"Base / standard / special slot","offset":"0x7E5248"},{"id":503,"name":"Samurott","form":"Base / standard / special slot","offset":"0x7E5360"},{"id":529,"name":"Drilbur","form":"Base / standard / special slot","offset":"0x7E6FD0"},{"id":530,"name":"Excadrill","form":"Base / standard / special slot","offset":"0x7E70E8"},{"id":531,"name":"Audino","form":"Base / standard / special slot","offset":"0x7E7200"},{"id":540,"name":"Sewaddle","form":"Base / standard / special slot","offset":"0x7E7BD8"},{"id":541,"name":"Swadloon","form":"Base / standard / special slot","offset":"0x7E7CF0"},{"id":542,"name":"Leavanny","form":"Base / standard / special slot","offset":"0x7E7E08"},{"id":543,"name":"Venipede","form":"Base / standard / special slot","offset":"0x7E7F20"},{"id":544,"name":"Whirlipede","form":"Base / standard / special slot","offset":"0x7E8038"},{"id":545,"name":"Scolipede","form":"Base / standard / special slot","offset":"0x7E8150"},{"id":546,"name":"Cottonee","form":"Base / standard / special slot","offset":"0x7E8268"},{"id":547,"name":"Whimsicott","form":"Base / standard / special slot","offset":"0x7E8380"},{"id":548,"name":"Petilil","form":"Base / standard / special slot","offset":"0x7E8498"},{"id":549,"name":"Lilligant","form":"Base / standard / special slot","offset":"0x7E85B0"},{"id":550,"name":"Basculin","form":"Base / standard / special slot","offset":"0x7E86C8"},{"id":551,"name":"Sandile","form":"Base / standard / special slot","offset":"0x7E87E0"},{"id":552,"name":"Krokorok","form":"Base / standard / special slot","offset":"0x7E88F8"},{"id":553,"name":"Krookodile","form":"Base / standard / special slot","offset":"0x7E8A10"},{"id":554,"name":"Darumaka","form":"Base / standard / special slot","offset":"0x7E8B28"},{"id":555,"name":"Darmanitan","form":"Base / standard / special slot","offset":"0x7E8C40"},{"id":556,"name":"Maractus","form":"Base / standard / special slot","offset":"0x7E8D58"},{"id":559,"name":"Scraggy","form":"Base / standard / special slot","offset":"0x7E90A0"},{"id":560,"name":"Scrafty","form":"Base / standard / special slot","offset":"0x7E91B8"},{"id":562,"name":"Yamask","form":"Base / standard / special slot","offset":"0x7E93E8"},{"id":563,"name":"Cofagrigus","form":"Base / standard / special slot","offset":"0x7E9500"},{"id":566,"name":"Archen","form":"Base / standard / special slot","offset":"0x7E9848"},{"id":567,"name":"Archeops","form":"Base / standard / special slot","offset":"0x7E9960"},{"id":570,"name":"Zorua","form":"Base / standard / special slot","offset":"0x7E9CA8"},{"id":571,"name":"Zoroark","form":"Base / standard / special slot","offset":"0x7E9DC0"},{"id":572,"name":"Minccino","form":"Base / standard / special slot","offset":"0x7E9ED8"},{"id":573,"name":"Cinccino","form":"Base / standard / special slot","offset":"0x7E9FF0"},{"id":577,"name":"Solosis","form":"Base / standard / special slot","offset":"0x7EA450"},{"id":578,"name":"Duosion","form":"Base / standard / special slot","offset":"0x7EA568"},{"id":579,"name":"Reuniclus","form":"Base / standard / special slot","offset":"0x7EA680"},{"id":587,"name":"Emolga","form":"Base / standard / special slot","offset":"0x7EAF40"},{"id":595,"name":"Joltik","form":"Base / standard / special slot","offset":"0x7EB800"},{"id":596,"name":"Galvantula","form":"Base / standard / special slot","offset":"0x7EB918"},{"id":597,"name":"Ferroseed","form":"Base / standard / special slot","offset":"0x7EBA30"},{"id":598,"name":"Ferrothorn","form":"Base / standard / special slot","offset":"0x7EBB48"},{"id":602,"name":"Tynamo","form":"Base / standard / special slot","offset":"0x7EBFA8"},{"id":603,"name":"Eelektrik","form":"Base / standard / special slot","offset":"0x7EC0C0"},{"id":604,"name":"Eelektross","form":"Base / standard / special slot","offset":"0x7EC1D8"},{"id":607,"name":"Litwick","form":"Base / standard / special slot","offset":"0x7EC520"},{"id":608,"name":"Lampent","form":"Base / standard / special slot","offset":"0x7EC638"},{"id":609,"name":"Chandelure","form":"Base / standard / special slot","offset":"0x7EC750"},{"id":610,"name":"Axew","form":"Base / standard / special slot","offset":"0x7EC868"},{"id":611,"name":"Fraxure","form":"Base / standard / special slot","offset":"0x7EC980"},{"id":612,"name":"Haxorus","form":"Base / standard / special slot","offset":"0x7ECA98"},{"id":618,"name":"Stunfisk","form":"Base / standard / special slot","offset":"0x7ED128"},{"id":619,"name":"Mienfoo","form":"Base / standard / special slot","offset":"0x7ED240"},{"id":620,"name":"Mienshao","form":"Base / standard / special slot","offset":"0x7ED358"},{"id":622,"name":"Golett","form":"Base / standard / special slot","offset":"0x7ED588"},{"id":623,"name":"Golurk","form":"Base / standard / special slot","offset":"0x7ED6A0"},{"id":624,"name":"Pawniard","form":"Base / standard / special slot","offset":"0x7ED7B8"},{"id":625,"name":"Bisharp","form":"Base / standard / special slot","offset":"0x7ED8D0"},{"id":627,"name":"Rufflet","form":"Base / standard / special slot","offset":"0x7EDB00"},{"id":628,"name":"Braviary","form":"Base / standard / special slot","offset":"0x7EDC18"},{"id":629,"name":"Vullaby","form":"Base / standard / special slot","offset":"0x7EDD30"},{"id":630,"name":"Mandibuzz","form":"Base / standard / special slot","offset":"0x7EDE48"},{"id":633,"name":"Deino","form":"Base / standard / special slot","offset":"0x7EE190"},{"id":634,"name":"Zweilous","form":"Base / standard / special slot","offset":"0x7EE2A8"},{"id":635,"name":"Hydreigon","form":"Base / standard / special slot","offset":"0x7EE3C0"},{"id":636,"name":"Larvesta","form":"Base / standard / special slot","offset":"0x7EE4D8"},{"id":637,"name":"Volcarona","form":"Base / standard / special slot","offset":"0x7EE5F0"},{"id":638,"name":"Cobalion","form":"Base / standard / special slot","offset":"0x7EE708"},{"id":639,"name":"Terrakion","form":"Base / standard / special slot","offset":"0x7EE820"},{"id":640,"name":"Virizion","form":"Base / standard / special slot","offset":"0x7EE938"},{"id":641,"name":"Tornadus","form":"Base / standard / special slot","offset":"0x7EEA50"},{"id":642,"name":"Thundurus","form":"Base / standard / special slot","offset":"0x7EEB68"},{"id":643,"name":"Reshiram","form":"Base / standard / special slot","offset":"0x7EEC80"},{"id":644,"name":"Zekrom","form":"Base / standard / special slot","offset":"0x7EED98"},{"id":645,"name":"Landorus","form":"Base / standard / special slot","offset":"0x7EEEB0"},{"id":646,"name":"Kyurem","form":"Base / standard / special slot","offset":"0x7EEFC8"},{"id":647,"name":"Keldeo","form":"Base / standard / special slot","offset":"0x7EF0E0"},{"id":648,"name":"Meloetta","form":"Base / standard / special slot","offset":"0x7EF1F8"},{"id":649,"name":"Genesect","form":"Base / standard / special slot","offset":"0x7EF310"},{"id":650,"name":"Chespin","form":"Base / standard / special slot","offset":"0x7EF428"},{"id":651,"name":"Quilladin","form":"Base / standard / special slot","offset":"0x7EF540"},{"id":652,"name":"Chesnaught","form":"Base / standard / special slot","offset":"0x7EF658"},{"id":653,"name":"Fennekin","form":"Base / standard / special slot","offset":"0x7EF770"},{"id":654,"name":"Braixen","form":"Base / standard / special slot","offset":"0x7EF888"},{"id":655,"name":"Delphox","form":"Base / standard / special slot","offset":"0x7EF9A0"},{"id":656,"name":"Froakie","form":"Base / standard / special slot","offset":"0x7EFAB8"},{"id":657,"name":"Frogadier","form":"Base / standard / special slot","offset":"0x7EFBD0"},{"id":658,"name":"Greninja","form":"Base / standard / special slot","offset":"0x7EFCE8"},{"id":661,"name":"Fletchling","form":"Base / standard / special slot","offset":"0x7F0030"},{"id":662,"name":"Fletchinder","form":"Base / standard / special slot","offset":"0x7F0148"},{"id":663,"name":"Talonflame","form":"Base / standard / special slot","offset":"0x7F0260"},{"id":667,"name":"Litleo","form":"Base / standard / special slot","offset":"0x7F06C0"},{"id":668,"name":"Pyroar","form":"Base / standard / special slot","offset":"0x7F07D8"},{"id":669,"name":"Flab<1B>b<1B>","form":"Base / standard / special slot","offset":"0x7F08F0"},{"id":670,"name":"Floette","form":"Base / standard / special slot","offset":"0x7F0A08"},{"id":671,"name":"Florges","form":"Base / standard / special slot","offset":"0x7F0B20"},{"id":672,"name":"Skiddo","form":"Base / standard / special slot","offset":"0x7F0C38"},{"id":673,"name":"Gogoat","form":"Base / standard / special slot","offset":"0x7F0D50"},{"id":677,"name":"Espurr","form":"Base / standard / special slot","offset":"0x7F11B0"},{"id":678,"name":"Meowstic","form":"Base / standard / special slot","offset":"0x7F12C8"},{"id":679,"name":"Honedge","form":"Base / standard / special slot","offset":"0x7F13E0"},{"id":680,"name":"Doublade","form":"Base / standard / special slot","offset":"0x7F14F8"},{"id":681,"name":"Aegislash","form":"Base / standard / special slot","offset":"0x7F1610"},{"id":686,"name":"Inkay","form":"Base / standard / special slot","offset":"0x7F1B88"},{"id":687,"name":"Malamar","form":"Base / standard / special slot","offset":"0x7F1CA0"},{"id":688,"name":"Binacle","form":"Base / standard / special slot","offset":"0x7F1DB8"},{"id":689,"name":"Barbaracle","form":"Base / standard / special slot","offset":"0x7F1ED0"},{"id":690,"name":"Skrelp","form":"Base / standard / special slot","offset":"0x7F1FE8"},{"id":691,"name":"Dragalge","form":"Base / standard / special slot","offset":"0x7F2100"},{"id":692,"name":"Clauncher","form":"Base / standard / special slot","offset":"0x7F2218"},{"id":693,"name":"Clawitzer","form":"Base / standard / special slot","offset":"0x7F2330"},{"id":696,"name":"Tyrunt","form":"Base / standard / special slot","offset":"0x7F2678"},{"id":697,"name":"Tyrantrum","form":"Base / standard / special slot","offset":"0x7F2790"},{"id":698,"name":"Amaura","form":"Base / standard / special slot","offset":"0x7F28A8"},{"id":699,"name":"Aurorus","form":"Base / standard / special slot","offset":"0x7F29C0"},{"id":700,"name":"Sylveon","form":"Base / standard / special slot","offset":"0x7F2AD8"},{"id":701,"name":"Hawlucha","form":"Base / standard / special slot","offset":"0x7F2BF0"},{"id":704,"name":"Goomy","form":"Base / standard / special slot","offset":"0x7F2F38"},{"id":705,"name":"Sliggoo","form":"Base / standard / special slot","offset":"0x7F3050"},{"id":706,"name":"Goodra","form":"Base / standard / special slot","offset":"0x7F3168"},{"id":707,"name":"Klefki","form":"Base / standard / special slot","offset":"0x7F3280"},{"id":708,"name":"Phantump","form":"Base / standard / special slot","offset":"0x7F3398"},{"id":709,"name":"Trevenant","form":"Base / standard / special slot","offset":"0x7F34B0"},{"id":712,"name":"Bergmite","form":"Base / standard / special slot","offset":"0x7F37F8"},{"id":713,"name":"Avalugg","form":"Base / standard / special slot","offset":"0x7F3910"},{"id":714,"name":"Noibat","form":"Base / standard / special slot","offset":"0x7F3A28"},{"id":715,"name":"Noivern","form":"Base / standard / special slot","offset":"0x7F3B40"},{"id":716,"name":"Xerneas","form":"Base / standard / special slot","offset":"0x7F3C58"},{"id":717,"name":"Yveltal","form":"Base / standard / special slot","offset":"0x7F3D70"},{"id":718,"name":"Zygarde","form":"Base / standard / special slot","offset":"0x7F3E88"},{"id":719,"name":"Diancie","form":"Base / standard / special slot","offset":"0x7F3FA0"},{"id":720,"name":"Hoopa","form":"Base / standard / special slot","offset":"0x7F40B8"},{"id":721,"name":"Volcanion","form":"Base / standard / special slot","offset":"0x7F41D0"},{"id":722,"name":"Rowlet","form":"Base / standard / special slot","offset":"0x7F42E8"},{"id":723,"name":"Dartrix","form":"Base / standard / special slot","offset":"0x7F4400"},{"id":724,"name":"Decidueye","form":"Base / standard / special slot","offset":"0x7F4518"},{"id":725,"name":"Litten","form":"Base / standard / special slot","offset":"0x7F4630"},{"id":726,"name":"Torracat","form":"Base / standard / special slot","offset":"0x7F4748"},{"id":727,"name":"Incineroar","form":"Base / standard / special slot","offset":"0x7F4860"},{"id":728,"name":"Popplio","form":"Base / standard / special slot","offset":"0x7F4978"},{"id":729,"name":"Brionne","form":"Base / standard / special slot","offset":"0x7F4A90"},{"id":730,"name":"Primarina","form":"Base / standard / special slot","offset":"0x7F4BA8"},{"id":736,"name":"Grubbin","form":"Base / standard / special slot","offset":"0x7F5238"},{"id":737,"name":"Charjabug","form":"Base / standard / special slot","offset":"0x7F5350"},{"id":738,"name":"Vikavolt","form":"Base / standard / special slot","offset":"0x7F5468"},{"id":739,"name":"Crabrawler","form":"Base / standard / special slot","offset":"0x7F5580"},{"id":740,"name":"Crabominable","form":"Base / standard / special slot","offset":"0x7F5698"},{"id":741,"name":"Oricorio","form":"Base / standard / special slot","offset":"0x7F57B0"},{"id":742,"name":"Cutiefly","form":"Base / standard / special slot","offset":"0x7F58C8"},{"id":743,"name":"Ribombee","form":"Base / standard / special slot","offset":"0x7F59E0"},{"id":744,"name":"Rockruff","form":"Base / standard / special slot","offset":"0x7F5AF8"},{"id":745,"name":"Lycanroc","form":"Base / standard / special slot","offset":"0x7F5C10"},{"id":747,"name":"Mareanie","form":"Base / standard / special slot","offset":"0x7F5E40"},{"id":748,"name":"Toxapex","form":"Base / standard / special slot","offset":"0x7F5F58"},{"id":767,"name":"Wimpod","form":"Base / standard / special slot","offset":"0x7F7420"},{"id":768,"name":"Golisopod","form":"Base / standard / special slot","offset":"0x7F7538"},{"id":771,"name":"Pyukumuku","form":"Base / standard / special slot","offset":"0x7F7880"},{"id":778,"name":"Mimikyu","form":"Base / standard / special slot","offset":"0x7F8028"},{"id":780,"name":"Drampa","form":"Base / standard / special slot","offset":"0x7F8258"},{"id":781,"name":"Dhelmise","form":"Base / standard / special slot","offset":"0x7F8370"},{"id":782,"name":"Jangmo-o","form":"Base / standard / special slot","offset":"0x7F8488"},{"id":783,"name":"Hakamo-o","form":"Base / standard / special slot","offset":"0x7F85A0"},{"id":784,"name":"Kommo-o","form":"Base / standard / special slot","offset":"0x7F86B8"},{"id":785,"name":"TapuKoko","form":"Base / standard / special slot","offset":"0x7F87D0"},{"id":786,"name":"TapuLele","form":"Base / standard / special slot","offset":"0x7F88E8"},{"id":787,"name":"TapuBulu","form":"Base / standard / special slot","offset":"0x7F8A00"},{"id":788,"name":"TapuFini","form":"Base / standard / special slot","offset":"0x7F8B18"},{"id":789,"name":"Cosmog","form":"Base / standard / special slot","offset":"0x7F8C30"},{"id":790,"name":"Cosmoem","form":"Base / standard / special slot","offset":"0x7F8D48"},{"id":791,"name":"Solgaleo","form":"Base / standard / special slot","offset":"0x7F8E60"},{"id":792,"name":"Lunala","form":"Base / standard / special slot","offset":"0x7F8F78"},{"id":800,"name":"Necrozma","form":"Base / standard / special slot","offset":"0x7F9838"},{"id":801,"name":"Magearna","form":"Base / standard / special slot","offset":"0x7F9950"},{"id":802,"name":"Marshadow","form":"Base / standard / special slot","offset":"0x7F9A68"},{"id":803,"name":"Poipole","form":"Base / standard / special slot","offset":"0x7F9B80"},{"id":804,"name":"Naganadel","form":"Base / standard / special slot","offset":"0x7F9C98"},{"id":807,"name":"Zeraora","form":"Base / standard / special slot","offset":"0x7F9FE0"},{"id":808,"name":"Meltan","form":"Base / standard / special slot","offset":"0x7FA0F8"},{"id":809,"name":"Melmetal","form":"Base / standard / special slot","offset":"0x7FA210"},{"id":810,"name":"Grookey","form":"Base / standard / special slot","offset":"0x7FA328"},{"id":811,"name":"Thwackey","form":"Base / standard / special slot","offset":"0x7FA440"},{"id":812,"name":"Rillaboom","form":"Base / standard / special slot","offset":"0x7FA558"},{"id":813,"name":"Scorbunny","form":"Base / standard / special slot","offset":"0x7FA670"},{"id":814,"name":"Raboot","form":"Base / standard / special slot","offset":"0x7FA788"},{"id":815,"name":"Cinderace","form":"Base / standard / special slot","offset":"0x7FA8A0"},{"id":816,"name":"Sobble","form":"Base / standard / special slot","offset":"0x7FA9B8"},{"id":817,"name":"Drizzile","form":"Base / standard / special slot","offset":"0x7FAAD0"},{"id":818,"name":"Inteleon","form":"Base / standard / special slot","offset":"0x7FABE8"},{"id":821,"name":"Rookidee","form":"Base / standard / special slot","offset":"0x7FAF30"},{"id":822,"name":"Corvisquire","form":"Base / standard / special slot","offset":"0x7FB048"},{"id":823,"name":"Corviknight","form":"Base / standard / special slot","offset":"0x7FB160"},{"id":840,"name":"Applin","form":"Base / standard / special slot","offset":"0x7FC3F8"},{"id":841,"name":"Flapple","form":"Base / standard / special slot","offset":"0x7FC510"},{"id":842,"name":"Appletun","form":"Base / standard / special slot","offset":"0x7FC628"},{"id":843,"name":"Silicobra","form":"Base / standard / special slot","offset":"0x7FC740"},{"id":844,"name":"Sandaconda","form":"Base / standard / special slot","offset":"0x7FC858"},{"id":848,"name":"Toxel","form":"Base / standard / special slot","offset":"0x7FCCB8"},{"id":849,"name":"Toxtricity","form":"Base / standard / special slot","offset":"0x7FCDD0"},{"id":850,"name":"Sizzlipede","form":"Base / standard / special slot","offset":"0x7FCEE8"},{"id":851,"name":"Centiskorch","form":"Base / standard / special slot","offset":"0x7FD000"},{"id":854,"name":"Sinistea","form":"Base / standard / special slot","offset":"0x7FD348"},{"id":855,"name":"Polteageist","form":"Base / standard / special slot","offset":"0x7FD460"},{"id":859,"name":"Impidimp","form":"Base / standard / special slot","offset":"0x7FD8C0"},{"id":860,"name":"Morgrem","form":"Base / standard / special slot","offset":"0x7FD9D8"},{"id":861,"name":"Grimmsnarl","form":"Base / standard / special slot","offset":"0x7FDAF0"},{"id":862,"name":"Obstagoon","form":"Base / standard / special slot","offset":"0x7FDC08"},{"id":863,"name":"Perrserker","form":"Base / standard / special slot","offset":"0x7FDD20"},{"id":864,"name":"Cursola","form":"Base / standard / special slot","offset":"0x7FDE38"},{"id":865,"name":"Sirfetch'd","form":"Base / standard / special slot","offset":"0x7FDF50"},{"id":866,"name":"Mr.Rime","form":"Base / standard / special slot","offset":"0x7FE068"},{"id":867,"name":"Runerigus","form":"Base / standard / special slot","offset":"0x7FE180"},{"id":870,"name":"Falinks","form":"Base / standard / special slot","offset":"0x7FE4C8"},{"id":876,"name":"Indeedee","form":"Base / standard / special slot","offset":"0x7FEB58"},{"id":884,"name":"Duraludon","form":"Base / standard / special slot","offset":"0x7FF418"},{"id":885,"name":"Dreepy","form":"Base / standard / special slot","offset":"0x7FF530"},{"id":886,"name":"Drakloak","form":"Base / standard / special slot","offset":"0x7FF648"},{"id":887,"name":"Dragapult","form":"Base / standard / special slot","offset":"0x7FF760"},{"id":888,"name":"Zacian","form":"Base / standard / special slot","offset":"0x7FF878"},{"id":889,"name":"Zamazenta","form":"Base / standard / special slot","offset":"0x7FF990"},{"id":890,"name":"Eternatus","form":"Base / standard / special slot","offset":"0x7FFAA8"},{"id":891,"name":"Kubfu","form":"Base / standard / special slot","offset":"0x7FFBC0"},{"id":892,"name":"Urshifu","form":"Base / standard / special slot","offset":"0x7FFCD8"},{"id":893,"name":"Zarude","form":"Base / standard / special slot","offset":"0x7FFDF0"},{"id":894,"name":"Regieleki","form":"Base / standard / special slot","offset":"0x7FFF08"},{"id":895,"name":"Regidrago","form":"Base / standard / special slot","offset":"0x800020"},{"id":896,"name":"Glastrier","form":"Base / standard / special slot","offset":"0x800138"},{"id":897,"name":"Spectrier","form":"Base / standard / special slot","offset":"0x800250"},{"id":898,"name":"Calyrex","form":"Base / standard / special slot","offset":"0x800368"},{"id":899,"name":"Wyrdeer","form":"Base / standard / special slot","offset":"0x800480"},{"id":900,"name":"Kleavor","form":"Base / standard / special slot","offset":"0x800598"},{"id":901,"name":"Ursaluna","form":"Base / standard / special slot","offset":"0x8006B0"},{"id":902,"name":"Basculegion","form":"Base / standard / special slot","offset":"0x8007C8"},{"id":903,"name":"Sneasler","form":"Base / standard / special slot","offset":"0x8008E0"},{"id":904,"name":"Overqwil","form":"Base / standard / special slot","offset":"0x8009F8"},{"id":905,"name":"Enamorus","form":"Base / standard / special slot","offset":"0x800B10"},{"id":906,"name":"Venusaur","form":"Mega / special form slot","offset":"0x800C28"},{"id":907,"name":"Charizard","form":"Mega / special form slot","offset":"0x800D40"},{"id":908,"name":"Charizard","form":"Mega / special form slot","offset":"0x800E58"},{"id":909,"name":"Blastoise","form":"Mega / special form slot","offset":"0x800F70"},{"id":910,"name":"Beedrill","form":"Mega / special form slot","offset":"0x801088"},{"id":911,"name":"Pidgeot","form":"Mega / special form slot","offset":"0x8011A0"},{"id":912,"name":"Alakazam","form":"Mega / special form slot","offset":"0x8012B8"},{"id":913,"name":"Slowbro","form":"Mega / special form slot","offset":"0x8013D0"},{"id":914,"name":"Gengar","form":"Mega / special form slot","offset":"0x8014E8"},{"id":915,"name":"Kangaskhan","form":"Mega / special form slot","offset":"0x801600"},{"id":916,"name":"Pinsir","form":"Mega / special form slot","offset":"0x801718"},{"id":917,"name":"Gyarados","form":"Mega / special form slot","offset":"0x801830"},{"id":918,"name":"Aerodactyl","form":"Mega / special form slot","offset":"0x801948"},{"id":919,"name":"Mewtwo","form":"Mega / special form slot","offset":"0x801A60"},{"id":920,"name":"Mewtwo","form":"Mega / special form slot","offset":"0x801B78"},{"id":921,"name":"Ampharos","form":"Mega / special form slot","offset":"0x801C90"},{"id":922,"name":"Steelix","form":"Mega / special form slot","offset":"0x801DA8"},{"id":923,"name":"Scizor","form":"Mega / special form slot","offset":"0x801EC0"},{"id":924,"name":"Heracross","form":"Mega / special form slot","offset":"0x801FD8"},{"id":925,"name":"Houndoom","form":"Mega / special form slot","offset":"0x8020F0"},{"id":926,"name":"Tyranitar","form":"Mega / special form slot","offset":"0x802208"},{"id":927,"name":"Sceptile","form":"Mega / special form slot","offset":"0x802320"},{"id":928,"name":"Blaziken","form":"Mega / special form slot","offset":"0x802438"},{"id":929,"name":"Swampert","form":"Mega / special form slot","offset":"0x802550"},{"id":930,"name":"Gardevoir","form":"Mega / special form slot","offset":"0x802668"},{"id":931,"name":"Sableye","form":"Mega / special form slot","offset":"0x802780"},{"id":932,"name":"Mawile","form":"Mega / special form slot","offset":"0x802898"},{"id":933,"name":"Aggron","form":"Mega / special form slot","offset":"0x8029B0"},{"id":934,"name":"Medicham","form":"Mega / special form slot","offset":"0x802AC8"},{"id":935,"name":"Manectric","form":"Mega / special form slot","offset":"0x802BE0"},{"id":936,"name":"Sharpedo","form":"Mega / special form slot","offset":"0x802CF8"},{"id":937,"name":"Camerupt","form":"Mega / special form slot","offset":"0x802E10"},{"id":938,"name":"Altaria","form":"Mega / special form slot","offset":"0x802F28"},{"id":939,"name":"Banette","form":"Mega / special form slot","offset":"0x803040"},{"id":940,"name":"Absol","form":"Mega / special form slot","offset":"0x803158"},{"id":941,"name":"Glalie","form":"Mega / special form slot","offset":"0x803270"},{"id":942,"name":"Salamence","form":"Mega / special form slot","offset":"0x803388"},{"id":943,"name":"Metagross","form":"Mega / special form slot","offset":"0x8034A0"},{"id":944,"name":"Latias","form":"Mega / special form slot","offset":"0x8035B8"},{"id":945,"name":"Latios","form":"Mega / special form slot","offset":"0x8036D0"},{"id":946,"name":"Lopunny","form":"Mega / special form slot","offset":"0x8037E8"},{"id":947,"name":"Garchomp","form":"Mega / special form slot","offset":"0x803900"},{"id":948,"name":"Lucario","form":"Mega / special form slot","offset":"0x803A18"},{"id":949,"name":"Abomasnow","form":"Mega / special form slot","offset":"0x803B30"},{"id":950,"name":"Gallade","form":"Mega / special form slot","offset":"0x803C48"},{"id":951,"name":"Audino","form":"Mega / special form slot","offset":"0x803D60"},{"id":952,"name":"Diancie","form":"Mega / special form slot","offset":"0x803E78"},{"id":953,"name":"Rayquaza","form":"Mega / special form slot","offset":"0x803F90"},{"id":954,"name":"Kyogre","form":"Mega / special form slot","offset":"0x8040A8"},{"id":955,"name":"Groudon","form":"Mega / special form slot","offset":"0x8041C0"},{"id":956,"name":"Rattata","form":"Alolan form slot","offset":"0x8042D8"},{"id":957,"name":"Raticate","form":"Alolan form slot","offset":"0x8043F0"},{"id":958,"name":"Raichu","form":"Alolan form slot","offset":"0x804508"},{"id":959,"name":"Sandshrew","form":"Alolan form slot","offset":"0x804620"},{"id":960,"name":"Sandslash","form":"Alolan form slot","offset":"0x804738"},{"id":961,"name":"Vulpix","form":"Alolan form slot","offset":"0x804850"},{"id":962,"name":"Ninetales","form":"Alolan form slot","offset":"0x804968"},{"id":963,"name":"Diglett","form":"Alolan form slot","offset":"0x804A80"},{"id":964,"name":"Dugtrio","form":"Alolan form slot","offset":"0x804B98"},{"id":965,"name":"Meowth","form":"Alolan form slot","offset":"0x804CB0"},{"id":966,"name":"Persian","form":"Alolan form slot","offset":"0x804DC8"},{"id":967,"name":"Geodude","form":"Alolan form slot","offset":"0x804EE0"},{"id":968,"name":"Graveler","form":"Alolan form slot","offset":"0x804FF8"},{"id":969,"name":"Golem","form":"Alolan form slot","offset":"0x805110"},{"id":970,"name":"Grimer","form":"Alolan form slot","offset":"0x805228"},{"id":971,"name":"Muk","form":"Alolan form slot","offset":"0x805340"},{"id":972,"name":"Exeggutor","form":"Alolan form slot","offset":"0x805458"},{"id":973,"name":"Marowak","form":"Alolan form slot","offset":"0x805570"},{"id":974,"name":"Meowth","form":"Galarian form slot","offset":"0x805688"},{"id":975,"name":"Ponyta","form":"Galarian form slot","offset":"0x8057A0"},{"id":976,"name":"Rapidash","form":"Galarian form slot","offset":"0x8058B8"},{"id":977,"name":"Slowpoke","form":"Galarian form slot","offset":"0x8059D0"},{"id":978,"name":"Slowbro","form":"Galarian form slot","offset":"0x805AE8"},{"id":979,"name":"Farfetch'd","form":"Galarian form slot","offset":"0x805C00"},{"id":980,"name":"Weezing","form":"Galarian form slot","offset":"0x805D18"},{"id":981,"name":"Mr.Mime","form":"Galarian form slot","offset":"0x805E30"},{"id":982,"name":"Articuno","form":"Galarian form slot","offset":"0x805F48"},{"id":983,"name":"Zapdos","form":"Galarian form slot","offset":"0x806060"},{"id":984,"name":"Moltres","form":"Galarian form slot","offset":"0x806178"},{"id":985,"name":"Slowking","form":"Galarian form slot","offset":"0x806290"},{"id":986,"name":"Corsola","form":"Galarian form slot","offset":"0x8063A8"},{"id":987,"name":"Zigzagoon","form":"Galarian form slot","offset":"0x8064C0"},{"id":988,"name":"Linoone","form":"Galarian form slot","offset":"0x8065D8"},{"id":989,"name":"Darumaka","form":"Galarian form slot","offset":"0x8066F0"},{"id":990,"name":"Darmanitan","form":"Galarian form slot","offset":"0x806808"},{"id":991,"name":"Yamask","form":"Galarian form slot","offset":"0x806920"},{"id":992,"name":"Stunfisk","form":"Galarian form slot","offset":"0x806A38"},{"id":993,"name":"Growlithe","form":"Hisuian form slot","offset":"0x806B50"},{"id":994,"name":"Arcanine","form":"Hisuian form slot","offset":"0x806C68"},{"id":995,"name":"Voltorb","form":"Hisuian form slot","offset":"0x806D80"},{"id":996,"name":"Electrode","form":"Hisuian form slot","offset":"0x806E98"},{"id":997,"name":"Typhlosion","form":"Hisuian form slot","offset":"0x806FB0"},{"id":998,"name":"Qwilfish","form":"Hisuian form slot","offset":"0x8070C8"},{"id":999,"name":"Sneasel","form":"Hisuian form slot","offset":"0x8071E0"},{"id":1000,"name":"Samurott","form":"Hisuian form slot","offset":"0x8072F8"},{"id":1001,"name":"Lilligant","form":"Hisuian form slot","offset":"0x807410"},{"id":1002,"name":"Zorua","form":"Hisuian form slot","offset":"0x807528"},{"id":1003,"name":"Zoroark","form":"Hisuian form slot","offset":"0x807640"},{"id":1004,"name":"Braviary","form":"Hisuian form slot","offset":"0x807758"},{"id":1005,"name":"Sliggoo","form":"Hisuian form slot","offset":"0x807870"},{"id":1006,"name":"Goodra","form":"Hisuian form slot","offset":"0x807988"},{"id":1007,"name":"Avalugg","form":"Hisuian form slot","offset":"0x807AA0"},{"id":1008,"name":"Decidueye","form":"Hisuian form slot","offset":"0x807BB8"},{"id":1023,"name":"Pichu","form":"Base / standard / special slot","offset":"0x808C20"},{"id":1024,"name":"Unown","form":"Unown Form A","offset":"0x808D38"},{"id":1025,"name":"Unown","form":"Unown Form B","offset":"0x808E50"},{"id":1026,"name":"Unown","form":"Unown Form C","offset":"0x808F68"},{"id":1027,"name":"Unown","form":"Unown Form D","offset":"0x809080"},{"id":1028,"name":"Unown","form":"Unown Form E","offset":"0x809198"},{"id":1029,"name":"Unown","form":"Unown Form F","offset":"0x8092B0"},{"id":1030,"name":"Unown","form":"Unown Form G","offset":"0x8093C8"},{"id":1031,"name":"Unown","form":"Unown Form H","offset":"0x8094E0"},{"id":1032,"name":"Unown","form":"Unown Form I","offset":"0x8095F8"},{"id":1033,"name":"Unown","form":"Unown Form J","offset":"0x809710"},{"id":1034,"name":"Unown","form":"Unown Form K","offset":"0x809828"},{"id":1035,"name":"Unown","form":"Unown Form L","offset":"0x809940"},{"id":1036,"name":"Unown","form":"Unown Form M","offset":"0x809A58"},{"id":1037,"name":"Unown","form":"Unown Form N","offset":"0x809B70"},{"id":1038,"name":"Unown","form":"Unown Form O","offset":"0x809C88"},{"id":1039,"name":"Unown","form":"Unown Form P","offset":"0x809DA0"},{"id":1040,"name":"Unown","form":"Unown Form Q","offset":"0x809EB8"},{"id":1041,"name":"Unown","form":"Unown Form R","offset":"0x809FD0"},{"id":1042,"name":"Unown","form":"Unown Form S","offset":"0x80A0E8"},{"id":1043,"name":"Unown","form":"Unown Form T","offset":"0x80A200"},{"id":1044,"name":"Unown","form":"Unown Form U","offset":"0x80A318"},{"id":1045,"name":"Unown","form":"Unown Form V","offset":"0x80A430"},{"id":1046,"name":"Unown","form":"Unown Form W","offset":"0x80A548"},{"id":1047,"name":"Unown","form":"Unown Form X","offset":"0x80A660"},{"id":1048,"name":"Unown","form":"Unown Form Y","offset":"0x80A778"},{"id":1049,"name":"Unown","form":"Unown Form Z","offset":"0x80A890"},{"id":1050,"name":"Unown","form":"Unown Form [","offset":"0x80A9A8"},{"id":1054,"name":"Deoxys","form":"Deoxys Attack","offset":"0x80AE08"},{"id":1055,"name":"Deoxys","form":"Deoxys Defense","offset":"0x80AF20"},{"id":1056,"name":"Deoxys","form":"Deoxys Speed","offset":"0x80B038"},{"id":1062,"name":"Shellos","form":"Base / standard / special slot","offset":"0x80B6C8"},{"id":1063,"name":"Gastrodon","form":"Base / standard / special slot","offset":"0x80B7E0"},{"id":1064,"name":"Rotom","form":"Rotom Heat","offset":"0x80B8F8"},{"id":1065,"name":"Rotom","form":"Rotom Wash","offset":"0x80BA10"},{"id":1066,"name":"Rotom","form":"Rotom Frost","offset":"0x80BB28"},{"id":1067,"name":"Rotom","form":"Rotom Fan","offset":"0x80BC40"},{"id":1068,"name":"Rotom","form":"Rotom Mow","offset":"0x80BD58"},{"id":1069,"name":"Dialga","form":"Dialga Origin","offset":"0x80BE70"},{"id":1070,"name":"Palkia","form":"Palkia Origin","offset":"0x80BF88"},{"id":1071,"name":"Giratina","form":"Giratina Origin","offset":"0x80C0A0"},{"id":1072,"name":"Shaymin","form":"Shaymin Sky","offset":"0x80C1B8"},{"id":1073,"name":"Arceus","form":"Arceus Fighting","offset":"0x80C2D0"},{"id":1074,"name":"Arceus","form":"Arceus Flying","offset":"0x80C3E8"},{"id":1075,"name":"Arceus","form":"Arceus Poison","offset":"0x80C500"},{"id":1076,"name":"Arceus","form":"Arceus Ground","offset":"0x80C618"},{"id":1077,"name":"Arceus","form":"Arceus Rock","offset":"0x80C730"},{"id":1078,"name":"Arceus","form":"Arceus Bug","offset":"0x80C848"},{"id":1079,"name":"Arceus","form":"Arceus Ghost","offset":"0x80C960"},{"id":1080,"name":"Arceus","form":"Arceus Steel","offset":"0x80CA78"},{"id":1081,"name":"Arceus","form":"Arceus Fire","offset":"0x80CB90"},{"id":1082,"name":"Arceus","form":"Arceus Water","offset":"0x80CCA8"},{"id":1083,"name":"Arceus","form":"Arceus Grass","offset":"0x80CDC0"},{"id":1084,"name":"Arceus","form":"Arceus Electric","offset":"0x80CED8"},{"id":1085,"name":"Arceus","form":"Arceus Psychic","offset":"0x80CFF0"},{"id":1086,"name":"Arceus","form":"Arceus Ice","offset":"0x80D108"},{"id":1087,"name":"Arceus","form":"Arceus Dragon","offset":"0x80D220"},{"id":1088,"name":"Arceus","form":"Arceus Dark","offset":"0x80D338"},{"id":1089,"name":"Arceus","form":"Arceus Fairy","offset":"0x80D450"},{"id":1090,"name":"Basculin","form":"Basculin Blue-Striped","offset":"0x80D568"},{"id":1091,"name":"Basculin","form":"Basculin White-Striped","offset":"0x80D680"},{"id":1092,"name":"Darmanitan","form":"Darmanitan Zen","offset":"0x80D798"},{"id":1093,"name":"Darmanitan","form":"Darmanitan Galarian Zen","offset":"0x80D8B0"},{"id":1100,"name":"Tornadus","form":"Tornadus Therian","offset":"0x80E058"},{"id":1101,"name":"Thundurus","form":"Thundurus Therian","offset":"0x80E170"},{"id":1102,"name":"Landorus","form":"Landorus Therian","offset":"0x80E288"},{"id":1103,"name":"Enamorus","form":"Enamorus Therian","offset":"0x80E3A0"},{"id":1104,"name":"Kyurem","form":"Kyurem White","offset":"0x80E4B8"},{"id":1105,"name":"Kyurem","form":"Kyurem Black","offset":"0x80E5D0"},{"id":1106,"name":"Keldeo","form":"Keldeo Resolute","offset":"0x80E6E8"},{"id":1107,"name":"Meloetta","form":"Meloetta Pirouette","offset":"0x80E800"},{"id":1108,"name":"Genesect","form":"Genesect Douse","offset":"0x80E918"},{"id":1109,"name":"Genesect","form":"Genesect Shock","offset":"0x80EA30"},{"id":1110,"name":"Genesect","form":"Genesect Burn","offset":"0x80EB48"},{"id":1111,"name":"Genesect","form":"Genesect Chill","offset":"0x80EC60"},{"id":1112,"name":"Greninja","form":"Greninja Battle Bond","offset":"0x80ED78"},{"id":1113,"name":"Greninja","form":"Ash-Greninja","offset":"0x80EE90"},{"id":1133,"name":"Flab<1B>b<1B>","form":"Flabebe/Floette/Florges color form slot 1","offset":"0x810470"},{"id":1134,"name":"Flab<1B>b<1B>","form":"Flabebe/Floette/Florges color form slot 2","offset":"0x810588"},{"id":1135,"name":"Flab<1B>b<1B>","form":"Flabebe/Floette/Florges color form slot 3","offset":"0x8106A0"},{"id":1136,"name":"Flab<1B>b<1B>","form":"Flabebe/Floette/Florges color form slot 4","offset":"0x8107B8"},{"id":1137,"name":"Floette","form":"Flabebe/Floette/Florges color form slot 5","offset":"0x8108D0"},{"id":1138,"name":"Floette","form":"Flabebe/Floette/Florges color form slot 6","offset":"0x8109E8"},{"id":1139,"name":"Floette","form":"Flabebe/Floette/Florges color form slot 7","offset":"0x810B00"},{"id":1140,"name":"Floette","form":"Flabebe/Floette/Florges color form slot 8","offset":"0x810C18"},{"id":1141,"name":"Floette","form":"Flabebe/Floette/Florges color form slot 9","offset":"0x810D30"},{"id":1142,"name":"Florges","form":"Flabebe/Floette/Florges color form slot 10","offset":"0x810E48"},{"id":1143,"name":"Florges","form":"Flabebe/Floette/Florges color form slot 11","offset":"0x810F60"},{"id":1144,"name":"Florges","form":"Flabebe/Floette/Florges color form slot 12","offset":"0x811078"},{"id":1145,"name":"Florges","form":"Flabebe/Floette/Florges color form slot 13","offset":"0x811190"},{"id":1155,"name":"Meowstic","form":"Meowstic Female","offset":"0x811C80"},{"id":1156,"name":"Aegislash","form":"Aegislash Blade","offset":"0x811D98"},{"id":1163,"name":"Xerneas","form":"Xerneas Active","offset":"0x812540"},{"id":1164,"name":"Zygarde","form":"Zygarde 10%","offset":"0x812658"},{"id":1165,"name":"Zygarde","form":"Zygarde 50%","offset":"0x812770"},{"id":1166,"name":"Zygarde","form":"Zygarde Complete","offset":"0x812888"},{"id":1167,"name":"Zygarde","form":"Base / standard / special slot","offset":"0x8129A0"},{"id":1168,"name":"Hoopa","form":"Hoopa Unbound","offset":"0x812AB8"},{"id":1169,"name":"Oricorio","form":"Oricorio form slot 1","offset":"0x812BD0"},{"id":1170,"name":"Oricorio","form":"Oricorio form slot 2","offset":"0x812CE8"},{"id":1171,"name":"Oricorio","form":"Oricorio form slot 3","offset":"0x812E00"},{"id":1172,"name":"Rockruff","form":"Rockruff Own Tempo","offset":"0x812F18"},{"id":1173,"name":"Lycanroc","form":"Lycanroc Dusk","offset":"0x813030"},{"id":1174,"name":"Lycanroc","form":"Lycanroc Midnight","offset":"0x813148"},{"id":1206,"name":"Mimikyu","form":"Mimikyu Busted","offset":"0x815448"},{"id":1207,"name":"Necrozma","form":"Necrozma Dusk Mane","offset":"0x815560"},{"id":1208,"name":"Necrozma","form":"Necrozma Dawn Wings","offset":"0x815678"},{"id":1209,"name":"Necrozma","form":"Ultra Necrozma","offset":"0x815790"},{"id":1210,"name":"Magearna","form":"Magearna Original","offset":"0x8158A8"},{"id":1213,"name":"Toxtricity","form":"Base / standard / special slot","offset":"0x815BF0"},{"id":1214,"name":"Sinistea","form":"Base / standard / special slot","offset":"0x815D08"},{"id":1215,"name":"Polteageist","form":"Base / standard / special slot","offset":"0x815E20"},{"id":1225,"name":"Indeedee","form":"Indeedee Female","offset":"0x816910"},{"id":1227,"name":"Zacian","form":"Zacian Crowned","offset":"0x816B40"},{"id":1228,"name":"Zamazenta","form":"Zamazenta Crowned","offset":"0x816C58"},{"id":1229,"name":"Eternatus","form":"Eternatus Eternamax","offset":"0x816D70"},{"id":1230,"name":"Urshifu","form":"Urshifu Single-Strike","offset":"0x816E88"},{"id":1231,"name":"Zarude","form":"Base / standard / special slot","offset":"0x816FA0"},{"id":1232,"name":"Calyrex","form":"Calyrex Ice Rider","offset":"0x8170B8"},{"id":1233,"name":"Calyrex","form":"Calyrex Shadow Rider","offset":"0x8171D0"},{"id":1234,"name":"Basculegion","form":"Basculegion Female","offset":"0x8172E8"},{"id":1289,"name":"Sprigatito","form":"Base / standard / special slot","offset":"0x81AF10"},{"id":1290,"name":"Floragato","form":"Base / standard / special slot","offset":"0x81B028"},{"id":1291,"name":"Meowscarada","form":"Base / standard / special slot","offset":"0x81B140"},{"id":1292,"name":"Fuecoco","form":"Base / standard / special slot","offset":"0x81B258"},{"id":1293,"name":"Crocalor","form":"Base / standard / special slot","offset":"0x81B370"},{"id":1294,"name":"Skeledirge","form":"Base / standard / special slot","offset":"0x81B488"},{"id":1295,"name":"Quaxly","form":"Base / standard / special slot","offset":"0x81B5A0"},{"id":1296,"name":"Quaxwell","form":"Base / standard / special slot","offset":"0x81B6B8"},{"id":1297,"name":"Quaquaval","form":"Base / standard / special slot","offset":"0x81B7D0"},{"id":1305,"name":"Pawmi","form":"Base / standard / special slot","offset":"0x81C090"},{"id":1306,"name":"Pawmo","form":"Base / standard / special slot","offset":"0x81C1A8"},{"id":1307,"name":"Pawmot","form":"Base / standard / special slot","offset":"0x81C2C0"},{"id":1308,"name":"Tandemaus","form":"Base / standard / special slot","offset":"0x81C3D8"},{"id":1309,"name":"Maushold","form":"Maushold Family of Three","offset":"0x81C4F0"},{"id":1310,"name":"Maushold","form":"Maushold Family of Four","offset":"0x81C608"},{"id":1320,"name":"Nacli","form":"Base / standard / special slot","offset":"0x81D0F8"},{"id":1321,"name":"Naclstack","form":"Base / standard / special slot","offset":"0x81D210"},{"id":1322,"name":"Garganacl","form":"Base / standard / special slot","offset":"0x81D328"},{"id":1323,"name":"Charcadet","form":"Base / standard / special slot","offset":"0x81D440"},{"id":1324,"name":"Armarouge","form":"Base / standard / special slot","offset":"0x81D558"},{"id":1325,"name":"Ceruledge","form":"Base / standard / special slot","offset":"0x81D670"},{"id":1328,"name":"Wattrel","form":"Base / standard / special slot","offset":"0x81D9B8"},{"id":1329,"name":"Kilowattrel","form":"Base / standard / special slot","offset":"0x81DAD0"},{"id":1339,"name":"Capsakid","form":"Base / standard / special slot","offset":"0x81E5C0"},{"id":1340,"name":"Scovillain","form":"Base / standard / special slot","offset":"0x81E6D8"},{"id":1343,"name":"Flittle","form":"Base / standard / special slot","offset":"0x81EA20"},{"id":1344,"name":"Espathra","form":"Base / standard / special slot","offset":"0x81EB38"},{"id":1345,"name":"Tinkatink","form":"Base / standard / special slot","offset":"0x81EC50"},{"id":1346,"name":"Tinkatuff","form":"Base / standard / special slot","offset":"0x81ED68"},{"id":1347,"name":"Tinkaton","form":"Base / standard / special slot","offset":"0x81EE80"},{"id":1351,"name":"Finizen","form":"Base / standard / special slot","offset":"0x81F2E0"},{"id":1352,"name":"Palafin","form":"Palafin Hero","offset":"0x81F3F8"},{"id":1353,"name":"Palafin","form":"Palafin Zero","offset":"0x81F510"},{"id":1356,"name":"Cyclizar","form":"Base / standard / special slot","offset":"0x81F858"},{"id":1358,"name":"Glimmet","form":"Base / standard / special slot","offset":"0x81FA88"},{"id":1359,"name":"Glimmora","form":"Base / standard / special slot","offset":"0x81FBA0"},{"id":1362,"name":"Flamigo","form":"Base / standard / special slot","offset":"0x81FEE8"},{"id":1366,"name":"Dondozo","form":"Base / standard / special slot","offset":"0x820348"},{"id":1367,"name":"Tatsugiri","form":"Tatsugiri Curly","offset":"0x820460"},{"id":1368,"name":"Tatsugiri","form":"Tatsugiri Droopy","offset":"0x820578"},{"id":1369,"name":"Tatsugiri","form":"Tatsugiri Stretchy","offset":"0x820690"},{"id":1370,"name":"Annihilape","form":"Base / standard / special slot","offset":"0x8207A8"},{"id":1371,"name":"Clodsire","form":"Base / standard / special slot","offset":"0x8208C0"},{"id":1372,"name":"Farigiraf","form":"Base / standard / special slot","offset":"0x8209D8"},{"id":1373,"name":"Dudunsparce","form":"Dudunsparce Two-Segment","offset":"0x820AF0"},{"id":1374,"name":"Dudunsparce","form":"Dudunsparce Three-Segment","offset":"0x820C08"},{"id":1375,"name":"Kingambit","form":"Base / standard / special slot","offset":"0x820D20"},{"id":1376,"name":"GreatTusk","form":"Base / standard / special slot","offset":"0x820E38"},{"id":1377,"name":"ScreamTail","form":"Base / standard / special slot","offset":"0x820F50"},{"id":1378,"name":"BruteBonnet","form":"Base / standard / special slot","offset":"0x821068"},{"id":1379,"name":"FlutterMane","form":"Base / standard / special slot","offset":"0x821180"},{"id":1380,"name":"SlitherWing","form":"Base / standard / special slot","offset":"0x821298"},{"id":1381,"name":"SandyShocks","form":"Base / standard / special slot","offset":"0x8213B0"},{"id":1382,"name":"IronTreads","form":"Base / standard / special slot","offset":"0x8214C8"},{"id":1383,"name":"IronBundle","form":"Base / standard / special slot","offset":"0x8215E0"},{"id":1384,"name":"IronHands","form":"Base / standard / special slot","offset":"0x8216F8"},{"id":1385,"name":"IronJugulis","form":"Base / standard / special slot","offset":"0x821810"},{"id":1386,"name":"IronMoth","form":"Base / standard / special slot","offset":"0x821928"},{"id":1387,"name":"IronThorns","form":"Base / standard / special slot","offset":"0x821A40"},{"id":1388,"name":"Frigibax","form":"Base / standard / special slot","offset":"0x821B58"},{"id":1389,"name":"Arctibax","form":"Base / standard / special slot","offset":"0x821C70"},{"id":1390,"name":"Baxcalibur","form":"Base / standard / special slot","offset":"0x821D88"},{"id":1391,"name":"Gimmighoul","form":"Gimmighoul Chest","offset":"0x821EA0"},{"id":1392,"name":"Gimmighoul","form":"Gimmighoul Roaming","offset":"0x821FB8"},{"id":1393,"name":"Gholdengo","form":"Base / standard / special slot","offset":"0x8220D0"},{"id":1395,"name":"Chien-Pao","form":"Base / standard / special slot","offset":"0x822300"},{"id":1397,"name":"Chi-Yu","form":"Base / standard / special slot","offset":"0x822530"},{"id":1398,"name":"RoaringMoon","form":"Base / standard / special slot","offset":"0x822648"},{"id":1399,"name":"IronValiant","form":"Base / standard / special slot","offset":"0x822760"},{"id":1400,"name":"Koraidon","form":"Koraidon","offset":"0x822878"},{"id":1401,"name":"Miraidon","form":"Miraidon","offset":"0x822990"},{"id":1402,"name":"Tauros","form":"Base / standard / special slot","offset":"0x822AA8"},{"id":1403,"name":"Tauros","form":"Base / standard / special slot","offset":"0x822BC0"},{"id":1404,"name":"Tauros","form":"Base / standard / special slot","offset":"0x822CD8"},{"id":1405,"name":"Wooper","form":"Base / standard / special slot","offset":"0x822DF0"},{"id":1406,"name":"WalkingWake","form":"Walking Wake","offset":"0x822F08"},{"id":1407,"name":"IronLeaves","form":"Iron Leaves","offset":"0x823020"},{"id":1408,"name":"Dipplin","form":"Base / standard / special slot","offset":"0x823138"},{"id":1409,"name":"Poltchageist","form":"Base / standard / special slot","offset":"0x823250"},{"id":1410,"name":"Poltchageist","form":"Base / standard / special slot","offset":"0x823368"},{"id":1411,"name":"Sinistcha","form":"Base / standard / special slot","offset":"0x823480"},{"id":1412,"name":"Sinistcha","form":"Base / standard / special slot","offset":"0x823598"},{"id":1415,"name":"Fezandipiti","form":"Base / standard / special slot","offset":"0x8238E0"},{"id":1416,"name":"Ogerpon","form":"Base / standard / special slot","offset":"0x8239F8"},{"id":1417,"name":"Ogerpon","form":"Base / standard / special slot","offset":"0x823B10"},{"id":1418,"name":"Ogerpon","form":"Base / standard / special slot","offset":"0x823C28"},{"id":1419,"name":"Ogerpon","form":"Base / standard / special slot","offset":"0x823D40"},{"id":1420,"name":"Ogerpon","form":"Base / standard / special slot","offset":"0x823E58"},{"id":1421,"name":"Ogerpon","form":"Base / standard / special slot","offset":"0x823F70"},{"id":1422,"name":"Ogerpon","form":"Base / standard / special slot","offset":"0x824088"},{"id":1423,"name":"Ogerpon","form":"Base / standard / special slot","offset":"0x8241A0"},{"id":1424,"name":"Ursaluna","form":"Base / standard / special slot","offset":"0x8242B8"},{"id":1425,"name":"Archaludon","form":"Base / standard / special slot","offset":"0x8243D0"},{"id":1426,"name":"Hydrapple","form":"Base / standard / special slot","offset":"0x8244E8"},{"id":1427,"name":"GougingFire","form":"Gouging Fire","offset":"0x824600"},{"id":1428,"name":"RagingBolt","form":"Raging Bolt","offset":"0x824718"},{"id":1429,"name":"IronBoulder","form":"Iron Boulder","offset":"0x824830"},{"id":1430,"name":"IronCrown","form":"Iron Crown","offset":"0x824948"},{"id":1431,"name":"Terapagos","form":"Terapagos Normal","offset":"0x824A60"},{"id":1432,"name":"Terapagos","form":"Terapagos Terastal","offset":"0x824B78"},{"id":1433,"name":"Terapagos","form":"Terapagos Stellar","offset":"0x824C90"},{"id":1434,"name":"Pecharunt","form":"Pecharunt","offset":"0x824DA8"},{"id":1435,"name":"Lugia","form":"Base / standard / special slot","offset":"0x824EC0"},{"id":1476,"name":"Raticate","form":"Raticate Alola Totem","offset":"0x827B98"},{"id":1478,"name":"Vikavolt","form":"Vikavolt Totem","offset":"0x827DC8"},{"id":1481,"name":"Mimikyu","form":"Mimikyu Totem Disguised","offset":"0x828110"},{"id":1482,"name":"Kommo-o","form":"Kommo-o Totem","offset":"0x828228"},{"id":1483,"name":"Marowak","form":"Marowak Alola Totem","offset":"0x828340"},{"id":1484,"name":"Ribombee","form":"Ribombee Totem","offset":"0x828458"},{"id":1487,"name":"Pikachu","form":"Pikachu Starter","offset":"0x8287A0"},{"id":1488,"name":"Eevee","form":"Eevee Starter","offset":"0x8288B8"},{"id":1489,"name":"Venusaur","form":"Gigantamax","offset":"0x8289D0"},{"id":1490,"name":"Blastoise","form":"Gigantamax","offset":"0x828AE8"},{"id":1491,"name":"Charizard","form":"Gigantamax","offset":"0x828C00"},{"id":1492,"name":"Butterfree","form":"Gigantamax","offset":"0x828D18"},{"id":1493,"name":"Pikachu","form":"Gigantamax","offset":"0x828E30"},{"id":1494,"name":"Meowth","form":"Gigantamax","offset":"0x828F48"},{"id":1495,"name":"Machamp","form":"Gigantamax","offset":"0x829060"},{"id":1496,"name":"Gengar","form":"Gigantamax","offset":"0x829178"},{"id":1498,"name":"Lapras","form":"Gigantamax","offset":"0x8293A8"},{"id":1499,"name":"Eevee","form":"Gigantamax","offset":"0x8294C0"},{"id":1500,"name":"Snorlax","form":"Gigantamax","offset":"0x8295D8"},{"id":1502,"name":"Melmetal","form":"Gigantamax","offset":"0x829808"},{"id":1503,"name":"Rillaboom","form":"Gigantamax","offset":"0x829920"},{"id":1504,"name":"Cinderace","form":"Gigantamax","offset":"0x829A38"},{"id":1505,"name":"Inteleon","form":"Gigantamax","offset":"0x829B50"},{"id":1506,"name":"Corviknight","form":"Gigantamax","offset":"0x829C68"},{"id":1510,"name":"Flapple","form":"Gigantamax","offset":"0x82A0C8"},{"id":1511,"name":"Appletun","form":"Gigantamax","offset":"0x82A1E0"},{"id":1512,"name":"Sandaconda","form":"Gigantamax","offset":"0x82A2F8"},{"id":1513,"name":"Toxtricity","form":"Gigantamax","offset":"0x82A410"},{"id":1514,"name":"Toxtricity","form":"Gigantamax","offset":"0x82A528"},{"id":1515,"name":"Centiskorch","form":"Gigantamax","offset":"0x82A640"},{"id":1517,"name":"Grimmsnarl","form":"Gigantamax","offset":"0x82A870"},{"id":1520,"name":"Duraludon","form":"Base / standard / special slot","offset":"0x82ABB8"},{"id":1521,"name":"Urshifu","form":"Urshifu Single-Strike G-Max","offset":"0x82ACD0"},{"id":1522,"name":"Urshifu","form":"Urshifu Rapid-Strike G-Max","offset":"0x82ADE8"},{"id":1523,"name":"Mimikyu","form":"Mimikyu Busted Totem","offset":"0x82AF00"},{"id":1524,"name":"Clefable","form":"Mega / Legends Z-A form","offset":"0x82B018"},{"id":1525,"name":"Victreebel","form":"Mega / Legends Z-A form","offset":"0x82B130"},{"id":1526,"name":"Starmie","form":"Mega / Legends Z-A form","offset":"0x82B248"},{"id":1527,"name":"Dragonite","form":"Mega / Legends Z-A form","offset":"0x82B360"},{"id":1528,"name":"Meganium","form":"Mega / Legends Z-A form","offset":"0x82B478"},{"id":1529,"name":"Feraligatr","form":"Mega / Legends Z-A form","offset":"0x82B590"},{"id":1530,"name":"Skarmory","form":"Mega / Legends Z-A form","offset":"0x82B6A8"},{"id":1531,"name":"Froslass","form":"Mega / Legends Z-A form","offset":"0x82B7C0"},{"id":1532,"name":"Emboar","form":"Mega / Legends Z-A form","offset":"0x82B8D8"},{"id":1533,"name":"Excadrill","form":"Mega / Legends Z-A form","offset":"0x82B9F0"},{"id":1534,"name":"Scolipede","form":"Mega / Legends Z-A form","offset":"0x82BB08"},{"id":1535,"name":"Scrafty","form":"Mega / Legends Z-A form","offset":"0x82BC20"},{"id":1536,"name":"Eelektross","form":"Mega / Legends Z-A form","offset":"0x82BD38"},{"id":1537,"name":"Chandelure","form":"Mega / Legends Z-A form","offset":"0x82BE50"},{"id":1538,"name":"Chesnaught","form":"Mega / Legends Z-A form","offset":"0x82BF68"},{"id":1539,"name":"Delphox","form":"Mega / Legends Z-A form","offset":"0x82C080"},{"id":1540,"name":"Greninja","form":"Mega / Legends Z-A form","offset":"0x82C198"},{"id":1541,"name":"Pyroar","form":"Mega / Legends Z-A form","offset":"0x82C2B0"},{"id":1542,"name":"Malamar","form":"Mega / Legends Z-A form","offset":"0x82C3C8"},{"id":1543,"name":"Dragalge","form":"Mega / Legends Z-A form","offset":"0x82C4E0"},{"id":1544,"name":"Hawlucha","form":"Mega / Legends Z-A form","offset":"0x82C5F8"},{"id":1545,"name":"Floette","form":"Mega / Legends Z-A form","offset":"0x82C710"},{"id":1546,"name":"Barbaracle","form":"Mega / Legends Z-A form","offset":"0x82C828"},{"id":1547,"name":"Zygarde","form":"Mega / Legends Z-A form","offset":"0x82C940"},{"id":1548,"name":"Drampa","form":"Mega / Legends Z-A form","offset":"0x82CA58"},{"id":1549,"name":"Falinks","form":"Mega / Legends Z-A form","offset":"0x82CB70"},{"id":1550,"name":"Heatran","form":"Mega / Legends Z-A form","offset":"0x82CC88"},{"id":1551,"name":"Darkrai","form":"Mega / Legends Z-A form","offset":"0x82CDA0"},{"id":1552,"name":"Zeraora","form":"Mega / Legends Z-A form","offset":"0x82CEB8"},{"id":1553,"name":"Raichu","form":"Mega / Legends Z-A form","offset":"0x82CFD0"},{"id":1554,"name":"Raichu","form":"Mega / Legends Z-A form","offset":"0x82D0E8"},{"id":1555,"name":"Chimecho","form":"Mega / Legends Z-A form","offset":"0x82D200"},{"id":1556,"name":"Absol","form":"Mega / Legends Z-A form","offset":"0x82D318"},{"id":1557,"name":"Staraptor","form":"Mega / Legends Z-A form","offset":"0x82D430"},{"id":1558,"name":"Garchomp","form":"Mega / Legends Z-A form","offset":"0x82D548"},{"id":1559,"name":"Lucario","form":"Mega / Legends Z-A form","offset":"0x82D660"},{"id":1560,"name":"Golurk","form":"Mega / Legends Z-A form","offset":"0x82D778"},{"id":1561,"name":"Meowstic","form":"Mega / Legends Z-A form","offset":"0x82D890"},{"id":1562,"name":"Meowstic","form":"Mega / Legends Z-A form","offset":"0x82D9A8"},{"id":1563,"name":"Crabominable","form":"Mega / Legends Z-A form","offset":"0x82DAC0"},{"id":1564,"name":"Golisopod","form":"Mega / Legends Z-A form","offset":"0x82DBD8"},{"id":1565,"name":"Magearna","form":"Mega / Legends Z-A form","offset":"0x82DCF0"},{"id":1566,"name":"Magearna","form":"Mega / Legends Z-A form","offset":"0x82DE08"},{"id":1567,"name":"Scovillain","form":"Mega / Legends Z-A form","offset":"0x82DF20"},{"id":1568,"name":"Baxcalibur","form":"Mega / Legends Z-A form","offset":"0x82E038"},{"id":1569,"name":"Tatsugiri","form":"Mega / Legends Z-A form","offset":"0x82E150"},{"id":1570,"name":"Tatsugiri","form":"Mega / Legends Z-A form","offset":"0x82E268"},{"id":1571,"name":"Tatsugiri","form":"Mega / Legends Z-A form","offset":"0x82E380"},{"id":1572,"name":"Glimmora","form":"Mega / Legends Z-A form","offset":"0x82E498"},{"id":1573,"name":"Typhlosion","form":"Mega / Legends Z-A form","offset":"0x82E5B0"},{"id":1574,"name":"Primarina","form":"Mega / Legends Z-A form","offset":"0x82E6C8"},{"id":1575,"name":"Meowscarada","form":"Mega / Legends Z-A form","offset":"0x82E7E0"},{"id":1576,"name":"Gardevoir","form":"Mega / Legends Z-A form","offset":"0x82E8F8"},{"id":1577,"name":"Dialga","form":"Mega / Legends Z-A form","offset":"0x82EA10"}];
 
-    if (!file) {
-        status.textContent = "ยังไม่ได้เลือกไฟล์ Save";
-        return;
+const PARTY_RECORD_OFFSETS=[0x238,0x298,0x2F8,0x358,0x3B8,0x418];
+
+let bytes=null;
+let current=null;
+let logical=null;
+let activeBox=0;
+
+function u16(a,o){return a[o]|(a[o+1]<<8)}
+function u32(a,o){return (a[o]|(a[o+1]<<8)|(a[o+2]<<16)|(a[o+3]<<24))>>>0}
+
+function checksum(data){
+  let sum=0;
+  for(let i=0;i<data.length;i+=4)sum=(sum+u32(data,i))>>>0;
+  return ((sum&65535)+(sum>>>16))&65535;
+}
+
+function sectorDataSize(id){
+  if(id===0)return 0xB30;
+  if(id===4)return 0x3C54-(3*3968);
+  return 3968;
+}
+
+function parseSlots(){
+  const slots=[];
+  const SIG=0x08012025,SECTOR=4096,OVERFLOW_SIZE=1324;
+
+  for(const base of [0,14]){
+    const sectors={};
+    let counter=null,ok=true;
+
+    for(let physical=0;physical<14;physical++){
+      const off=(base+physical)*SECTOR;
+      const id=u16(bytes,off+4084);
+      const sig=u32(bytes,off+4088);
+      const c=u32(bytes,off+4092);
+      const stored=u16(bytes,off+4086);
+
+      if(sig!==SIG||id>=14){ok=false;break}
+
+      const size=sectorDataSize(id);
+      if(checksum(bytes.slice(off,off+size))!==stored){ok=false;break}
+
+      if(counter===null)counter=c;
+      if(c!==counter){ok=false;break}
+      if(sectors[id]){ok=false;break}
+
+      sectors[id]=bytes.slice(off,off+3968);
     }
 
-    status.textContent = "เลือกไฟล์แล้ว: " + file.name;
+    const overflowPhysical=30+(counter===null?((base===0)?0:1):(counter%2));
+    const oo=overflowPhysical*SECTOR;
+    const overflowSig=u32(bytes,oo+4088);
+    const overflowCounter=u32(bytes,oo+4092);
+    const overflowStored=u16(bytes,oo+4086);
+
+    const overflowValid=
+      counter!==null &&
+      overflowSig===SIG &&
+      u16(bytes,oo+4084)===overflowPhysical &&
+      overflowCounter===counter &&
+      checksum(bytes.slice(oo,oo+OVERFLOW_SIZE))===overflowStored;
+
+    if(ok&&Object.keys(sectors).length===14){
+      slots.push({
+        base,counter,sectors,
+        overflow:overflowValid?bytes.slice(oo,oo+OVERFLOW_SIZE):new Uint8Array(OVERFLOW_SIZE),
+        overflowValid,overflowPhysical
+      });
+    }
+  }
+
+  if(!slots.length)throw Error("ไม่พบ Save Slot ที่ checksum ถูกต้อง");
+  slots.sort((a,b)=>b.counter-a.counter);
+  return slots[0];
+}
+
+function buildLogical(slot){
+  const out=new Uint8Array(14*3968);
+  for(let i=0;i<14;i++)out.set(slot.sectors[i],i*3968);
+  return out;
+}
+
+function getStorage(){
+  const out=new Uint8Array(37036);
+  out.set(logical.slice(5*3968,14*3968),0);
+  if(current?.overflow)out.set(current.overflow,35712);
+  return out;
+}
+
+function boxMonAt(box,slot){
+  return box===15?34744+slot*76:0x04+(box*30+slot)*76;
+}
+
+function expForLevel(l){
+  const n=Math.max(1,Math.min(100,l));
+  return Math.max(0,Math.floor(6*n*n*n/5-15*n*n+100*n-140));
+}
+
+function levelFromExp(exp){
+  let best=1;
+  for(let l=1;l<=100;l++){
+    if(exp>=expForLevel(l))best=l;
+    else break;
+  }
+  return best;
+}
+
+function readMonFrom(data,off,isParty=false){
+  const raw=data.slice(off,off+76);
+  const pid=u32(raw,0);
+  const w0=u16(raw,32);
+  const exp=u32(raw,36)&0xffffff;
+  const species=w0&2047;
+  const formBits=w0>>>11;
+  const shiny=(raw[30]&64)?1:0;
+  const level=isParty
+    ?((data[off+84]>=1&&data[off+84]<=100)?data[off+84]:Math.max(1,levelFromExp(exp)))
+    :Math.max(1,levelFromExp(exp));
+
+  return {off,pid,species,formBits,exp,shiny,level,raw};
+}
+
+function getPartyData(){
+  const sb=logical.slice(3968,3968*5);
+  const count=sb[0x234];
+  const mons=PARTY_RECORD_OFFSETS.map(off=>readMonFrom(sb,off,true));
+  return {sb,count,mons};
+}
+
+function romInfo(id){
+  const rec=ROM_POKEMON_ID_MAP.find(r=>r.id===+id);
+  if(!rec)return{name:"Species #"+id,form:"ไม่พบใน ROM ID map"};
+  return{name:rec.name,form:rec.form||"Base / standard / special slot",offset:rec.offset};
+}
+
+function spriteUrl(id){
+  const special=SPECIAL_SPECIES_MAPPING[id];
+  const dex=special?.dexId||id;
+  return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+dex+".png";
+}
+
+function escapeHtml(v){
+  return String(v).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+
+function makeCard(m,slotLabel){
+  const d=document.createElement("div");
+
+  if(!m.species){
+    d.className="poke-card empty";
+    d.innerHTML="<b>"+slotLabel+"</b><div class='info'>ว่าง</div>";
+    return d;
+  }
+
+  const info=romInfo(m.species);
+  d.className="poke-card";
+
+  const img=document.createElement("img");
+  img.className="poke-sprite";
+  img.alt=info.name;
+  img.src=spriteUrl(m.species);
+  img.onerror=()=>{img.style.visibility="hidden"};
+
+  const top=document.createElement("div");
+  top.className="poke-top";
+
+  const text=document.createElement("div");
+  text.innerHTML=
+    "<div class='poke-name'>"+escapeHtml(info.name)+"</div>"+
+    "<div class='poke-form'>"+escapeHtml(info.form)+"</div>";
+
+  top.appendChild(img);
+  top.appendChild(text);
+
+  const infoBox=document.createElement("div");
+  infoBox.className="info";
+  infoBox.innerHTML=
+    "<b>"+slotLabel+"</b><br>"+
+    "Species ID: <b>"+m.species+"</b><br>"+
+    "Form bits: <b>"+m.formBits+"</b><br>"+
+    "Form: <b>"+escapeHtml(info.form)+"</b><br>"+
+    "PID: <b>0x"+m.pid.toString(16).padStart(8,"0").toUpperCase()+"</b><br>"+
+    "Level: <b>"+m.level+"</b>"+
+    (m.shiny?"<br>✨ Shiny":"");
+
+  d.appendChild(top);
+  d.appendChild(infoBox);
+  return d;
+}
+
+function renderParty(){
+  const grid=document.getElementById("partyGrid");
+  grid.innerHTML="";
+  const p=getPartyData();
+  p.mons.forEach((m,i)=>grid.appendChild(makeCard(m,"Slot "+(i+1))));
+}
+
+function renderBoxTabs(){
+  const tabs=document.getElementById("boxTabs");
+  tabs.innerHTML="";
+  for(let i=0;i<16;i++){
+    const b=document.createElement("button");
+    b.className="box-tab"+(i===activeBox?" active":"");
+    b.textContent="Box "+(i+1);
+    b.onclick=()=>{
+      activeBox=i;
+      renderBoxTabs();
+      renderBox();
+    };
+    tabs.appendChild(b);
+  }
+}
+
+function renderBox(){
+  const grid=document.getElementById("boxGrid");
+  grid.innerHTML="";
+  const storage=getStorage();
+  for(let i=0;i<30;i++){
+    const m=readMonFrom(storage,boxMonAt(activeBox,i));
+    grid.appendChild(makeCard(m,"ช่อง "+(i+1)));
+  }
+}
+
+function renderAll(){
+  renderParty();
+  renderBoxTabs();
+  renderBox();
+}
+
+document.getElementById("saveFile").addEventListener("change",async e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+
+  const status=document.getElementById("status");
+  status.textContent="กำลังอ่าน "+f.name+" ...";
+
+  try{
+    const loadedBytes=new Uint8Array(await f.arrayBuffer());
+
+    if(loadedBytes.length===131072){
+      bytes=loadedBytes;
+    }else if(loadedBytes.length===131088){
+      bytes=loadedBytes.slice(0,131072);
+    }else{
+      throw Error("ไฟล์นี้ไม่ใช่ 128 KiB หรือ mGBA 128 KiB + 16 bytes");
+    }
+
+    current=parseSlots();
+    logical=buildLogical(current);
+    activeBox=0;
+
+    const format=loadedBytes.length===131088
+      ?"mGBA 128 KiB + 16 bytes"
+      :"128 KiB";
+
+    const party=getPartyData();
+
+    status.textContent=
+      "✅ อ่านเซฟสำเร็จ\n"+
+      f.name+" • "+format+"\n"+
+      "Save slot: "+(current.base===0?1:2)+
+      " • Counter: "+current.counter+"\n"+
+      "Party: "+party.count+"/6 • PC: 16 กล่อง × 30 ช่อง";
+
+    renderAll();
+  }catch(err){
+    bytes=null;current=null;logical=null;
+    document.getElementById("partyGrid").innerHTML=
+      "<div class='poke-card empty'>อ่านเซฟไม่สำเร็จ</div>";
+    document.getElementById("boxGrid").innerHTML="";
+    document.getElementById("boxTabs").innerHTML="";
+    status.textContent="❌ อ่านเซฟไม่สำเร็จ: "+err.message;
+  }
 });
 </script>
-
 </body>
 </html>
