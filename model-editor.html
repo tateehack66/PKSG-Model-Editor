@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PKSG Model Editor</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:#081525;
+    color:#aebed2;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+.header{
+    text-align:center;
+    padding:28px 20px 24px;
+}
+
+.logo{
+    margin:0;
+    font-size:58px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:-4px;
+    color:#9bd0ff;
+}
+
+.subtitle{
+    margin-top:18px;
+    font-size:22px;
+}
+
+.version{
+    display:inline-block;
+    margin-top:25px;
+    padding:10px 24px;
+    border:2px solid #1765a5;
+    border-radius:30px;
+    color:#62b8ff;
+    font-size:17px;
+}
+
+.container{
+    width:min(900px,calc(100% - 32px));
+    margin:10px auto 40px;
+}
+
+.panel{
+    border:2px solid #263b54;
+    border-radius:28px;
+    padding:28px;
+    background:#091625;
+    box-shadow:0 12px 35px rgba(0,0,0,.18);
+}
+
+.back{
+    display:inline-block;
+    text-decoration:none;
+    color:#6abaff;
+    border:1px solid #23669d;
+    padding:9px 18px;
+    border-radius:24px;
+    margin-bottom:24px;
+}
+
+.back:active{transform:scale(.98)}
+
+.title{
+    margin:0;
+    color:#ff6090;
+    font-size:34px;
+}
+
+.desc{
+    margin-top:12px;
+    font-size:19px;
+    line-height:1.6;
+}
+
+.reader{
+    margin-top:28px;
+    padding:22px;
+    border:1px dashed #40536b;
+    border-radius:20px;
+}
+
+.reader-title{
+    margin:0 0 14px;
+    color:#d7e5f5;
+    font-size:21px;
+}
+
+.file-input{
+    width:100%;
+    padding:13px;
+    border-radius:12px;
+    border:1px solid #344c67;
+    background:#101f31;
+    color:#b9c9dc;
+}
+
+.status{
+    margin-top:14px;
+    padding:13px 15px;
+    border-radius:12px;
+    background:#0e2034;
+    color:#79c4ff;
+    font-size:16px;
+}
+
+.section{
+    margin-top:30px;
+}
+
+.section h2{
+    margin:0;
+    color:#ff6090;
+    font-size:28px;
+}
+
+.card{
+    margin-top:15px;
+    padding:20px;
+    border:1px solid #263b54;
+    border-radius:18px;
+    background:#0b1b2c;
+}
+
+.card h3{
+    margin:0 0 12px;
+    color:#fff;
+}
+
+.info{
+    line-height:1.9;
+    font-size:17px;
+}
+
+.future{
+    margin-top:24px;
+    padding:18px;
+    border-radius:18px;
+    border:1px solid #54354a;
+    background:#181321;
+    color:#ff8aac;
+    line-height:1.6;
+}
+
+@media(max-width:600px){
+    .logo{font-size:52px}
+    .subtitle{font-size:19px}
+    .panel{padding:22px}
+    .title{font-size:30px}
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+    <h1 class="logo">PKSG</h1>
+    <div class="subtitle">Pokémon SoulGold · GBA ROM Hack</div>
+    <div class="version">MODEL EDITOR v0.1</div>
+</header>
+
+<main class="container">
+    <section class="panel">
+
+        <a class="back" href="index.html">← BACK</a>
+
+        <h2 class="title">MODEL EDITOR</h2>
+
+        <div class="desc">
+            แก้ไข Sprite และกราฟิก Pokémon
+        </div>
+
+        <div class="reader">
+            <h3 class="reader-title">SAVE FILE</h3>
+
+            <input
+                class="file-input"
+                type="file"
+                id="saveFile"
+                accept=".sav,.srm,.dat"
+            >
+
+            <div class="status" id="status">
+                ยังไม่ได้เลือกไฟล์ Save
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>POKÉMON</h2>
+
+            <div class="card">
+                <h3>Pokémon Reader</h3>
+
+                <div class="info">
+                    Species ID: -
+                    <br>
+                    Form: -
+                    <br>
+                    PID: -
+                </div>
+            </div>
+        </div>
+
+        <div class="future">
+            <strong>MODEL REPLACEMENT</strong>
+            <br>
+            ระบบเปลี่ยนรูปร่าง Pokémon จะเพิ่มในขั้นต่อไป
+        </div>
+
+    </section>
+</main>
+
+<script>
+const saveFile = document.getElementById("saveFile");
+const status = document.getElementById("status");
+
+saveFile.addEventListener("change", () => {
+    const file = saveFile.files[0];
+
+    if (!file) {
+        status.textContent = "ยังไม่ได้เลือกไฟล์ Save";
+        return;
+    }
+
+    status.textContent = "เลือกไฟล์แล้ว: " + file.name;
+});
+</script>
+
+</body>
+</html>
