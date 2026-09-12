@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PKSG Pokémon Creator v0.3</title>
+<title>PKSG Pokémon Creator v0.5</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);color:#fff;min-height:100vh}
@@ -15,13 +15,29 @@ button{border:0;border-radius:11px;padding:12px 16px;background:#247cff;color:#f
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}.card{padding:14px;border-radius:14px;background:#0a1727;border:1px solid #26384d}.card strong{display:block;font-size:20px;margin-bottom:5px}.empty{border-color:#267d57}.review{border-color:#765f25}.used{border-color:#31465d}.small{font-size:12px;color:#8ea2b8;line-height:1.5}.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:#9aabba}.search{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}.detail{margin-top:15px;display:none}.detail pre{white-space:pre-wrap;word-break:break-word;background:#071321;padding:14px;border-radius:10px;color:#b9c9d9}.note{font-size:13px;color:#9aabba;line-height:1.7}.analysis-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}.metric{padding:12px;border-radius:12px;background:#071321;border:1px solid #26384d}.metric b{display:block;font-size:18px;margin-bottom:4px}.pill{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-right:6px}.pill-green{background:#073a28;color:#6dffad;border:1px solid #267d57}.pill-yellow{background:#3b3107;color:#ffd66d;border:1px solid #765f25}.pill-red{background:#3d0c17;color:#ff7f91;border:1px solid #8a3040}.hex{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}.candidate-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.actions,.candidate-actions{grid-template-columns:1fr}.search{grid-template-columns:1fr}.logo{font-size:42px}.analysis-grid{grid-template-columns:1fr}}
 </style>
+
+<style>
+#creatorWorkspace input[type=number],#creatorWorkspace input[type=text]{
+  margin-top:7px;width:100%;padding:10px;border-radius:9px;border:1px solid #31465d;
+  background:#071321;color:#fff
+}
+#creatorWorkspace .metric{min-width:0}
+#creatorWorkspace .model-btn{
+  border:1px solid #3a5978;background:#10243a;color:#b9d4ee;
+  border-radius:11px;padding:12px 16px;font-weight:700;cursor:pointer
+}
+#creatorWorkspace .model-btn:hover{border-color:#ff3f72}
+#creatorWorkspace .good{color:#6dffad}
+#creatorWorkspace .warn{color:#ffd66d}
+</style>
+
 </head>
 <body>
 <div class="container">
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON CREATOR v0.3 · CROSS-REFERENCE ANALYZER</div>
+<div class="version">POKÉMON CREATOR v0.5 · SPECIES DATA WORKSPACE</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
@@ -75,7 +91,7 @@ button{border:0;border-radius:11px;padding:12px 16px;background:#247cff;color:#f
 <section class="panel">
 <h2>🚧 ขั้นต่อไปของ Creator</h2>
 <p class="note">
-v0.3 ยังไม่เขียน ROM<br>
+v0.5 ยังไม่เขียน ROM<br>
 หลังจากยืนยัน Candidate แล้ว เราจะต่อด้วยหน้าสร้าง Pokémon ใหม่: Name / Type / Base Stats / Abilities / Moves / Form และเชื่อม Model Editor สำหรับ Front, Back, Overworld, Icon และ Palette<br>
 ขั้น Build ROM จะสร้างไฟล์ ROM ใหม่แยกจากต้นฉบับเท่านั้น
 </p>
@@ -294,5 +310,278 @@ function analyzeId(){
   $("analyzerStatus").textContent=`วิเคราะห์ ID #${id} เสร็จแล้ว · Read Only`;
 }
 </script>
+
+<section class="panel" id="creatorWorkspace" style="border-color:#ff3f72">
+  <h2>🧬 NEW POKÉMON CREATOR v0.5</h2>
+  <p class="note">
+    Workspace สำหรับสร้าง Pokémon ใหม่โดยใช้ Candidate ID ที่ผ่านการสแกนแล้ว
+    และรับ Model Package จาก Model Editor โดยตรง
+    <b>ยังไม่เขียน ROM ใน v0.4</b> — Writer จะถูกเปิดหลังจากโครงสร้าง byte ของแต่ละตารางได้รับการยืนยันจาก ROM จริง
+  </p>
+
+  <div class="analysis-grid">
+    <div class="metric">
+      <b>Candidate ID</b>
+      <input id="creatorId" type="number" min="1" max="2000" placeholder="เช่น 1330">
+    </div>
+    <div class="metric">
+      <b>Pokémon Name</b>
+      <input id="creatorName" type="text" value="Ceruledge" placeholder="ชื่อ Pokémon">
+    </div>
+    <div class="metric">
+      <b>Type 1</b>
+      <input id="creatorType1" type="text" value="Fire" placeholder="เช่น Fire">
+    </div>
+    <div class="metric">
+      <b>Type 2</b>
+      <input id="creatorType2" type="text" value="Ghost" placeholder="เช่น Ghost">
+    </div>
+    <div class="metric">
+      <b>Ability 1</b>
+      <input id="creatorAbility1" type="text" value="" placeholder="Ability">
+    </div>
+    <div class="metric">
+      <b>Ability 2</b>
+      <input id="creatorAbility2" type="text" value="" placeholder="Ability (optional)">
+    </div>
+    <div class="metric">
+      <b>Base HP</b>
+      <input id="creatorHp" type="number" min="1" max="255" value="85">
+    </div>
+    <div class="metric">
+      <b>Base ATK</b>
+      <input id="creatorAtk" type="number" min="1" max="255" value="60">
+    </div>
+    <div class="metric">
+      <b>Base DEF</b>
+      <input id="creatorDef" type="number" min="1" max="255" value="100">
+    </div>
+    <div class="metric">
+      <b>Base SpA</b>
+      <input id="creatorSpa" type="number" min="1" max="255" value="125">
+    </div>
+    <div class="metric">
+      <b>Base SpD</b>
+      <input id="creatorSpd" type="number" min="1" max="255" value="80">
+    </div>
+    <div class="metric">
+      <b>Base SPE</b>
+      <input id="creatorSpe" type="number" min="1" max="255" value="85">
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>📘 SPECIES DATA EDITOR v0.5</h3>
+    <p class="note">เก็บข้อมูล Species เพิ่มเติมลงใน Creator Project ก่อนเท่านั้น — <b>ยังไม่เขียนลง ROM</b> เพราะ byte layout ของ Species Data ยังไม่ได้รับการยืนยันจาก ROM จริง</p>
+    <div class="analysis-grid">
+      <div class="metric"><b>Species Category</b><input id="creatorCategory" type="text" value="Ceruledge" placeholder="เช่น Fire Blades Pokémon"></div>
+      <div class="metric"><b>Base EXP</b><input id="creatorBaseExp" type="number" min="0" max="65535" value="168"></div>
+      <div class="metric"><b>Catch Rate</b><input id="creatorCatchRate" type="number" min="0" max="255" value="45"></div>
+      <div class="metric"><b>Base Friendship</b><input id="creatorFriendship" type="number" min="0" max="255" value="50"></div>
+      <div class="metric"><b>Height (m)</b><input id="creatorHeight" type="number" min="0" step="0.1" value="1.6"></div>
+      <div class="metric"><b>Weight (kg)</b><input id="creatorWeight" type="number" min="0" step="0.1" value="62.0"></div>
+      <div class="metric"><b>Gender Ratio</b><input id="creatorGenderRatio" type="text" value="50:50" placeholder="เช่น 50:50 / Male only"></div>
+      <div class="metric"><b>Growth Rate</b><input id="creatorGrowthRate" type="text" value="Medium Slow" placeholder="เช่น Medium Fast"></div>
+      <div class="metric"><b>Egg Group 1</b><input id="creatorEggGroup1" type="text" value="Mineral"></div>
+      <div class="metric"><b>Egg Group 2</b><input id="creatorEggGroup2" type="text" value="Human-Like"></div>
+      <div class="metric"><b>Color</b><input id="creatorColor" type="text" value="Purple"></div>
+      <div class="metric"><b>Habitat</b><input id="creatorHabitat" type="text" value="Cave"></div>
+    </div>
+    <div class="status" style="margin-top:10px">🛡️ Species Data เป็นข้อมูลโครงการเท่านั้นใน v0.5 — Writer ยัง LOCKED</div>
+  </div>
+
+  <div class="candidate-actions">
+    <button id="creatorValidate">ตรวจ Candidate + ข้อมูล Pokémon</button>
+    <button id="creatorSaveProject">บันทึก Creator Project JSON</button>
+    <button id="creatorLoadModel" class="model-btn">นำเข้า .sgmodel.json</button>
+    <input id="creatorModelFile" type="file" accept=".sgmodel.json,application/json" style="display:none">
+  </div>
+
+  <div id="creatorModelInfo" class="status">
+    ยังไม่ได้เชื่อม Model Package
+  </div>
+
+  <div id="creatorValidation" class="status">
+    กรอก Candidate ID แล้วกดตรวจสอบ
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3>ROM BUILD SAFETY GATE</h3>
+    <div class="analysis-grid">
+      <div class="metric"><b>Original ROM</b><span class="good">ไม่แก้ไข</span></div>
+      <div class="metric"><b>Save Editor</b><span class="good">ไม่แตะต้อง</span></div>
+      <div class="metric"><b>Model Editor</b><span class="good">ไม่แตะต้อง</span></div>
+      <div class="metric"><b>ROM Writer</b><span class="warn">LOCKED — รอการยืนยันโครงสร้าง</span></div>
+    </div>
+    <p class="note">
+      ขั้นนี้ตั้งใจล็อกการเขียน ROM ไว้ก่อน เพื่อป้องกันการทำลาย ROM
+      จนกว่าเราจะยืนยันตำแหน่ง/รูปแบบของ Species Data, Text, Moves, Abilities,
+      Model Encoding และ Pointer/XREF ที่จำเป็นครบถ้วน
+    </p>
+  </div>
+</section>
+
+<script>
+/* ===== PKSG CREATOR v0.5 — additive workspace only ===== */
+(function(){
+  "use strict";
+
+  let importedModelPackage = null;
+
+  const ce = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  function creatorProject(){
+    return {
+      format:"PKSG-CREATOR-PROJECT",
+      version:1,
+      createdAt:new Date().toISOString(),
+      candidate:{
+        id:Number(ce("creatorId").value)||null
+      },
+      pokemon:{
+        name:ce("creatorName").value.trim(),
+        type1:ce("creatorType1").value.trim(),
+        type2:ce("creatorType2").value.trim(),
+        abilities:[
+          ce("creatorAbility1").value.trim(),
+          ce("creatorAbility2").value.trim()
+        ].filter(Boolean),
+        baseStats:{
+          hp:Number(ce("creatorHp").value)||0,
+          atk:Number(ce("creatorAtk").value)||0,
+          def:Number(ce("creatorDef").value)||0,
+          spa:Number(ce("creatorSpa").value)||0,
+          spd:Number(ce("creatorSpd").value)||0,
+          spe:Number(ce("creatorSpe").value)||0
+        },
+        speciesData:{
+          category:ce("creatorCategory").value.trim(),
+          baseExp:Number(ce("creatorBaseExp").value)||0,
+          catchRate:Number(ce("creatorCatchRate").value)||0,
+          baseFriendship:Number(ce("creatorFriendship").value)||0,
+          heightM:Number(ce("creatorHeight").value)||0,
+          weightKg:Number(ce("creatorWeight").value)||0,
+          genderRatio:ce("creatorGenderRatio").value.trim(),
+          growthRate:ce("creatorGrowthRate").value.trim(),
+          eggGroups:[ce("creatorEggGroup1").value.trim(),ce("creatorEggGroup2").value.trim()].filter(Boolean),
+          color:ce("creatorColor").value.trim(),
+          habitat:ce("creatorHabitat").value.trim()
+        }
+      },
+      modelPackage:importedModelPackage
+        ? {format:importedModelPackage.format,version:importedModelPackage.version,
+           model:importedModelPackage.model,target:importedModelPackage.target,
+           assetKeys:Object.keys(importedModelPackage.assets||{})}
+        : null
+    };
+  }
+
+  function validateCreator(){
+    const id=Number(ce("creatorId").value);
+    const name=ce("creatorName").value.trim();
+    const out=ce("creatorValidation");
+
+    if(!Number.isInteger(id)||id<1||id>2000){
+      out.innerHTML='<span class="bad">❌ Candidate ID ต้องอยู่ในช่วง 1–2000</span>';
+      return false;
+    }
+
+    if(typeof scanResults==="undefined" || !scanResults.has(id)){
+      out.innerHTML='<span class="warn">⚠️ ต้องเลือก ROM และ SCAN ROM ก่อน เพื่อยืนยัน Candidate ID #'+id+'</span>';
+      return false;
+    }
+
+    const x=scanResults.get(id);
+    if(!x.empty){
+      out.innerHTML='<span class="bad">❌ ID #'+id+' ไม่ว่างใน Primary Record — ห้ามใช้</span>';
+      return false;
+    }
+
+    const hs=handlerSet();
+    const refs=(typeof candidateRefs!=="undefined" && candidateRefs)
+      ? (candidateRefs.get(id)||0) : 0;
+
+    if(hs.has(id)||refs>0){
+      out.innerHTML=
+        '<span class="warn">🟡 ID #'+id+' ยังต้อง REVIEW</span><br>'+
+        'Special Handler: '+(hs.has(id)?"FOUND":"NONE KNOWN")+
+        ' · Direct Pointer Refs: '+refs+
+        '<br>ยังไม่อนุญาตให้เป็น Writer Target';
+      return false;
+    }
+
+    if(!name){
+      out.innerHTML='<span class="bad">❌ ต้องใส่ชื่อ Pokémon</span>';
+      return false;
+    }
+
+    const numericFields=[
+      ["Base EXP",ce("creatorBaseExp").value,0,65535],
+      ["Catch Rate",ce("creatorCatchRate").value,0,255],
+      ["Base Friendship",ce("creatorFriendship").value,0,255],
+      ["Height",ce("creatorHeight").value,0,100],
+      ["Weight",ce("creatorWeight").value,0,10000]
+    ];
+    for(const [label,value,min,max] of numericFields){
+      const n=Number(value);
+      if(!Number.isFinite(n)||n<min||n>max){
+        out.innerHTML='<span class="bad">❌ '+label+' ไม่อยู่ในช่วงที่กำหนด</span>';
+        return false;
+      }
+    }
+
+    out.innerHTML=
+      '<span class="good">🟢 Candidate ผ่าน Safety Gate เบื้องต้น</span><br>'+
+      'ID #'+id+' · Primary Record EMPTY · ไม่พบ Handler/Direct Pointer Reference จาก Analyzer';
+    return true;
+  }
+
+  async function importModel(){
+    const f=ce("creatorModelFile").files[0];
+    if(!f)return;
+    try{
+      const pkg=JSON.parse(await f.text());
+      if(pkg?.format!=="SOULGOLD-MODEL" || pkg?.version!==1){
+        throw new Error("ไม่ใช่ SOULGOLD-MODEL v1");
+      }
+      const keys=Object.keys(pkg.assets||{});
+      const required=["front","back","left","right","shiny","icon","cry"];
+      const missing=required.filter(k=>!pkg.assets?.[k]?.pngDataUrl);
+      if(missing.length) throw new Error("ขาด Asset: "+missing.join(", "));
+
+      importedModelPackage=pkg;
+      ce("creatorModelInfo").innerHTML=
+        '<span class="good">✅ Model Package ผ่านโครงสร้างพื้นฐาน</span><br>'+
+        'Model: <b>'+esc(pkg.model?.name||"-")+'</b>'+
+        ' · ID: '+esc(pkg.model?.id||"AUTO")+
+        ' · Assets: '+keys.length+'/7'+
+        '<br>หมายเหตุ: Package นี้ยังเป็น PNG/Data URL ไม่ใช่ byte graphics ของ ROM';
+    }catch(err){
+      importedModelPackage=null;
+      ce("creatorModelInfo").innerHTML='<span class="bad">❌ นำเข้า Model Package ไม่สำเร็จ: '+esc(err.message)+'</span>';
+    }
+  }
+
+  function saveProject(){
+    const project=creatorProject();
+    const blob=new Blob([JSON.stringify(project,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    const name=(project.pokemon.name||"new_pokemon").replace(/[^a-z0-9ก-๙_-]+/gi,"_");
+    a.download="PKSG_"+name+"_creator.project.json";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    ce("creatorValidation").innerHTML='<span class="good">✅ บันทึก Creator Project แล้ว</span>';
+  }
+
+  ce("creatorValidate").onclick=validateCreator;
+  ce("creatorLoadModel").onclick=()=>ce("creatorModelFile").click();
+  ce("creatorModelFile").addEventListener("change",importModel);
+  ce("creatorSaveProject").onclick=saveProject;
+})();
+</script>
+
 </body>
 </html>
