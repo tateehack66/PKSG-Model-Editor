@@ -32,6 +32,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .detail{margin-top:15px;display:none}
 .detail pre{white-space:pre-wrap;word-break:break-word;background:#071321;padding:14px;border-radius:10px;color:#b9c9d9}
 .note{font-size:13px;color:#9aabba;line-height:1.7}
+.analysis-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.metric{padding:12px;border-radius:12px;background:#071321;border:1px solid #26384d}
+.metric b{display:block;font-size:18px;margin-bottom:4px}
+.pill{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-right:6px}
+.pill-green{background:#073a28;color:#6dffad;border:1px solid #267d57}
+.pill-yellow{background:#3b3107;color:#ffd66d;border:1px solid #765f25}
+.pill-red{background:#3d0c17;color:#ff7f91;border:1px solid #8a3040}
+.hex{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
+@media(max-width:700px){.analysis-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr}.search{grid-template-columns:1fr}.logo{font-size:42px}}
 </style>
 </head>
@@ -40,7 +49,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON ID SCANNER v0.1 · READ ONLY</div>
+<div class="version">POKÉMON CREATOR v0.2 · READ ONLY + ANALYZER</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
@@ -76,13 +85,28 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <div id="grid" class="grid"></div>
 </section>
 
+<section class="panel" id="analyzerPanel" style="display:none">
+<h2>🧬 POKÉMON ID ANALYZER v0.2</h2>
+<p class="note">
+วิเคราะห์ช่อง ID แบบ Read Only เพิ่มจาก Scanner โดยตรวจ Primary Record,
+pointer ที่เกี่ยวข้อง และตาราง Special Handler ที่เรารู้ตำแหน่งจาก ROM นี้
+ผลลัพธ์เป็น “Candidate” ไม่ใช่การรับรองว่าสามารถเพิ่ม Pokémon ได้ทันที
+</p>
+<div class="search">
+<input id="analyzerId" type="number" min="1" max="2000" placeholder="ใส่ Candidate ID เช่น 1325">
+<button id="analyzeBtn">ANALYZE</button>
+</div>
+<div id="analyzerStatus" class="status">เลือก ROM และกด SCAN ROM ก่อน</div>
+<div id="analyzerResult"></div>
+</section>
+
 <section class="panel">
-<h2>⚠️ ขอบเขต v0.1</h2>
+<h2>⚠️ ขอบเขต v0.2</h2>
 <p class="note">
 เครื่องมือนี้เป็น <b>Read Only</b> เท่านั้น<br>
 ยังไม่มีการสร้าง Pokémon, เปลี่ยน pointer, เขียน graphics หรือบันทึก ROM<br>
 คำว่า EMPTY หมายถึง record 0x118 bytes ในตารางหลักของ PKSG เป็นศูนย์ทั้งหมดเท่านั้น
-จึงยังไม่ถือว่าเป็น “ปลอดภัยสำหรับการเพิ่ม Pokémon” จนกว่าจะตรวจตารางที่เกี่ยวข้องเพิ่มเติม
+Analyzer จะเพิ่มการตรวจ pointer/reference ที่รู้ตำแหน่งแล้ว แต่ยังไม่เขียน ROM และยังไม่ถือว่าเป็น “ปลอดภัย 100%”
 </p>
 </section>
 </div>
@@ -91,7 +115,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 "use strict";
 
 /*
- PKSG Pokémon ID Scanner v0.1
+ PKSG Pokémon Creator v0.2
  READ ONLY.
  Known PKSG primary species-record table:
    base = 0x7C2E50
@@ -220,6 +244,138 @@ function showDetail(id){
     </div>`;
   $("detail").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
+
+// ===== Analyzer v0.2 (additive, READ ONLY) =====
+const SPECIAL_LIST_BASE = 0x47B56A;
+const SPECIAL_LIST_END  = 0x47B5E4;
+const SPECIAL_PTR_BASE  = 0x47B5E4;
+
+$("analyzeBtn").addEventListener("click", analyzeId);
+$("analyzerId").addEventListener("keydown", e => { if(e.key==="Enter") analyzeId(); });
+
+function validRomRange(off,len=1){
+  return !!rom && off>=0 && off+len<=rom.length;
+}
+function u16le(off){
+  if(!validRomRange(off,2)) return 0;
+  return rom[off] | (rom[off+1]<<8);
+}
+function u32le(off){
+  if(!validRomRange(off,4)) return 0;
+  return (rom[off] | (rom[off+1]<<8) | (rom[off+2]<<16) | (rom[off+3]<<24)) >>> 0;
+}
+function pointerToFileOffset(v){
+  // GBA ROM address mapping: 0x08000000 -> file offset 0.
+  if(v>=0x08000000 && v<0x0A000000){
+    const off=v-0x08000000;
+    return validRomRange(off,1) ? off : -1;
+  }
+  return -1;
+}
+function countU32References(value, maxHits=20000){
+  if(!rom || !value) return 0;
+  let n=0;
+  const a=value>>>0;
+  for(let i=0;i+3<rom.length;i++){
+    if(rom[i]=== (a&255) &&
+       rom[i+1]===((a>>>8)&255) &&
+       rom[i+2]===((a>>>16)&255) &&
+       rom[i+3]===((a>>>24)&255)){
+      n++;
+      if(n>=maxHits) return n;
+    }
+  }
+  return n;
+}
+function specialHandlerForId(id){
+  if(!rom || SPECIAL_LIST_END>SPECIAL_LIST_BASE) return null;
+  let index=0;
+  for(let off=SPECIAL_LIST_BASE; off<SPECIAL_LIST_END; off+=2,index++){
+    if(u16le(off)===id){
+      const ptrOff=SPECIAL_PTR_BASE + index*4;
+      const ptr=u32le(ptrOff);
+      return {index, ptr, ptrOff, fileOff:pointerToFileOffset(ptr)};
+    }
+  }
+  return null;
+}
+function classifyAnalyzer(x, special, ptrRefs){
+  if(!x) return ["UNKNOWN","yellow","ไม่มีข้อมูลจาก Scanner"];
+  if(x.kind!=="EMPTY") return ["USED","red","Primary Record มีข้อมูล จึงไม่ควรใช้เป็นช่องใหม่"];
+  if(special) return ["REVIEW","yellow","Primary Record ว่าง แต่ ID อยู่ใน Special Handler table"];
+  if(ptrRefs.some(r=>r.value!==0 && r.refs>0))
+    return ["REVIEW","yellow","Primary Record ว่าง แต่มี pointer/reference ที่ต้องตรวจเพิ่มเติม"];
+  return ["CANDIDATE","green","Primary Record ว่าง และไม่พบ Special Handler ในตารางที่ตรวจ"];
+}
+function analyzeId(){
+  const id=Number($("analyzerId").value);
+  $("analyzerPanel").style.display="block";
+  if(!rom){
+    $("analyzerStatus").innerHTML='<span class="bad">เลือก ROM และกด SCAN ROM ก่อน</span>';
+    $("analyzerResult").innerHTML="";
+    return;
+  }
+  if(!Number.isInteger(id)||id<1||id>MAX_ID){
+    $("analyzerStatus").innerHTML='<span class="bad">กรุณาใส่ ID 1–2000</span>';
+    $("analyzerResult").innerHTML="";
+    return;
+  }
+  const off=TABLE_BASE+id*RECORD_SIZE;
+  if(!validRomRange(off,RECORD_SIZE)){
+    $("analyzerStatus").innerHTML='<span class="bad">Record อยู่นอกขอบเขต ROM</span>';
+    return;
+  }
+  let x=scanResults.get(id);
+  if(!x){
+    const zero=isAllZero(rom,off,RECORD_SIZE);
+    x={id,off,kind:zero?"EMPTY":"USED",nonZero:zero?0:1};
+  }
+
+  const fields=[
+    ["Front",0x48],["Back",0x4C],["Normal Palette",0x50],
+    ["Shiny Palette",0x54],["Icon Struct",0x58],
+    ["Icon Normal Palette",0x80],["Icon Shiny Palette",0x84],
+    ["OW Anim Table",0xC4],["OW Images Table",0xC8]
+  ];
+  const ptrRefs=fields.map(([name,rel])=>{
+    const value=u32le(off+rel);
+    return {name,rel,value,refs:value?countU32References(value):0,fileOff:pointerToFileOffset(value)};
+  });
+  const special=specialHandlerForId(id);
+  const verdict=classifyAnalyzer(x,special,ptrRefs);
+
+  $("analyzerStatus").innerHTML=
+    `<span class="pill pill-${verdict[1]}">${verdict[0]}</span>`+
+    `ID #${id} · Record 0x${off.toString(16).toUpperCase()}`;
+
+  const pointerHtml=ptrRefs.map(r=>{
+    const target=r.fileOff>=0 ? `file 0x${r.fileOff.toString(16).toUpperCase()}` : "not a ROM pointer";
+    const refs=r.value?` · refs ${r.refs}`:"";
+    return `<div class="metric"><b>${r.name}</b><span class="hex">0x${r.value.toString(16).padStart(8,"0").toUpperCase()}</span><div class="small">${target}${refs}</div></div>`;
+  }).join("");
+
+  const specialHtml=special
+    ? `<div class="metric"><b>Special Handler</b><span class="pill pill-yellow">FOUND</span><div class="small">list index ${special.index} · ptr 0x${special.ptr.toString(16).padStart(8,"0").toUpperCase()} · table offset 0x${special.ptrOff.toString(16).toUpperCase()}</div></div>`
+    : `<div class="metric"><b>Special Handler</b><span class="pill pill-green">NOT FOUND</span><div class="small">ไม่พบ ID ในช่วง 0x${SPECIAL_LIST_BASE.toString(16).toUpperCase()}–0x${SPECIAL_LIST_END.toString(16).toUpperCase()}</div></div>`;
+
+  $("analyzerResult").innerHTML=`
+    <div class="card ${verdict[1]==="green"?"empty":verdict[1]==="red"?"used":"unknown"}">
+      <h3>${verdict[0]} · ID #${id}</h3>
+      <div class="note">${verdict[2]}</div>
+      <div class="analysis-grid">
+        <div class="metric"><b>Primary Record</b><span class="hex">0x${off.toString(16).toUpperCase()}</span><div class="small">0x118 bytes · ${x.kind}</div></div>
+        ${specialHtml}
+      </div>
+      <h3 style="margin-top:18px">Pointers / References</h3>
+      <div class="analysis-grid">${pointerHtml}</div>
+      <div class="note" style="margin-top:14px">
+        ⚠️ Analyzer นี้เป็น Read Only และใช้ heuristic/reference scan เท่านั้น
+        ยังไม่มีการเขียน graphics, pointer หรือ ROM
+      </div>
+    </div>`;
+  $("analyzerPanel").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
 </script>
 </body>
 </html>
