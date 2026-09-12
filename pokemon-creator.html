@@ -51,7 +51,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 ขั้นแรกของ Pokémon Creator: ตรวจหา Species ID ที่มี slot ว่างใน ROM
 โดยยังไม่เขียนหรือแก้ไข ROM ใด ๆ
 </p>
-<input id="romFile" type="file" accept=".gba,.bin,.rom">
+<input id="romFile" type="file" accept="*/*">
+<div class="small" style="margin-top:8px">iPhone/iPad: หากไฟล์ .gba เป็นสีจาง ให้ใช้ตัวเลือก “Browse/เลือกหา” แล้วแตะไฟล์โดยตรง ระบบจะตรวจนามสกุลภายหลัง</div>
 <div class="actions">
 <button id="scanBtn" disabled>SCAN ROM</button>
 <button id="clearBtn">ล้างผลการสแกน</button>
