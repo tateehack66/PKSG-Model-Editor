@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PKSG Pokémon Creator v0.6</title>
+<title>PKSG Pokémon Creator v0.6.1</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);color:#fff;min-height:100vh}
@@ -11,7 +11,8 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 .header{text-align:center;padding:25px 15px 18px}.logo{font-size:48px;font-weight:900;letter-spacing:-3px;background:linear-gradient(135deg,#fff,#36a9ff);-webkit-background-clip:text;color:transparent}.subtitle{margin-top:5px;color:#aebed1}.version{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:20px;background:rgba(30,130,255,.12);border:1px solid rgba(60,160,255,.35);color:#65b9ff;font-size:12px}
 .panel{background:rgba(12,23,38,.86);border:1px solid #26384d;border-radius:20px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.3);margin-bottom:18px}
 h1,h2,h3{margin-top:0}input,button{font:inherit}input[type=file],input[type=number],input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid #31465d;background:#071321;color:#fff}
-button{border:0;border-radius:11px;padding:12px 16px;background:#247cff;color:#fff;font-weight:700;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.back{background:#26384d;margin-bottom:15px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.status{margin-top:15px;padding:13px;border-radius:12px;background:#071321;color:#aebed1;line-height:1.6}.good{color:#6dffad}.warn{color:#ffd66d}.bad{color:#ff7f91}
+button{border:0;border-radius:11px;padding:12px 16px;background:#247cff;color:#fff;font-weight:700;cursor:pointer}
+button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,63,114,.18)}button:disabled{opacity:.45;cursor:not-allowed}.back{background:#26384d;margin-bottom:15px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.status{margin-top:15px;padding:13px;border-radius:12px;background:#071321;color:#aebed1;line-height:1.6}.good{color:#6dffad}.warn{color:#ffd66d}.bad{color:#ff7f91}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}.card{padding:14px;border-radius:14px;background:#0a1727;border:1px solid #26384d}.card strong{display:block;font-size:20px;margin-bottom:5px}.empty{border-color:#267d57}.review{border-color:#765f25}.used{border-color:#31465d}.small{font-size:12px;color:#8ea2b8;line-height:1.5}.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:#9aabba}.search{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}.detail{margin-top:15px;display:none}.detail pre{white-space:pre-wrap;word-break:break-word;background:#071321;padding:14px;border-radius:10px;color:#b9c9d9}.note{font-size:13px;color:#9aabba;line-height:1.7}.analysis-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}.metric{padding:12px;border-radius:12px;background:#071321;border:1px solid #26384d}.metric b{display:block;font-size:18px;margin-bottom:4px}.pill{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-right:6px}.pill-green{background:#073a28;color:#6dffad;border:1px solid #267d57}.pill-yellow{background:#3b3107;color:#ffd66d;border:1px solid #765f25}.pill-red{background:#3d0c17;color:#ff7f91;border:1px solid #8a3040}.hex{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}.candidate-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.actions,.candidate-actions{grid-template-columns:1fr}.search{grid-template-columns:1fr}.logo{font-size:42px}.analysis-grid{grid-template-columns:1fr}}
 </style>
@@ -53,7 +54,7 @@ button{border:0;border-radius:11px;padding:12px 16px;background:#247cff;color:#f
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON CREATOR v0.6 · CREATOR WORKSPACE</div>
+<div class="version">POKÉMON CREATOR v0.6.1 · CREATOR WORKSPACE</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
@@ -318,53 +319,6 @@ function analyzeId(){
       <div class="metric"><b>Candidate Score</b>${x.empty?score:"—"}</div>
       <div class="metric"><b>Decision</b>${!x.empty?"DO NOT USE":handler||refs?"REVIEW":"PROMISING CANDIDATE"}</div>
     </div>
-    <div class="card" style="margin-top:14px">
-    <h3>⚔️ BATTLE / GAMEPLAY DATA</h3>
-    <p class="note">ข้อมูลโครงการสำหรับ Pokémon ที่จะสร้างใน SoulGold GBA — ยังไม่เขียนลง ROM จนกว่าจะยืนยัน byte layout จริง</p>
-    <div class="analysis-grid">
-      <div class="metric"><b>EV HP</b><input id="creatorEvHp" type="number" min="0" max="3" value="0"></div>
-      <div class="metric"><b>EV ATK</b><input id="creatorEvAtk" type="number" min="0" max="3" value="3"></div>
-      <div class="metric"><b>EV DEF</b><input id="creatorEvDef" type="number" min="0" max="3" value="0"></div>
-      <div class="metric"><b>EV SpA</b><input id="creatorEvSpa" type="number" min="0" max="3" value="0"></div>
-      <div class="metric"><b>EV SpD</b><input id="creatorEvSpd" type="number" min="0" max="3" value="0"></div>
-      <div class="metric"><b>EV SPE</b><input id="creatorEvSpe" type="number" min="0" max="3" value="0"></div>
-      <div class="metric"><b>Held Item 1</b><input id="creatorHeld1" type="text" placeholder="optional"></div>
-      <div class="metric"><b>Held Item 2</b><input id="creatorHeld2" type="text" placeholder="optional"></div>
-      <div class="metric"><b>Hatch Cycles</b><input id="creatorHatchCycles" type="number" min="0" max="255" value="20"></div>
-      <div class="metric"><b>Escape / Flee</b><input id="creatorFleeRate" type="number" min="0" max="255" value="0"></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <h3>📖 MOVESET</h3>
-    <p class="note">ใส่ Move เป็นข้อมูลโครงการก่อน เราจะยังไม่ตีความเป็น Move ID ของ ROM จนกว่าจะตรวจตารางจริง</p>
-    <div id="creatorMoves"></div>
-    <button type="button" id="addMove" class="secondary" style="margin-top:10px">＋ เพิ่ม Level-up Move</button>
-    <div class="metric wide" style="margin-top:10px"><b>TM / HM / Tutor Notes</b><textarea id="creatorTmNotes" placeholder="เช่น TM..., HM..., Move Tutor..."></textarea></div>
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <h3>🔄 EVOLUTION</h3>
-    <p class="note">กำหนดเงื่อนไขวิวัฒนาการในรูปแบบที่อ่านง่ายก่อน ยังไม่เขียน Evolution Table ของ ROM</p>
-    <div id="creatorEvolutions"></div>
-    <button type="button" id="addEvolution" class="secondary" style="margin-top:10px">＋ เพิ่ม Evolution</button>
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <h3>✨ FORM / SHINY</h3>
-    <div class="analysis-grid">
-      <div class="metric"><b>Form Name</b><input id="creatorFormName" type="text" value="Normal"></div>
-      <div class="metric"><b>Shiny Name</b><input id="creatorShinyName" type="text" value="Shiny"></div>
-      <div class="metric wide"><b>Form Notes</b><textarea id="creatorFormNotes" placeholder="รูปแบบ/เงื่อนไข/หมายเหตุของ Form"></textarea></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <h3>🧩 MODEL LINK</h3>
-    <p class="note">สร้าง Model ที่ <b>Model Editor</b> → BUILD MODEL PACKAGE → นำเข้าไฟล์ <b>.sgmodel.json</b> ที่นี่</p>
-    <div id="creatorModelPreview" class="model-preview"></div>
-  </div>
-
   <div class="candidate-actions">
       <button onclick='document.getElementById("idSearch").value=${id};showDetail(${id});window.scrollTo({top:document.getElementById("detail").offsetTop-20,behavior:"smooth"})'>ดู Record</button>
       <button disabled>CREATE POKÉMON — ขั้นถัดไป</button>
@@ -375,7 +329,7 @@ function analyzeId(){
 </script>
 
 <section class="panel" id="creatorWorkspace" style="border-color:#ff3f72">
-  <h2>🧬 NEW POKÉMON CREATOR v0.6</h2>
+  <h2>🧬 NEW POKÉMON CREATOR v0.6.1</h2>
   <p class="note">
     Workspace สำหรับสร้าง Pokémon ใหม่โดยใช้ Candidate ID ที่ผ่านการสแกนแล้ว
     และรับ Model Package จาก Model Editor โดยตรง
@@ -450,17 +404,17 @@ function analyzeId(){
       <div class="metric"><b>Color</b><input id="creatorColor" type="text" value="Purple"></div>
       <div class="metric"><b>Habitat</b><input id="creatorHabitat" type="text" value="Cave"></div>
     </div>
-    <div class="status" style="margin-top:10px">🛡️ Species Data เป็นข้อมูลโครงการเท่านั้นใน v0.5 — Writer ยัง LOCKED</div>
+    <div class="status" style="margin-top:10px">🛡️ Species / Battle / Moves / Evolution / Form เป็นข้อมูลโครงการใน v0.6 — Writer ยัง LOCKED</div>
   </div>
 
   <div class="creator-toolbar">
-    <button id="creatorValidate">ตรวจความพร้อม Creator</button>
-    <button id="creatorSaveProject">บันทึก Project JSON</button>
-    <button id="creatorLoadProject" class="secondary">โหลด Project JSON</button>
-    <button id="creatorLoadModel" class="model-btn">นำเข้า .sgmodel.json</button>
+    <button type="button" id="creatorValidate">ตรวจความพร้อม Creator</button>
+    <button type="button" id="creatorSaveProject">บันทึก Project JSON</button>
+    <button type="button" id="creatorLoadProject" class="secondary">โหลด Project JSON</button>
+    <button type="button" id="creatorLoadModel" class="model-btn">นำเข้า .sgmodel.json</button>
     <input id="creatorModelFile" type="file" accept=".sgmodel.json,application/json" style="display:none">
     <input id="creatorProjectFile" type="file" accept=".json,application/json" style="display:none">
-    <button id="creatorReset" class="danger">ล้างข้อมูล Creator</button>
+    <button type="button" id="creatorReset" class="danger">ล้างข้อมูล Creator</button>
   </div>
 
   <div id="creatorModelInfo" class="status">
@@ -488,7 +442,7 @@ function analyzeId(){
 </section>
 
 <script>
-/* ===== PKSG CREATOR v0.6 — additive workspace only ===== */
+/* ===== PKSG CREATOR v0.6.1 — interaction/structure fix ===== */
 (function(){
   "use strict";
   let importedModelPackage=null;
@@ -621,8 +575,22 @@ function analyzeId(){
     setValue('creatorFormName','Normal');setValue('creatorShinyName','Shiny');ce('creatorMoves').innerHTML='';ce('creatorEvolutions').innerHTML='';renderMoveRow();importedModelPackage=null;renderModelPreview();ce('creatorModelInfo').textContent='ยังไม่ได้เชื่อม Model Package';ce('creatorValidation').textContent='กรอก Candidate ID แล้วกดตรวจสอบ';
   }
 
-  ce('addMove').onclick=()=>renderMoveRow();ce('addEvolution').onclick=()=>renderEvolutionRow();ce('creatorValidate').onclick=validateCreator;ce('creatorSaveProject').onclick=saveProject;ce('creatorLoadModel').onclick=()=>ce('creatorModelFile').click();ce('creatorModelFile').addEventListener('change',importModel);ce('creatorLoadProject').onclick=()=>ce('creatorProjectFile').click();ce('creatorProjectFile').addEventListener('change',importProject);ce('creatorReset').onclick=resetCreator;
-  renderMoveRow();renderModelPreview();
+  function bindCreator(){
+    const on=(id,event,fn)=>{const el=ce(id);if(!el)return;el.addEventListener(event,fn);};
+    on('addMove','click',()=>renderMoveRow());
+    on('addEvolution','click',()=>renderEvolutionRow());
+    on('creatorValidate','click',validateCreator);
+    on('creatorSaveProject','click',saveProject);
+    on('creatorLoadModel','click',()=>ce('creatorModelFile')?.click());
+    on('creatorModelFile','change',importModel);
+    on('creatorLoadProject','click',()=>ce('creatorProjectFile')?.click());
+    on('creatorProjectFile','change',importProject);
+    on('creatorReset','click',resetCreator);
+    renderMoveRow();
+    renderModelPreview();
+  }
+  bindCreator();
+
 })();
 </script>
 </body>
