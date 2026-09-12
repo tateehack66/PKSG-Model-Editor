@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PKSG Pokémon Creator v0.6.2</title>
+<title>PKSG Pokémon Creator v0.6.3</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);color:#fff;min-height:100vh}
@@ -54,7 +54,7 @@ button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON CREATOR v0.6.2 · CREATOR WORKSPACE</div>
+<div class="version">POKÉMON CREATOR v0.6.3 · CREATOR WORKSPACE</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
@@ -108,7 +108,7 @@ button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color
 <section class="panel">
 <h2>🚧 ขั้นต่อไปของ Creator</h2>
 <p class="note">
-v0.6.2 ยังไม่เขียน ROM<br>
+v0.6.3 ยังไม่เขียน ROM<br>
 หลังจากยืนยัน Candidate แล้ว ปุ่ม CREATE POKÉMON จะพาไปยัง Creator Workspace เพื่อกรอก Name / Type / Base Stats / Abilities / Moves / Form และเชื่อม Model Package จาก Model Editor<br>
 ขั้น Build ROM จะสร้างไฟล์ ROM ใหม่แยกจากต้นฉบับเท่านั้น
 </p>
@@ -329,7 +329,7 @@ function analyzeId(){
 </script>
 
 <section class="panel" id="creatorWorkspace" style="border-color:#ff3f72">
-  <h2>🧬 NEW POKÉMON CREATOR v0.6.2</h2>
+  <h2>🧬 NEW POKÉMON CREATOR v0.6.3</h2>
   <p class="note">
     Workspace สำหรับสร้าง Pokémon ใหม่โดยใช้ Candidate ID ที่ผ่านการสแกนแล้ว
     และรับ Model Package จาก Model Editor โดยตรง
@@ -404,7 +404,59 @@ function analyzeId(){
       <div class="metric"><b>Color</b><input id="creatorColor" type="text" value="Purple"></div>
       <div class="metric"><b>Habitat</b><input id="creatorHabitat" type="text" value="Cave"></div>
     </div>
-    <div class="status" style="margin-top:10px">🛡️ Species / Battle / Moves / Evolution / Form เป็นข้อมูลโครงการใน v0.6 — Writer ยัง LOCKED</div>
+    <div class="status" style="margin-top:10px">🛡️ Species / Battle / Moves / Evolution / Form เป็นข้อมูลโครงการใน v0.6.3 — Writer ยัง LOCKED</div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>⚔️ BATTLE / GAMEPLAY DATA</h3>
+    <p class="note">ข้อมูลส่วนนี้เก็บไว้ใน Creator Project เท่านั้น ยังไม่เขียนลง ROM</p>
+    <div class="analysis-grid">
+      <div class="metric"><b>EV Yield HP</b><input id="creatorEvHp" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>EV Yield ATK</b><input id="creatorEvAtk" type="number" min="0" max="3" value="2"></div>
+      <div class="metric"><b>EV Yield DEF</b><input id="creatorEvDef" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>EV Yield SpA</b><input id="creatorEvSpa" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>EV Yield SpD</b><input id="creatorEvSpd" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>EV Yield SPE</b><input id="creatorEvSpe" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>Held Item 1</b><input id="creatorHeld1" type="text" value="" placeholder="Optional"></div>
+      <div class="metric"><b>Held Item 2</b><input id="creatorHeld2" type="text" value="" placeholder="Optional"></div>
+      <div class="metric"><b>Hatch Cycles</b><input id="creatorHatchCycles" type="number" min="0" max="255" value="0"></div>
+      <div class="metric"><b>Escape / Flee Rate</b><input id="creatorFleeRate" type="number" min="0" max="255" value="0"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>📖 MOVESET</h3>
+    <p class="note">กำหนด Level-up Moves สำหรับ Project ก่อน ยังไม่เขียน Move Table ลง ROM</p>
+    <div id="creatorMoves"></div>
+    <button type="button" id="addMove" style="margin-top:10px">＋ เพิ่ม Level-up Move</button>
+    <div class="metric wide" style="margin-top:10px">
+      <b>TM / HM / Tutor Notes</b>
+      <textarea id="creatorTmNotes" placeholder="บันทึก TM / HM / Tutor ที่ต้องการ"></textarea>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>🔄 EVOLUTION</h3>
+    <p class="note">กำหนดวิวัฒนาการและเงื่อนไขไว้ใน Project ก่อน</p>
+    <div id="creatorEvolutions"></div>
+    <button type="button" id="addEvolution" style="margin-top:10px">＋ เพิ่ม Evolution</button>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>✨ FORM / SHINY</h3>
+    <div class="analysis-grid">
+      <div class="metric"><b>Form Name</b><input id="creatorFormName" type="text" value="Normal"></div>
+      <div class="metric"><b>Shiny Name</b><input id="creatorShinyName" type="text" value="Shiny"></div>
+      <div class="metric wide"><b>Form Notes</b><textarea id="creatorFormNotes" placeholder="รายละเอียด Form / Shiny"></textarea></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>🎨 MODEL LINK</h3>
+    <p class="note">นำเข้าไฟล์ .sgmodel.json ที่สร้างจาก Model Editor เพื่อเชื่อม Front / Back / Left / Right / Shiny / Icon / Cry</p>
+    <div id="creatorModelPreview" class="model-preview">
+      <div class="status wide">ยังไม่มี Model Package ที่นำเข้า</div>
+    </div>
   </div>
 
   <div class="creator-toolbar">
@@ -442,7 +494,7 @@ function analyzeId(){
 </section>
 
 <script>
-/* ===== PKSG CREATOR v0.6.2 — candidate to creator flow ===== */
+/* ===== PKSG CREATOR v0.6.3 — candidate to creator flow ===== */
 (function(){
   "use strict";
   let importedModelPackage=null;
