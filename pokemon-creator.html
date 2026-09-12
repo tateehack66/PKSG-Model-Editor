@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PKSG Pokémon Creator v0.5</title>
+<title>PKSG Pokémon Creator v0.6</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);color:#fff;min-height:100vh}
@@ -31,13 +31,29 @@ button{border:0;border-radius:11px;padding:12px 16px;background:#247cff;color:#f
 #creatorWorkspace .warn{color:#ffd66d}
 </style>
 
+
+<style>
+#creatorWorkspace .section-title{margin:18px 0 8px;font-size:18px}
+#creatorWorkspace .wide{grid-column:1/-1}
+#creatorWorkspace textarea{width:100%;min-height:92px;padding:10px;border-radius:9px;border:1px solid #31465d;background:#071321;color:#fff;resize:vertical}
+#creatorWorkspace select{width:100%;padding:10px;border-radius:9px;border:1px solid #31465d;background:#071321;color:#fff;margin-top:7px}
+#creatorWorkspace .creator-toolbar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+#creatorWorkspace .secondary{background:#26384d}
+#creatorWorkspace .danger{background:#5b2030}
+#creatorWorkspace .move-row,#creatorWorkspace .evo-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:8px}
+#creatorWorkspace .model-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+#creatorWorkspace .model-preview .preview-card{background:#071321;border:1px solid #26384d;border-radius:10px;padding:7px;text-align:center}
+#creatorWorkspace .model-preview img{width:100%;height:100px;object-fit:contain;image-rendering:auto;background:#03070d;border-radius:7px}
+#creatorWorkspace .preview-card small{display:block;margin-top:5px;color:#9aabba}
+@media(max-width:700px){#creatorWorkspace .creator-toolbar{grid-template-columns:1fr 1fr}.model-preview{grid-template-columns:repeat(2,1fr)!important}.move-row,#creatorWorkspace .evo-row{grid-template-columns:1fr 1fr}.move-row button,#creatorWorkspace .evo-row button{grid-column:1/-1}}
+</style>
 </head>
 <body>
 <div class="container">
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON CREATOR v0.5 · SPECIES DATA WORKSPACE</div>
+<div class="version">POKÉMON CREATOR v0.6 · CREATOR WORKSPACE</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
@@ -302,7 +318,54 @@ function analyzeId(){
       <div class="metric"><b>Candidate Score</b>${x.empty?score:"—"}</div>
       <div class="metric"><b>Decision</b>${!x.empty?"DO NOT USE":handler||refs?"REVIEW":"PROMISING CANDIDATE"}</div>
     </div>
-    <div class="candidate-actions">
+    <div class="card" style="margin-top:14px">
+    <h3>⚔️ BATTLE / GAMEPLAY DATA</h3>
+    <p class="note">ข้อมูลโครงการสำหรับ Pokémon ที่จะสร้างใน SoulGold GBA — ยังไม่เขียนลง ROM จนกว่าจะยืนยัน byte layout จริง</p>
+    <div class="analysis-grid">
+      <div class="metric"><b>EV HP</b><input id="creatorEvHp" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>EV ATK</b><input id="creatorEvAtk" type="number" min="0" max="3" value="3"></div>
+      <div class="metric"><b>EV DEF</b><input id="creatorEvDef" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>EV SpA</b><input id="creatorEvSpa" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>EV SpD</b><input id="creatorEvSpd" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>EV SPE</b><input id="creatorEvSpe" type="number" min="0" max="3" value="0"></div>
+      <div class="metric"><b>Held Item 1</b><input id="creatorHeld1" type="text" placeholder="optional"></div>
+      <div class="metric"><b>Held Item 2</b><input id="creatorHeld2" type="text" placeholder="optional"></div>
+      <div class="metric"><b>Hatch Cycles</b><input id="creatorHatchCycles" type="number" min="0" max="255" value="20"></div>
+      <div class="metric"><b>Escape / Flee</b><input id="creatorFleeRate" type="number" min="0" max="255" value="0"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>📖 MOVESET</h3>
+    <p class="note">ใส่ Move เป็นข้อมูลโครงการก่อน เราจะยังไม่ตีความเป็น Move ID ของ ROM จนกว่าจะตรวจตารางจริง</p>
+    <div id="creatorMoves"></div>
+    <button type="button" id="addMove" class="secondary" style="margin-top:10px">＋ เพิ่ม Level-up Move</button>
+    <div class="metric wide" style="margin-top:10px"><b>TM / HM / Tutor Notes</b><textarea id="creatorTmNotes" placeholder="เช่น TM..., HM..., Move Tutor..."></textarea></div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>🔄 EVOLUTION</h3>
+    <p class="note">กำหนดเงื่อนไขวิวัฒนาการในรูปแบบที่อ่านง่ายก่อน ยังไม่เขียน Evolution Table ของ ROM</p>
+    <div id="creatorEvolutions"></div>
+    <button type="button" id="addEvolution" class="secondary" style="margin-top:10px">＋ เพิ่ม Evolution</button>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>✨ FORM / SHINY</h3>
+    <div class="analysis-grid">
+      <div class="metric"><b>Form Name</b><input id="creatorFormName" type="text" value="Normal"></div>
+      <div class="metric"><b>Shiny Name</b><input id="creatorShinyName" type="text" value="Shiny"></div>
+      <div class="metric wide"><b>Form Notes</b><textarea id="creatorFormNotes" placeholder="รูปแบบ/เงื่อนไข/หมายเหตุของ Form"></textarea></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>🧩 MODEL LINK</h3>
+    <p class="note">สร้าง Model ที่ <b>Model Editor</b> → BUILD MODEL PACKAGE → นำเข้าไฟล์ <b>.sgmodel.json</b> ที่นี่</p>
+    <div id="creatorModelPreview" class="model-preview"></div>
+  </div>
+
+  <div class="candidate-actions">
       <button onclick='document.getElementById("idSearch").value=${id};showDetail(${id});window.scrollTo({top:document.getElementById("detail").offsetTop-20,behavior:"smooth"})'>ดู Record</button>
       <button disabled>CREATE POKÉMON — ขั้นถัดไป</button>
     </div>
@@ -312,11 +375,11 @@ function analyzeId(){
 </script>
 
 <section class="panel" id="creatorWorkspace" style="border-color:#ff3f72">
-  <h2>🧬 NEW POKÉMON CREATOR v0.5</h2>
+  <h2>🧬 NEW POKÉMON CREATOR v0.6</h2>
   <p class="note">
     Workspace สำหรับสร้าง Pokémon ใหม่โดยใช้ Candidate ID ที่ผ่านการสแกนแล้ว
     และรับ Model Package จาก Model Editor โดยตรง
-    <b>ยังไม่เขียน ROM ใน v0.4</b> — Writer จะถูกเปิดหลังจากโครงสร้าง byte ของแต่ละตารางได้รับการยืนยันจาก ROM จริง
+    <b>ยังไม่เขียน ROM ใน v0.6</b> — Writer จะถูกเปิดหลังจากโครงสร้าง byte ของแต่ละตารางได้รับการยืนยันจาก ROM จริง
   </p>
 
   <div class="analysis-grid">
@@ -390,15 +453,18 @@ function analyzeId(){
     <div class="status" style="margin-top:10px">🛡️ Species Data เป็นข้อมูลโครงการเท่านั้นใน v0.5 — Writer ยัง LOCKED</div>
   </div>
 
-  <div class="candidate-actions">
-    <button id="creatorValidate">ตรวจ Candidate + ข้อมูล Pokémon</button>
-    <button id="creatorSaveProject">บันทึก Creator Project JSON</button>
+  <div class="creator-toolbar">
+    <button id="creatorValidate">ตรวจความพร้อม Creator</button>
+    <button id="creatorSaveProject">บันทึก Project JSON</button>
+    <button id="creatorLoadProject" class="secondary">โหลด Project JSON</button>
     <button id="creatorLoadModel" class="model-btn">นำเข้า .sgmodel.json</button>
     <input id="creatorModelFile" type="file" accept=".sgmodel.json,application/json" style="display:none">
+    <input id="creatorProjectFile" type="file" accept=".json,application/json" style="display:none">
+    <button id="creatorReset" class="danger">ล้างข้อมูล Creator</button>
   </div>
 
   <div id="creatorModelInfo" class="status">
-    ยังไม่ได้เชื่อม Model Package
+    ยังไม่ได้เชื่อม Model Package · ใช้ไฟล์ .sgmodel.json เท่านั้น
   </div>
 
   <div id="creatorValidation" class="status">
@@ -422,166 +488,142 @@ function analyzeId(){
 </section>
 
 <script>
-/* ===== PKSG CREATOR v0.5 — additive workspace only ===== */
+/* ===== PKSG CREATOR v0.6 — additive workspace only ===== */
 (function(){
   "use strict";
+  let importedModelPackage=null;
+  const ce=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":"&#39;"}[c]));
+  const num=(id,def=0)=>{const n=Number(ce(id)?.value);return Number.isFinite(n)?n:def};
+  const text=id=>(ce(id)?.value||'').trim();
 
-  let importedModelPackage = null;
-
-  const ce = id => document.getElementById(id);
-  const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function collectRows(containerId){
+    const root=ce(containerId); if(!root)return [];
+    return [...root.querySelectorAll('[data-row]')].map(row=>{
+      const inputs=[...row.querySelectorAll('input,select')];
+      return inputs.length===2
+        ? {level:inputs[0].value,move:inputs[1].value}
+        : {pokemon:inputs[0].value,condition:inputs[1].value};
+    });
+  }
+  function renderMoveRow(data={level:'1',move:''}){
+    const root=ce('creatorMoves');
+    const row=document.createElement('div'); row.className='move-row'; row.dataset.row='move';
+    row.innerHTML='<input type="number" min="1" max="100" value="'+esc(data.level)+'" placeholder="Level">'+
+      '<input type="text" value="'+esc(data.move)+'" placeholder="Move name">'+
+      '<button type="button" class="danger remove-row">ลบ</button>';
+    root.appendChild(row); row.querySelector('.remove-row').onclick=()=>row.remove();
+  }
+  function renderEvolutionRow(data={pokemon:'',condition:''}){
+    const root=ce('creatorEvolutions');
+    const row=document.createElement('div'); row.className='evo-row'; row.dataset.row='evo';
+    row.innerHTML='<input type="text" value="'+esc(data.pokemon)+'" placeholder="วิวัฒน์เป็น Pokémon">'+
+      '<input type="text" value="'+esc(data.condition)+'" placeholder="เงื่อนไข เช่น Level 40">'+
+      '<button type="button" class="danger remove-row">ลบ</button>';
+    root.appendChild(row); row.querySelector('.remove-row').onclick=()=>row.remove();
+  }
+  function renderModelPreview(){
+    const root=ce('creatorModelPreview'); if(!root)return;
+    root.innerHTML='';
+    if(!importedModelPackage){root.innerHTML='<div class="status wide">ยังไม่มี Model Package ที่นำเข้า</div>';return;}
+    const labels={front:'Front',back:'Back',left:'Left',right:'Right',shiny:'Shiny',icon:'Icon',cry:'Cry'};
+    for(const key of Object.keys(labels)){
+      const data=importedModelPackage.assets?.[key]?.pngDataUrl;
+      const card=document.createElement('div'); card.className='preview-card';
+      card.innerHTML='<img alt="'+labels[key]+'"><small>'+labels[key]+'</small>';
+      if(data)card.querySelector('img').src=data;
+      root.appendChild(card);
+    }
+  }
 
   function creatorProject(){
     return {
-      format:"PKSG-CREATOR-PROJECT",
-      version:1,
-      createdAt:new Date().toISOString(),
-      candidate:{
-        id:Number(ce("creatorId").value)||null
-      },
+      format:'PKSG-CREATOR-PROJECT',version:2,createdAt:new Date().toISOString(),
+      candidate:{id:Number(ce('creatorId').value)||null},
       pokemon:{
-        name:ce("creatorName").value.trim(),
-        type1:ce("creatorType1").value.trim(),
-        type2:ce("creatorType2").value.trim(),
-        abilities:[
-          ce("creatorAbility1").value.trim(),
-          ce("creatorAbility2").value.trim()
-        ].filter(Boolean),
-        baseStats:{
-          hp:Number(ce("creatorHp").value)||0,
-          atk:Number(ce("creatorAtk").value)||0,
-          def:Number(ce("creatorDef").value)||0,
-          spa:Number(ce("creatorSpa").value)||0,
-          spd:Number(ce("creatorSpd").value)||0,
-          spe:Number(ce("creatorSpe").value)||0
-        },
-        speciesData:{
-          category:ce("creatorCategory").value.trim(),
-          baseExp:Number(ce("creatorBaseExp").value)||0,
-          catchRate:Number(ce("creatorCatchRate").value)||0,
-          baseFriendship:Number(ce("creatorFriendship").value)||0,
-          heightM:Number(ce("creatorHeight").value)||0,
-          weightKg:Number(ce("creatorWeight").value)||0,
-          genderRatio:ce("creatorGenderRatio").value.trim(),
-          growthRate:ce("creatorGrowthRate").value.trim(),
-          eggGroups:[ce("creatorEggGroup1").value.trim(),ce("creatorEggGroup2").value.trim()].filter(Boolean),
-          color:ce("creatorColor").value.trim(),
-          habitat:ce("creatorHabitat").value.trim()
-        }
+        name:text('creatorName'),type1:text('creatorType1'),type2:text('creatorType2'),
+        abilities:[text('creatorAbility1'),text('creatorAbility2')].filter(Boolean),
+        baseStats:{hp:num('creatorHp'),atk:num('creatorAtk'),def:num('creatorDef'),spa:num('creatorSpa'),spd:num('creatorSpd'),spe:num('creatorSpe')},
+        speciesData:{category:text('creatorCategory'),baseExp:num('creatorBaseExp'),catchRate:num('creatorCatchRate'),baseFriendship:num('creatorFriendship'),heightM:num('creatorHeight'),weightKg:num('creatorWeight'),genderRatio:text('creatorGenderRatio'),growthRate:text('creatorGrowthRate'),eggGroups:[text('creatorEggGroup1'),text('creatorEggGroup2')].filter(Boolean),color:text('creatorColor'),habitat:text('creatorHabitat')},
+        battleData:{evYield:{hp:num('creatorEvHp'),atk:num('creatorEvAtk'),def:num('creatorEvDef'),spa:num('creatorEvSpa'),spd:num('creatorEvSpd'),spe:num('creatorEvSpe')},heldItems:[text('creatorHeld1'),text('creatorHeld2')].filter(Boolean),hatchCycles:num('creatorHatchCycles'),fleeRate:num('creatorFleeRate')},
+        moves:{levelUp:collectRows('creatorMoves'),tmHmTutorNotes:text('creatorTmNotes')},
+        evolution:collectRows('creatorEvolutions'),
+        form:{name:text('creatorFormName'),shinyName:text('creatorShinyName'),notes:text('creatorFormNotes')}
       },
-      modelPackage:importedModelPackage
-        ? {format:importedModelPackage.format,version:importedModelPackage.version,
-           model:importedModelPackage.model,target:importedModelPackage.target,
-           assetKeys:Object.keys(importedModelPackage.assets||{})}
-        : null
+      modelPackage:importedModelPackage?{format:importedModelPackage.format,version:importedModelPackage.version,model:importedModelPackage.model,target:importedModelPackage.target,assetKeys:Object.keys(importedModelPackage.assets||{})}:null
     };
   }
 
   function validateCreator(){
-    const id=Number(ce("creatorId").value);
-    const name=ce("creatorName").value.trim();
-    const out=ce("creatorValidation");
-
-    if(!Number.isInteger(id)||id<1||id>2000){
-      out.innerHTML='<span class="bad">❌ Candidate ID ต้องอยู่ในช่วง 1–2000</span>';
-      return false;
-    }
-
-    if(typeof scanResults==="undefined" || !scanResults.has(id)){
-      out.innerHTML='<span class="warn">⚠️ ต้องเลือก ROM และ SCAN ROM ก่อน เพื่อยืนยัน Candidate ID #'+id+'</span>';
-      return false;
-    }
-
-    const x=scanResults.get(id);
-    if(!x.empty){
-      out.innerHTML='<span class="bad">❌ ID #'+id+' ไม่ว่างใน Primary Record — ห้ามใช้</span>';
-      return false;
-    }
-
-    const hs=handlerSet();
-    const refs=(typeof candidateRefs!=="undefined" && candidateRefs)
-      ? (candidateRefs.get(id)||0) : 0;
-
-    if(hs.has(id)||refs>0){
-      out.innerHTML=
-        '<span class="warn">🟡 ID #'+id+' ยังต้อง REVIEW</span><br>'+
-        'Special Handler: '+(hs.has(id)?"FOUND":"NONE KNOWN")+
-        ' · Direct Pointer Refs: '+refs+
-        '<br>ยังไม่อนุญาตให้เป็น Writer Target';
-      return false;
-    }
-
-    if(!name){
-      out.innerHTML='<span class="bad">❌ ต้องใส่ชื่อ Pokémon</span>';
-      return false;
-    }
-
-    const numericFields=[
-      ["Base EXP",ce("creatorBaseExp").value,0,65535],
-      ["Catch Rate",ce("creatorCatchRate").value,0,255],
-      ["Base Friendship",ce("creatorFriendship").value,0,255],
-      ["Height",ce("creatorHeight").value,0,100],
-      ["Weight",ce("creatorWeight").value,0,10000]
-    ];
-    for(const [label,value,min,max] of numericFields){
-      const n=Number(value);
-      if(!Number.isFinite(n)||n<min||n>max){
-        out.innerHTML='<span class="bad">❌ '+label+' ไม่อยู่ในช่วงที่กำหนด</span>';
-        return false;
-      }
-    }
-
-    out.innerHTML=
-      '<span class="good">🟢 Candidate ผ่าน Safety Gate เบื้องต้น</span><br>'+
-      'ID #'+id+' · Primary Record EMPTY · ไม่พบ Handler/Direct Pointer Reference จาก Analyzer';
+    const out=ce('creatorValidation'); const id=num('creatorId'); const name=text('creatorName');
+    if(!Number.isInteger(id)||id<1||id>2000){out.innerHTML='<span class="bad">❌ Candidate ID ต้องอยู่ในช่วง 1–2000</span>';return false;}
+    if(typeof scanResults==='undefined'||!scanResults.has(id)){out.innerHTML='<span class="warn">⚠️ ต้องเลือก ROM และ SCAN ROM ก่อน เพื่อยืนยัน Candidate ID #'+id+'</span>';return false;}
+    const x=scanResults.get(id); if(!x.empty){out.innerHTML='<span class="bad">❌ ID #'+id+' ไม่ว่างใน Primary Record — ห้ามใช้</span>';return false;}
+    const hs=handlerSet(); const refs=(typeof candidateRefs!=='undefined'&&candidateRefs)?(candidateRefs.get(id)||0):0;
+    if(hs.has(id)||refs>0){out.innerHTML='<span class="warn">🟡 ID #'+id+' ยังต้อง REVIEW</span><br>Special Handler: '+(hs.has(id)?'FOUND':'NONE KNOWN')+' · Direct Pointer Refs: '+refs+'<br>ยังไม่อนุญาตให้เป็น Writer Target';return false;}
+    if(!name){out.innerHTML='<span class="bad">❌ ต้องใส่ชื่อ Pokémon</span>';return false;}
+    const nums=[['Base EXP','creatorBaseExp',0,65535],['Catch Rate','creatorCatchRate',0,255],['Base Friendship','creatorFriendship',0,255],['Height','creatorHeight',0,100],['Weight','creatorWeight',0,10000],['Hatch Cycles','creatorHatchCycles',0,255],['Flee Rate','creatorFleeRate',0,255]];
+    for(const [label,id2,min,max] of nums){const n=num(id2);if(n<min||n>max){out.innerHTML='<span class="bad">❌ '+label+' ไม่อยู่ในช่วงที่กำหนด</span>';return false;}}
+    for(const id2 of ['creatorHp','creatorAtk','creatorDef','creatorSpa','creatorSpd','creatorSpe']){const n=num(id2);if(n<1||n>255){out.innerHTML='<span class="bad">❌ Base Stats ต้องอยู่ในช่วง 1–255</span>';return false;}}
+    for(const id2 of ['creatorEvHp','creatorEvAtk','creatorEvDef','creatorEvSpa','creatorEvSpd','creatorEvSpe']){const n=num(id2);if(n<0||n>3||!Number.isInteger(n)){out.innerHTML='<span class="bad">❌ EV Yield แต่ละค่าสูงสุด 3 และต้องเป็นจำนวนเต็ม</span>';return false;}}
+    if(!text('creatorType1')){out.innerHTML='<span class="bad">❌ ต้องระบุ Type 1</span>';return false;}
+    const moves=collectRows('creatorMoves').filter(x=>x.move); if(moves.some(x=>!Number.isInteger(Number(x.level))||Number(x.level)<1||Number(x.level)>100)){out.innerHTML='<span class="bad">❌ Level ของ Move ต้องอยู่ 1–100</span>';return false;}
+    out.innerHTML='<span class="good">🟢 Creator Project พร้อมใช้งานในระดับ Project</span><br>ID #'+id+' · '+esc(name)+' · Species/Battle/Moves/Evolution/Form ถูกตรวจเบื้องต้นแล้ว · Model '+(importedModelPackage?'เชื่อมแล้ว':'ยังไม่เชื่อม');
     return true;
   }
 
   async function importModel(){
-    const f=ce("creatorModelFile").files[0];
-    if(!f)return;
+    const f=ce('creatorModelFile').files[0];if(!f)return;
     try{
-      const pkg=JSON.parse(await f.text());
-      if(pkg?.format!=="SOULGOLD-MODEL" || pkg?.version!==1){
-        throw new Error("ไม่ใช่ SOULGOLD-MODEL v1");
-      }
-      const keys=Object.keys(pkg.assets||{});
-      const required=["front","back","left","right","shiny","icon","cry"];
-      const missing=required.filter(k=>!pkg.assets?.[k]?.pngDataUrl);
-      if(missing.length) throw new Error("ขาด Asset: "+missing.join(", "));
-
+      const textData=(await f.text()).replace(/^\uFEFF/,'').trim(); const pkg=JSON.parse(textData);
+      if(pkg?.format!=='SOULGOLD-MODEL'||pkg?.version!==1)throw new Error(pkg?.format==='SOULGOLD-MODEL'&&pkg?.assetCount!==undefined?'ไฟล์นี้เป็น Model Manifest ไม่ใช่ .sgmodel.json':'ไม่ใช่ SOULGOLD-MODEL v1');
+      if(!pkg.model||typeof pkg.model!=='object')throw new Error('Package ไม่มีข้อมูล Model');
+      const required=['front','back','left','right','shiny','icon','cry'];
+      const missing=required.filter(k=>!pkg.assets?.[k]?.pngDataUrl);if(missing.length)throw new Error('ขาด Asset: '+missing.join(', '));
+      for(const key of required)if(!/^data:image\/png;base64,/i.test(pkg.assets[key].pngDataUrl))throw new Error('Asset '+key+' ไม่ใช่ PNG Data URL ที่ถูกต้อง');
       importedModelPackage=pkg;
-      ce("creatorModelInfo").innerHTML=
-        '<span class="good">✅ Model Package ผ่านโครงสร้างพื้นฐาน</span><br>'+
-        'Model: <b>'+esc(pkg.model?.name||"-")+'</b>'+
-        ' · ID: '+esc(pkg.model?.id||"AUTO")+
-        ' · Assets: '+keys.length+'/7'+
-        '<br>หมายเหตุ: Package นี้ยังเป็น PNG/Data URL ไม่ใช่ byte graphics ของ ROM';
-    }catch(err){
-      importedModelPackage=null;
-      ce("creatorModelInfo").innerHTML='<span class="bad">❌ นำเข้า Model Package ไม่สำเร็จ: '+esc(err.message)+'</span>';
-    }
+      ce('creatorModelInfo').innerHTML='<span class="good">✅ Model Package เชื่อมสำเร็จ</span><br>ไฟล์: <b>'+esc(f.name)+'</b><br>Model: <b>'+esc(pkg.model.name||'-')+'</b> · ID: '+esc(pkg.model.id||'AUTO')+' · Assets: 7/7<br>Package นี้ยังเป็น PNG/Data URL — ยังไม่เขียน ROM';
+      renderModelPreview();
+    }catch(err){ce('creatorModelInfo').innerHTML='<span class="bad">❌ นำเข้า Model Package ไม่สำเร็จ: '+esc(err.message)+'</span><br><span class="small">เลือกไฟล์ .sgmodel.json ที่ได้จาก BUILD MODEL PACKAGE</span>';}
+    ce('creatorModelFile').value='';
   }
 
   function saveProject(){
-    const project=creatorProject();
-    const blob=new Blob([JSON.stringify(project,null,2)],{type:"application/json"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    const name=(project.pokemon.name||"new_pokemon").replace(/[^a-z0-9ก-๙_-]+/gi,"_");
-    a.download="PKSG_"+name+"_creator.project.json";
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    ce("creatorValidation").innerHTML='<span class="good">✅ บันทึก Creator Project แล้ว</span>';
+    const project=creatorProject(); const blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url;const name=(project.pokemon.name||'new_pokemon').replace(/[^a-z0-9ก-๙_-]+/gi,'_');a.download='PKSG_'+name+'_creator.project.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    ce('creatorValidation').innerHTML='<span class="good">✅ บันทึก Creator Project แล้ว · schema v2</span>';
+  }
+  function setValue(id,v){if(ce(id)&&v!==undefined&&v!==null)ce(id).value=v;}
+  function loadProjectData(p){
+    if(!p||p.format!=='PKSG-CREATOR-PROJECT')throw new Error('ไม่ใช่ PKSG Creator Project');
+    const x=p.pokemon||{}; const sd=x.speciesData||{}; const bd=x.battleData||{}; const mv=x.moves||{}; const fm=x.form||{};
+    setValue('creatorId',p.candidate?.id); setValue('creatorName',x.name);setValue('creatorType1',x.type1);setValue('creatorType2',x.type2);
+    setValue('creatorAbility1',x.abilities?.[0]||'');setValue('creatorAbility2',x.abilities?.[1]||'');
+    for(const [k,id] of Object.entries({hp:'creatorHp',atk:'creatorAtk',def:'creatorDef',spa:'creatorSpa',spd:'creatorSpd',spe:'creatorSpe'}))setValue(id,x.baseStats?.[k]);
+    const map={category:'creatorCategory',baseExp:'creatorBaseExp',catchRate:'creatorCatchRate',baseFriendship:'creatorFriendship',heightM:'creatorHeight',weightKg:'creatorWeight',genderRatio:'creatorGenderRatio',growthRate:'creatorGrowthRate',color:'creatorColor',habitat:'creatorHabitat'};
+    for(const [k,id] of Object.entries(map))setValue(id,sd[k]);setValue('creatorEggGroup1',sd.eggGroups?.[0]||'');setValue('creatorEggGroup2',sd.eggGroups?.[1]||'');
+    for(const [k,id] of Object.entries({hp:'creatorEvHp',atk:'creatorEvAtk',def:'creatorEvDef',spa:'creatorEvSpa',spd:'creatorEvSpd',spe:'creatorEvSpe'}))setValue(id,bd.evYield?.[k]??0);
+    setValue('creatorHeld1',bd.heldItems?.[0]||'');setValue('creatorHeld2',bd.heldItems?.[1]||'');setValue('creatorHatchCycles',bd.hatchCycles??0);setValue('creatorFleeRate',bd.fleeRate??0);
+    setValue('creatorTmNotes',mv.tmHmTutorNotes||'');setValue('creatorFormName',fm.name||'Normal');setValue('creatorShinyName',fm.shinyName||'Shiny');setValue('creatorFormNotes',fm.notes||'');
+    ce('creatorMoves').innerHTML='';(mv.levelUp||[]).forEach(renderMoveRow);if(!(mv.levelUp||[]).length)renderMoveRow();
+    ce('creatorEvolutions').innerHTML='';(x.evolution||[]).forEach(renderEvolutionRow);
+    ce('creatorValidation').innerHTML='<span class="good">✅ โหลด Creator Project แล้ว</span>';
+  }
+  async function importProject(){
+    const f=ce('creatorProjectFile').files[0];if(!f)return;
+    try{const p=JSON.parse((await f.text()).replace(/^\uFEFF/,''));loadProjectData(p);}catch(err){ce('creatorValidation').innerHTML='<span class="bad">❌ โหลด Project ไม่สำเร็จ: '+esc(err.message)+'</span>';}ce('creatorProjectFile').value='';
+  }
+  function resetCreator(){
+    if(!confirm('ล้างข้อมูล Pokémon Creator ทั้งหมดในหน้านี้หรือไม่?'))return;
+    ['creatorId','creatorName','creatorType1','creatorType2','creatorAbility1','creatorAbility2','creatorCategory','creatorGenderRatio','creatorGrowthRate','creatorEggGroup1','creatorEggGroup2','creatorColor','creatorHabitat','creatorHeld1','creatorHeld2','creatorTmNotes','creatorFormNotes'].forEach(id=>{if(ce(id))ce(id).value='';});
+    ['creatorHp','creatorAtk','creatorDef','creatorSpa','creatorSpd','creatorSpe'].forEach(id=>setValue(id,0));
+    ['creatorBaseExp','creatorCatchRate','creatorFriendship','creatorHeight','creatorWeight','creatorEvHp','creatorEvAtk','creatorEvDef','creatorEvSpa','creatorEvSpd','creatorEvSpe','creatorHatchCycles','creatorFleeRate'].forEach(id=>setValue(id,0));
+    setValue('creatorFormName','Normal');setValue('creatorShinyName','Shiny');ce('creatorMoves').innerHTML='';ce('creatorEvolutions').innerHTML='';renderMoveRow();importedModelPackage=null;renderModelPreview();ce('creatorModelInfo').textContent='ยังไม่ได้เชื่อม Model Package';ce('creatorValidation').textContent='กรอก Candidate ID แล้วกดตรวจสอบ';
   }
 
-  ce("creatorValidate").onclick=validateCreator;
-  ce("creatorLoadModel").onclick=()=>ce("creatorModelFile").click();
-  ce("creatorModelFile").addEventListener("change",importModel);
-  ce("creatorSaveProject").onclick=saveProject;
+  ce('addMove').onclick=()=>renderMoveRow();ce('addEvolution').onclick=()=>renderEvolutionRow();ce('creatorValidate').onclick=validateCreator;ce('creatorSaveProject').onclick=saveProject;ce('creatorLoadModel').onclick=()=>ce('creatorModelFile').click();ce('creatorModelFile').addEventListener('change',importModel);ce('creatorLoadProject').onclick=()=>ce('creatorProjectFile').click();ce('creatorProjectFile').addEventListener('change',importProject);ce('creatorReset').onclick=resetCreator;
+  renderMoveRow();renderModelPreview();
 })();
 </script>
-
 </body>
 </html>
