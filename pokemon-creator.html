@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PKSG Pokémon Creator v0.6.3</title>
+<title>PKSG Pokémon Creator v0.7.0</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);color:#fff;min-height:100vh}
@@ -54,7 +54,7 @@ button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON CREATOR v0.6.3 · CREATOR WORKSPACE</div>
+<div class="version">POKÉMON CREATOR v0.7.0 · CREATOR WORKSPACE</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
@@ -105,10 +105,22 @@ button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color
 <div id="analyzerResult"></div>
 </section>
 
+
+<section class="panel" id="deepRomPanel">
+<h2>🔬 ROM STRUCTURE ANALYSIS · READ ONLY</h2>
+<p class="note">ตรวจโครงสร้างจาก ROM จริงโดยไม่เขียนหรือแก้ไขไฟล์: Header, Primary Record, Candidate #35, direct pointer, Special Handler และ Records รอบข้าง</p>
+<div class="search">
+<input id="deepCandidateId" type="number" min="1" max="2000" value="35" placeholder="Candidate ID เช่น 35">
+<button id="deepAnalyzeBtn" type="button">DEEP ANALYZE</button>
+</div>
+<div id="deepRomStatus" class="status">เลือก ROM → SCAN ROM ก่อน แล้วกด DEEP ANALYZE</div>
+<div id="deepRomResult"></div>
+</section>
+
 <section class="panel">
 <h2>🚧 ขั้นต่อไปของ Creator</h2>
 <p class="note">
-v0.6.3 ยังไม่เขียน ROM<br>
+v0.7.0 ยังไม่เขียน ROM<br>
 หลังจากยืนยัน Candidate แล้ว ปุ่ม CREATE POKÉMON จะพาไปยัง Creator Workspace เพื่อกรอก Name / Type / Base Stats / Abilities / Moves / Form และเชื่อม Model Package จาก Model Editor<br>
 ขั้น Build ROM จะสร้างไฟล์ ROM ใหม่แยกจากต้นฉบับเท่านั้น
 </p>
@@ -329,7 +341,7 @@ function analyzeId(){
 </script>
 
 <section class="panel" id="creatorWorkspace" style="border-color:#ff3f72">
-  <h2>🧬 NEW POKÉMON CREATOR v0.6.3</h2>
+  <h2>🧬 NEW POKÉMON CREATOR v0.7.0</h2>
   <p class="note">
     Workspace สำหรับสร้าง Pokémon ใหม่โดยใช้ Candidate ID ที่ผ่านการสแกนแล้ว
     และรับ Model Package จาก Model Editor โดยตรง
@@ -404,7 +416,7 @@ function analyzeId(){
       <div class="metric"><b>Color</b><input id="creatorColor" type="text" value="Purple"></div>
       <div class="metric"><b>Habitat</b><input id="creatorHabitat" type="text" value="Cave"></div>
     </div>
-    <div class="status" style="margin-top:10px">🛡️ Species / Battle / Moves / Evolution / Form เป็นข้อมูลโครงการใน v0.6.3 — Writer ยัง LOCKED</div>
+    <div class="status" style="margin-top:10px">🛡️ Species / Battle / Moves / Evolution / Form เป็นข้อมูลโครงการใน v0.7.0 — Writer ยัง LOCKED</div>
   </div>
 
   <div class="card" style="margin-top:14px">
@@ -494,7 +506,7 @@ function analyzeId(){
 </section>
 
 <script>
-/* ===== PKSG CREATOR v0.6.3 — candidate to creator flow ===== */
+/* ===== PKSG CREATOR v0.7.0 — candidate to creator flow ===== */
 (function(){
   "use strict";
   let importedModelPackage=null;
@@ -659,6 +671,78 @@ function analyzeId(){
     renderMoveRow();
     renderModelPreview();
   }
+
+  function u32At(a,o){return ((a[o]||0)|((a[o+1]||0)<<8)|((a[o+2]||0)<<16)|((a[o+3]||0)<<24))>>>0;}
+  function hex8(v){return '0x'+(v>>>0).toString(16).toUpperCase().padStart(8,'0');}
+  function hex6(v){return '0x'+v.toString(16).toUpperCase().padStart(6,'0');}
+  function deepAnalyzeRom(){
+    const status=ce('deepRomStatus'), out=ce('deepRomResult');
+    if(!rom){status.innerHTML='<span class="warn">⚠️ เลือก ROM และกด SCAN ROM ก่อน</span>';return;}
+    const id=Number(ce('deepCandidateId').value);
+    if(!Number.isInteger(id)||id<1||id>2000||!scanResults.has(id)){status.innerHTML='<span class="bad">❌ Candidate ID ไม่อยู่ในผลสแกน</span>';return;}
+    const x=scanResults.get(id), off=x.off, end=off+RECORD_SIZE;
+    const gameName=new TextDecoder().decode(rom.slice(0xA0,0xAC)).replace(/\0/g,'').trim();
+    const gameCode=new TextDecoder().decode(rom.slice(0xAC,0xB0)).replace(/\0/g,'').trim();
+    const ptr=pointerValueForOffset(off);
+    const ptrBytes=new Uint8Array([ptr&255,(ptr>>>8)&255,(ptr>>>16)&255,(ptr>>>24)&255]);
+    let directRefs=0, firstRefs=[];
+    for(let i=0;i+3<rom.length;i++){
+      if(rom[i]===ptrBytes[0]&&rom[i+1]===ptrBytes[1]&&rom[i+2]===ptrBytes[2]&&rom[i+3]===ptrBytes[3]){
+        directRefs++; if(firstRefs.length<8)firstRefs.push(i);
+      }
+    }
+    const hs=handlerSet(), handler=hs.has(id);
+    let empty=0;
+    for(const r of scanResults.values()) if(r.empty) empty++;
+    const max=Math.min(MAX_ID,Math.floor((rom.length-TABLE_BASE)/RECORD_SIZE));
+    const neighbors=[];
+    for(let n=Math.max(1,id-3);n<=Math.min(max,id+3);n++){
+      const ro=idOffset(n), d=rom.slice(ro,ro+RECORD_SIZE);
+      neighbors.push({id:n,off:ro,nz:d.reduce((a,v)=>a+(v!==0),0),zero:d.every(v=>v===0)});
+    }
+    const rawId=new Uint8Array([id&255,(id>>>8)&255]);
+    let raw16=0;
+    for(let i=0;i+1<rom.length;i++) if(rom[i]===rawId[0]&&rom[i+1]===rawId[1]) raw16++;
+    const fields=[0x3C,0x44,0x48,0x4C,0x50,0x54,0x58,0xC8].map(rel=>({rel,val:u32At(rom,off+rel)}));
+    status.innerHTML='<span class="good">🟢 Deep Analysis เสร็จแล้ว · READ ONLY · ไม่ได้แก้ ROM</span>';
+    out.innerHTML=`
+      <div class="card empty">
+        <h3>ROM Identity</h3>
+        <div class="analysis-grid">
+          <div class="metric"><b>Game Name</b>${esc(gameName||'-')}</div>
+          <div class="metric"><b>Game Code</b><span class="hex">${esc(gameCode||'-')}</span></div>
+          <div class="metric"><b>ROM Size</b>${rom.length.toLocaleString()} bytes (${hex6(rom.length)})</div>
+          <div class="metric"><b>Primary Table</b><span class="hex">${hex6(TABLE_BASE)} · ${hex6(RECORD_SIZE)} / record</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Candidate #${id} · Primary Record</h3>
+        <div class="analysis-grid">
+          <div class="metric"><b>Record Offset</b><span class="hex">${hex6(off)}</span></div>
+          <div class="metric"><b>Record End</b><span class="hex">${hex6(end)}</span></div>
+          <div class="metric"><b>Primary Record</b><span class="pill pill-green">${x.empty?'EMPTY':'USED'}</span></div>
+          <div class="metric"><b>Special Handler</b><span class="pill ${handler?'pill-yellow':'pill-green'}">${handler?'FOUND':'NONE KNOWN'}</span></div>
+          <div class="metric"><b>Direct Record-Pointer Refs</b>${directRefs}</div>
+          <div class="metric"><b>Record Pointer</b><span class="hex">${hex8(ptr)}</span></div>
+          <div class="metric"><b>Raw 16-bit ID occurrences</b>${raw16} <span class="small">(heuristic only)</span></div>
+          <div class="metric"><b>Empty Primary Records</b>${empty} / ${max}</div>
+        </div>
+        <p class="note">${x.empty&&!handler&&directRefs===0?'🟢 Candidate นี้ยังผ่านเงื่อนไขความปลอดภัยเบื้องต้น: Primary ว่าง, ไม่อยู่ใน Handler table ที่รู้จัก และไม่พบ direct pointer ที่ชี้ตรงมายัง record':'🟡 Candidate นี้ต้อง REVIEW ก่อน Writer'}</p>
+        ${firstRefs.length?'<div class="note">Pointer refs: '+firstRefs.map(hex6).join(', ')+'</div>':''}
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Records รอบ Candidate</h3>
+        <div class="grid">${neighbors.map(r=>`<div class="card ${r.zero?'empty':'used'}"><strong>#${r.id}</strong><div>${r.zero?'EMPTY':'USED'}</div><div class="small">offset ${hex6(r.off)}<br>non-zero bytes: ${r.nz}/${RECORD_SIZE}</div></div>`).join('')}</div>
+        <p class="note">จำนวน non-zero รอบข้างใช้เพื่อดูรูปแบบของตารางเท่านั้น ยังไม่ตีความเป็น Species/Moves/Model encoding โดยอัตโนมัติ</p>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Known Field Bytes · Candidate #${id}</h3>
+        <div class="analysis-grid">${fields.map(f=>`<div class="metric"><b>+${f.rel.toString(16).toUpperCase().padStart(2,'0')}</b><span class="hex">${hex8(f.val)}</span></div>`).join('')}</div>
+        <p class="note">ค่าเหล่านี้เป็น raw bytes จาก ROM จริงตาม offsets ที่ Creator ใช้แสดงผลเท่านั้น ยังไม่ถือว่าเป็นการยืนยันความหมายของทุก field</p>
+      </div>`;
+  }
+  const deepBtn=ce('deepAnalyzeBtn'); if(deepBtn) deepBtn.addEventListener('click',deepAnalyzeRom);
+
   bindCreator();
 
 })();
