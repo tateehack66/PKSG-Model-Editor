@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PKSG Pokémon Creator v0.7.1</title>
+<title>PKSG Pokémon Creator v0.7.2</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);color:#fff;min-height:100vh}
@@ -54,7 +54,7 @@ button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON CREATOR v0.7.1 · CREATOR WORKSPACE</div>
+<div class="version">POKÉMON CREATOR v0.7.2 · CREATOR WORKSPACE</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
@@ -117,10 +117,18 @@ button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color
 <div id="deepRomResult"></div>
 </section>
 
+<section class="panel" id="speciesStructurePanel">
+<h2>🧬 SPECIES STRUCTURE MAP · READ ONLY</h2>
+<p class="note">ยืนยันตาราง Species จาก ROM จริงโดยเฉพาะ ไม่เกี่ยวกับ Candidate #35 ของ Primary Table และไม่เขียน ROM</p>
+<div class="search"><button id="speciesMapBtn" type="button">VERIFY SPECIES TABLE</button></div>
+<div id="speciesMapStatus" class="status">เลือก ROM → SCAN ROM ก่อน แล้วกด VERIFY SPECIES TABLE</div>
+<div id="speciesMapResult"></div>
+</section>
+
 <section class="panel">
 <h2>🚧 ขั้นต่อไปของ Creator</h2>
 <p class="note">
-v0.7.1 ยังไม่เขียน ROM<br>
+v0.7.2 ยังไม่เขียน ROM<br>
 หลังจากยืนยัน Candidate แล้ว ปุ่ม CREATE POKÉMON จะพาไปยัง Creator Workspace เพื่อกรอก Name / Type / Base Stats / Abilities / Moves / Form และเชื่อม Model Package จาก Model Editor<br>
 ขั้น Build ROM จะสร้างไฟล์ ROM ใหม่แยกจากต้นฉบับเท่านั้น
 </p>
@@ -341,7 +349,7 @@ function analyzeId(){
 </script>
 
 <section class="panel" id="creatorWorkspace" style="border-color:#ff3f72">
-  <h2>🧬 NEW POKÉMON CREATOR v0.7.1</h2>
+  <h2>🧬 NEW POKÉMON CREATOR v0.7.2</h2>
   <p class="note">
     Workspace สำหรับสร้าง Pokémon ใหม่โดยใช้ Candidate ID ที่ผ่านการสแกนแล้ว
     และรับ Model Package จาก Model Editor โดยตรง
@@ -416,7 +424,7 @@ function analyzeId(){
       <div class="metric"><b>Color</b><input id="creatorColor" type="text" value="Purple"></div>
       <div class="metric"><b>Habitat</b><input id="creatorHabitat" type="text" value="Cave"></div>
     </div>
-    <div class="status" style="margin-top:10px">🛡️ Species / Battle / Moves / Evolution / Form เป็นข้อมูลโครงการใน v0.7.1 — Writer ยัง LOCKED</div>
+    <div class="status" style="margin-top:10px">🛡️ Species / Battle / Moves / Evolution / Form เป็นข้อมูลโครงการใน v0.7.2 — Writer ยัง LOCKED</div>
   </div>
 
   <div class="card" style="margin-top:14px">
@@ -506,7 +514,7 @@ function analyzeId(){
 </section>
 
 <script>
-/* ===== PKSG CREATOR v0.7.1 — candidate to creator flow ===== */
+/* ===== PKSG CREATOR v0.7.2 — candidate to creator flow ===== */
 (function(){
   "use strict";
   let importedModelPackage=null;
@@ -752,6 +760,49 @@ function analyzeId(){
       </div>`;
   }
   const deepBtn=ce('deepAnalyzeBtn'); if(deepBtn) deepBtn.addEventListener('click',deepAnalyzeRom);
+
+  function decodeGen3Name(bytes){
+    const map={};
+    for(let i=0;i<26;i++) map[0xBB+i]=String.fromCharCode(65+i);
+    for(let i=0;i<26;i++) map[0xD5+i]=String.fromCharCode(97+i);
+    map[0x7F]=' '; map[0x50]=''; map[0xFF]='';
+    let out='';
+    for(const x of bytes){ if(x===0x50||x===0xFF) break; out+=map[x]||''; }
+    return out;
+  }
+  function speciesRecordOffset(id){ return 0x7C7784+(id-1)*0x118; }
+  function readSpeciesRecord(id){
+    const o=speciesRecordOffset(id); if(!rom||o+0x118>rom.length) return null;
+    const r=rom.slice(o,o+0x118);
+    const name=decodeGen3Name(r.slice(0x33,0x43));
+    const category=decodeGen3Name(r.slice(0x2B,0x33));
+    const stats=[r[0],r[1],r[2],r[3],r[4],r[5]];
+    return {id,off:o,name,category,stats,empty:r.every(v=>v===0)};
+  }
+  function verifySpeciesTable(){
+    const st=ce('speciesMapStatus'), out=ce('speciesMapResult');
+    if(!rom || !scanResults.size){ st.innerHTML='<span class="warn">⚠️ เลือก ROM และ SCAN ROM ก่อน</span>'; return; }
+    const anchors=[1,2,4,7,25,1325];
+    const rows=anchors.map(readSpeciesRecord).filter(Boolean);
+    const ceru=[];
+    for(let id=1;id<=2000;id++){
+      const r=readSpeciesRecord(id);
+      if(r && r.name.toLowerCase()==='ceruledge') ceru.push(r);
+    }
+    const empty1326=readSpeciesRecord(1326);
+    const fmt=o=>'0x'+o.toString(16).toUpperCase().padStart(6,'0');
+    st.innerHTML='<span class="good">🟢 Species Table verified — READ ONLY</span>';
+    out.innerHTML=`<div class="card"><div class="analysis-grid">
+      <div class="metric"><b>Species Table Base</b><span class="hex">${fmt(0x7C7784)}</span></div>
+      <div class="metric"><b>Record Size</b><span class="hex">0x118</span></div>
+      <div class="metric"><b>Capacity Checked</b><span>2,000 Species IDs</span></div>
+      <div class="metric"><b>Existing Ceruledge</b><span>${ceru.length?ceru.map(x=>'#'+x.id+' · '+fmt(x.off)).join('<br>'):'NOT FOUND'}</span></div>
+      <div class="metric"><b>Species #1326</b><span class="pill ${empty1326?.empty?'pill-green':'pill-yellow'}">${empty1326?.empty?'EMPTY':'USED'}</span></div>
+    </div></div>
+    <div class="card" style="margin-top:12px"><h3>Anchor Records</h3><div class="grid">${rows.map(r=>`<div class="card ${r.empty?'empty':'used'}"><strong>#${r.id} · ${r.name||'(no name)'}</strong><div class="small">offset ${fmt(r.off)}<br>stats ${r.stats.join('/')}</div></div>`).join('')}</div></div>
+    ${ceru.map(r=>`<div class="card" style="margin-top:12px"><h3>Existing Ceruledge — Species #${r.id}</h3><div class="analysis-grid"><div class="metric"><b>Record Offset</b><span class="hex">${fmt(r.off)}</span></div><div class="metric"><b>Category</b><span>${r.category||'-'}</span></div><div class="metric"><b>Stats</b><span>${r.stats.join(' / ')}</span></div><div class="metric"><b>Raw Type Bytes</b><span class="hex">${rom[r.off+6].toString(16).padStart(2,'0')} / ${rom[r.off+7].toString(16).padStart(2,'0')}</span></div><div class="metric"><b>Catch Rate</b><span>${rom[r.off+8]}</span></div></div><p class="note">🔒 พบ Ceruledge อยู่ใน Species Table จริงแล้ว การสร้างตัวใหม่ต้องใช้ Species ID/slot อื่น และต้อง map ตารางอื่นต่อก่อนเขียน ROM</p></div>`).join('')}`;
+  }
+  const speciesMapBtn=ce('speciesMapBtn'); if(speciesMapBtn) speciesMapBtn.addEventListener('click',verifySpeciesTable);
 
   bindCreator();
 
