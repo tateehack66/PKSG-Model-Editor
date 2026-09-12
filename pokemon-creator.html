@@ -3,45 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PKSG Pokémon Creator</title>
+<title>PKSG Pokémon Creator v0.3</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);color:#fff;min-height:100vh}
 .container{width:100%;max-width:1100px;margin:auto;padding:20px}
-.header{text-align:center;padding:25px 15px 18px}
-.logo{font-size:48px;font-weight:900;letter-spacing:-3px;background:linear-gradient(135deg,#fff,#36a9ff);-webkit-background-clip:text;color:transparent}
-.subtitle{margin-top:5px;color:#aebed1}
-.version{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:20px;background:rgba(30,130,255,.12);border:1px solid rgba(60,160,255,.35);color:#65b9ff;font-size:12px}
+.header{text-align:center;padding:25px 15px 18px}.logo{font-size:48px;font-weight:900;letter-spacing:-3px;background:linear-gradient(135deg,#fff,#36a9ff);-webkit-background-clip:text;color:transparent}.subtitle{margin-top:5px;color:#aebed1}.version{display:inline-block;margin-top:10px;padding:5px 12px;border-radius:20px;background:rgba(30,130,255,.12);border:1px solid rgba(60,160,255,.35);color:#65b9ff;font-size:12px}
 .panel{background:rgba(12,23,38,.86);border:1px solid #26384d;border-radius:20px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.3);margin-bottom:18px}
-h1,h2,h3{margin-top:0}
-input,button,select{font:inherit}
-input[type=file],input[type=number]{width:100%;padding:11px;border-radius:10px;border:1px solid #31465d;background:#071321;color:#fff}
-button{border:0;border-radius:11px;padding:11px 16px;background:#247cff;color:#fff;font-weight:700;cursor:pointer}
-button:disabled{opacity:.45;cursor:not-allowed}
-.back{background:#26384d;margin-bottom:15px}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-.status{margin-top:15px;padding:13px;border-radius:12px;background:#071321;color:#aebed1;line-height:1.6}
-.good{color:#6dffad}.warn{color:#ffd66d}.bad{color:#ff7f91}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}
-.card{padding:14px;border-radius:14px;background:#0a1727;border:1px solid #26384d}
-.card strong{display:block;font-size:20px;margin-bottom:5px}
-.empty{border-color:#267d57}.unknown{border-color:#765f25}.used{border-color:#31465d}
-.small{font-size:12px;color:#8ea2b8;line-height:1.5}
-.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:#9aabba}
-.search{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}
-.detail{margin-top:15px;display:none}
-.detail pre{white-space:pre-wrap;word-break:break-word;background:#071321;padding:14px;border-radius:10px;color:#b9c9d9}
-.note{font-size:13px;color:#9aabba;line-height:1.7}
-.analysis-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
-.metric{padding:12px;border-radius:12px;background:#071321;border:1px solid #26384d}
-.metric b{display:block;font-size:18px;margin-bottom:4px}
-.pill{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-right:6px}
-.pill-green{background:#073a28;color:#6dffad;border:1px solid #267d57}
-.pill-yellow{background:#3b3107;color:#ffd66d;border:1px solid #765f25}
-.pill-red{background:#3d0c17;color:#ff7f91;border:1px solid #8a3040}
-.hex{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
-@media(max-width:700px){.analysis-grid{grid-template-columns:1fr}}
-@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr}.search{grid-template-columns:1fr}.logo{font-size:42px}}
+h1,h2,h3{margin-top:0}input,button{font:inherit}input[type=file],input[type=number],input[type=text]{width:100%;padding:12px;border-radius:10px;border:1px solid #31465d;background:#071321;color:#fff}
+button{border:0;border-radius:11px;padding:12px 16px;background:#247cff;color:#fff;font-weight:700;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.back{background:#26384d;margin-bottom:15px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.status{margin-top:15px;padding:13px;border-radius:12px;background:#071321;color:#aebed1;line-height:1.6}.good{color:#6dffad}.warn{color:#ffd66d}.bad{color:#ff7f91}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}.card{padding:14px;border-radius:14px;background:#0a1727;border:1px solid #26384d}.card strong{display:block;font-size:20px;margin-bottom:5px}.empty{border-color:#267d57}.review{border-color:#765f25}.used{border-color:#31465d}.small{font-size:12px;color:#8ea2b8;line-height:1.5}.legend{display:flex;gap:15px;flex-wrap:wrap;font-size:12px;color:#9aabba}.search{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}.detail{margin-top:15px;display:none}.detail pre{white-space:pre-wrap;word-break:break-word;background:#071321;padding:14px;border-radius:10px;color:#b9c9d9}.note{font-size:13px;color:#9aabba;line-height:1.7}.analysis-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}.metric{padding:12px;border-radius:12px;background:#071321;border:1px solid #26384d}.metric b{display:block;font-size:18px;margin-bottom:4px}.pill{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;margin-right:6px}.pill-green{background:#073a28;color:#6dffad;border:1px solid #267d57}.pill-yellow{background:#3b3107;color:#ffd66d;border:1px solid #765f25}.pill-red{background:#3d0c17;color:#ff7f91;border:1px solid #8a3040}.hex{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}.candidate-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.actions,.candidate-actions{grid-template-columns:1fr}.search{grid-template-columns:1fr}.logo{font-size:42px}.analysis-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -49,19 +21,16 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON CREATOR v0.2 · READ ONLY + ANALYZER</div>
+<div class="version">POKÉMON CREATOR v0.3 · CROSS-REFERENCE ANALYZER</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
 
 <section class="panel">
 <h2>🔎 POKÉMON ID SCANNER</h2>
-<p class="note">
-ขั้นแรกของ Pokémon Creator: ตรวจหา Species ID ที่มี slot ว่างใน ROM
-โดยยังไม่เขียนหรือแก้ไข ROM ใด ๆ
-</p>
+<p class="note">ค้นหา Primary Record ที่ว่างใน ROM ก่อนสร้าง Pokémon ใหม่ ระบบเป็น Read Only และไม่แก้ ROM</p>
 <input id="romFile" type="file" accept="*/*">
-<div class="small" style="margin-top:8px">iPhone/iPad: หากไฟล์ .gba เป็นสีจาง ให้ใช้ตัวเลือก “Browse/เลือกหา” แล้วแตะไฟล์โดยตรง ระบบจะตรวจนามสกุลภายหลัง</div>
+<div class="small" style="margin-top:8px">iPhone/iPad: หากไฟล์ .gba เป็นสีจาง ให้ใช้ Browse/เลือกหา แล้วเลือกไฟล์โดยตรง</div>
 <div class="actions">
 <button id="scanBtn" disabled>SCAN ROM</button>
 <button id="clearBtn">ล้างผลการสแกน</button>
@@ -70,14 +39,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
 </section>
 
 <section class="panel" id="resultsPanel" style="display:none">
-<h2>📋 ผลการตรวจสอบ</h2>
+<h2>📋 EMPTY PRIMARY RECORDS</h2>
 <div class="legend">
-<span>🟢 EMPTY = record เป็นศูนย์ทั้งหมด</span>
-<span>🟡 UNKNOWN = มีข้อมูล แต่ยังยืนยันไม่ได้</span>
-<span>🔵 USED = มีข้อมูล</span>
+<span>🟢 EMPTY = Primary Record เป็นศูนย์ทั้งหมด</span>
+<span>🟡 REVIEW = มี reference/handler ที่ต้องตรวจ</span>
+<span>🔵 USED = มีข้อมูลใน Primary Record</span>
 </div>
 <div class="search">
-<input id="idSearch" type="number" min="1" max="2000" placeholder="ใส่ ID เช่น 1325">
+<input id="idSearch" type="number" min="1" max="2000" placeholder="ใส่ ID เช่น 1330">
 <button id="findBtn">ตรวจ ID</button>
 </div>
 <div id="detail" class="detail"></div>
@@ -85,15 +54,18 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <div id="grid" class="grid"></div>
 </section>
 
+<section class="panel" id="candidatePanel" style="display:none">
+<h2>⭐ BEST EMPTY ID CANDIDATES</h2>
+<p class="note">จัดอันดับจาก Primary Record + Special Handler + direct pointer reference + ความต่อเนื่องของช่องว่าง ผลนี้เป็น heuristic เพื่อช่วยเลือกช่องสำหรับขั้นสร้าง Pokémon ไม่ใช่การรับรอง 100%</p>
+<div id="candidateStatus" class="status">กำลังเตรียมวิเคราะห์...</div>
+<div id="candidateGrid" class="grid"></div>
+</section>
+
 <section class="panel" id="analyzerPanel" style="display:none">
-<h2>🧬 POKÉMON ID ANALYZER v0.2</h2>
-<p class="note">
-วิเคราะห์ช่อง ID แบบ Read Only เพิ่มจาก Scanner โดยตรวจ Primary Record,
-pointer ที่เกี่ยวข้อง และตาราง Special Handler ที่เรารู้ตำแหน่งจาก ROM นี้
-ผลลัพธ์เป็น “Candidate” ไม่ใช่การรับรองว่าสามารถเพิ่ม Pokémon ได้ทันที
-</p>
+<h2>🧬 POKÉMON ID ANALYZER v0.3</h2>
+<p class="note">วิเคราะห์ ID ที่เลือกแบบ Read Only และแยก “Primary Record ว่าง” ออกจาก “มีระบบอื่นอ้างถึง ID นี้” ให้ชัดเจน</p>
 <div class="search">
-<input id="analyzerId" type="number" min="1" max="2000" placeholder="ใส่ Candidate ID เช่น 1325">
+<input id="analyzerId" type="number" min="1" max="2000" placeholder="ใส่ Candidate ID เช่น 1330">
 <button id="analyzeBtn">ANALYZE</button>
 </div>
 <div id="analyzerStatus" class="status">เลือก ROM และกด SCAN ROM ก่อน</div>
@@ -101,12 +73,11 @@ pointer ที่เกี่ยวข้อง และตาราง Special
 </section>
 
 <section class="panel">
-<h2>⚠️ ขอบเขต v0.2</h2>
+<h2>🚧 ขั้นต่อไปของ Creator</h2>
 <p class="note">
-เครื่องมือนี้เป็น <b>Read Only</b> เท่านั้น<br>
-ยังไม่มีการสร้าง Pokémon, เปลี่ยน pointer, เขียน graphics หรือบันทึก ROM<br>
-คำว่า EMPTY หมายถึง record 0x118 bytes ในตารางหลักของ PKSG เป็นศูนย์ทั้งหมดเท่านั้น
-Analyzer จะเพิ่มการตรวจ pointer/reference ที่รู้ตำแหน่งแล้ว แต่ยังไม่เขียน ROM และยังไม่ถือว่าเป็น “ปลอดภัย 100%”
+v0.3 ยังไม่เขียน ROM<br>
+หลังจากยืนยัน Candidate แล้ว เราจะต่อด้วยหน้าสร้าง Pokémon ใหม่: Name / Type / Base Stats / Abilities / Moves / Form และเชื่อม Model Editor สำหรับ Front, Back, Overworld, Icon และ Palette<br>
+ขั้น Build ROM จะสร้างไฟล์ ROM ใหม่แยกจากต้นฉบับเท่านั้น
 </p>
 </section>
 </div>
@@ -115,27 +86,44 @@ Analyzer จะเพิ่มการตรวจ pointer/reference ที่�
 "use strict";
 
 /*
- PKSG Pokémon Creator v0.2
+ PKSG Pokémon Creator v0.3
  READ ONLY.
- Known PKSG primary species-record table:
-   base = 0x7C2E50
-   stride = 0x118
- This scanner deliberately does not modify the ROM.
+ Important correction:
+ ID 1 is TABLE_BASE itself, therefore record offset is
+   TABLE_BASE + (id - 1) * RECORD_SIZE
+ not TABLE_BASE + id * RECORD_SIZE.
 */
-const TABLE_BASE = 0x7C2E50;
-const RECORD_SIZE = 0x118;
-const MAX_ID = 2000;
+const TABLE_BASE=0x7C2E50;
+const RECORD_SIZE=0x118;
+const MAX_ID=2000;
+const HANDLER_LIST_OFFSET=0x47B56A;
+const HANDLER_LIST_END=0x47B5E4;
 
-let rom = null;
-let scanResults = new Map();
+let rom=null;
+let scanResults=new Map();
+let candidateRefs=null;
 
-const $ = id => document.getElementById(id);
-$("romFile").addEventListener("change", async e => {
+const $=id=>document.getElementById(id);
+const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function readU16(a,o){return (a[o]||0)|((a[o+1]||0)<<8)}
+function readU32(a,o){return ((a[o]||0)|((a[o+1]||0)<<8)|((a[o+2]||0)<<16)|((a[o+3]||0)<<24))>>>0}
+function idOffset(id){return TABLE_BASE+(id-1)*RECORD_SIZE}
+function isAllZero(a,start,len){if(start<0||start+len>a.length)return false;for(let i=0;i<len;i++)if(a[start+i]!==0)return false;return true}
+function handlerSet(){
+  const s=new Set();
+  if(!rom||HANDLER_LIST_OFFSET<0||HANDLER_LIST_END>rom.length)return s;
+  for(let o=HANDLER_LIST_OFFSET;o<HANDLER_LIST_END;o+=2)s.add(readU16(rom,o));
+  return s;
+}
+function pointerValueForOffset(off){return (0x08000000+off)>>>0}
+
+$( "romFile" ).addEventListener("change",async e=>{
   const f=e.target.files[0];
-  if(!f){$("scanBtn").disabled=true;return;}
+  if(!f){rom=null;$("scanBtn").disabled=true;return}
   try{
     const buf=await f.arrayBuffer();
     rom=new Uint8Array(buf);
+    candidateRefs=null;
     $("scanBtn").disabled=false;
     $("status").innerHTML=`ไฟล์: <b>${escapeHtml(f.name)}</b><br>ขนาด: ${rom.length.toLocaleString()} bytes<br><span class="warn">พร้อมสแกนแบบ Read Only</span>`;
   }catch(err){
@@ -146,236 +134,165 @@ $("romFile").addEventListener("change", async e => {
 
 $("scanBtn").addEventListener("click",scanRom);
 $("clearBtn").addEventListener("click",()=>{
-  rom=null;scanResults.clear();$("romFile").value="";$("scanBtn").disabled=true;
-  $("resultsPanel").style.display="none";$("status").textContent="เลือกไฟล์ ROM ก่อนเริ่มสแกน";
+  rom=null;scanResults.clear();candidateRefs=null;$("romFile").value="";$("scanBtn").disabled=true;
+  $("resultsPanel").style.display="none";$("candidatePanel").style.display="none";$("analyzerPanel").style.display="none";
+  $("status").textContent="เลือกไฟล์ ROM ก่อนเริ่มสแกน";
 });
 $("findBtn").addEventListener("click",findId);
 $("idSearch").addEventListener("keydown",e=>{if(e.key==="Enter")findId()});
+$("analyzeBtn").addEventListener("click",analyzeId);
+$("analyzerId").addEventListener("keydown",e=>{if(e.key==="Enter")analyzeId()});
 
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function readU32LE(a,o){
-  return (a[o]||0)|((a[o+1]||0)<<8)|((a[o+2]||0)<<16)|((a[o+3]||0)<<24);
-}
-function isAllZero(a,start,len){
-  if(start<0 || start+len>a.length)return false;
-  for(let i=0;i<len;i++)if(a[start+i]!==0)return false;
-  return true;
-}
 function scanRom(){
   if(!rom)return;
   scanResults.clear();
-  const max=Math.min(MAX_ID,Math.floor((rom.length-TABLE_BASE)/RECORD_SIZE)-1);
-  let empty=0,used=0,unknown=0;
+  const max=Math.min(MAX_ID,Math.floor((rom.length-TABLE_BASE)/RECORD_SIZE));
+  let empty=0,used=0;
   for(let id=1;id<=max;id++){
-    const off=TABLE_BASE+id*RECORD_SIZE;
+    const off=idOffset(id);
     const zero=isAllZero(rom,off,RECORD_SIZE);
-    // A non-zero record is intentionally classified USED/UNKNOWN later.
-    // Some PKSG records can contain non-standard data, so we don't call them safe.
-    let nonZero=0;
-    for(let i=0;i<RECORD_SIZE;i++) if(rom[off+i]!==0){nonZero++; if(nonZero>8)break;}
-    const kind=zero?"EMPTY":"USED";
-    if(zero)empty++; else used++;
-    scanResults.set(id,{id,off,kind,nonZero});
+    let sample=0;
+    for(let i=0;i<RECORD_SIZE;i++){if(rom[off+i]!==0){sample++;if(sample>=9)break}}
+    if(zero)empty++;else used++;
+    scanResults.set(id,{id,off,empty,nonZeroSample:sample});
   }
   $("resultsPanel").style.display="block";
-  $("stats").innerHTML=`ตรวจได้ถึง ID <b>${max}</b><br>🟢 EMPTY: <b>${empty}</b> · 🔵 USED/ข้อมูล: <b>${used}</b><br><span class="warn">หมายเหตุ: UNKNOWN จะใช้ในขั้น Analyzer ถัดไป</span>`;
-  renderGrid(max);
+  $("analyzerPanel").style.display="block";
+  $("candidatePanel").style.display="block";
+  $("stats").innerHTML=`ตรวจได้ถึง ID <b>${max}</b><br>🟢 EMPTY: <b>${empty}</b> · 🔵 USED/ข้อมูล: <b>${used}</b><br><span class="warn">หมายเหตุ: EMPTY เป็นเพียงสถานะ Primary Record; Candidate Finder จะตรวจ reference เพิ่ม</span>`;
+  renderGrid();
+  buildCandidateReferences();
 }
-function renderGrid(max){
-  const grid=$("grid");
-  grid.innerHTML="";
-  // Show empty candidates first, then a compact sample of used IDs.
-  const arr=[...scanResults.values()].filter(x=>x.kind==="EMPTY");
-  const show=arr.slice(0,160);
-  if(!show.length){
-    grid.innerHTML='<div class="card unknown" style="grid-column:1/-1">ไม่พบ record ที่เป็นศูนย์ทั้งหมดในช่วงที่สแกน</div>';
-    return;
-  }
-  for(const x of show){
+
+function renderGrid(){
+  const grid=$("grid");grid.innerHTML="";
+  const arr=[...scanResults.values()].filter(x=>x.empty);
+  for(const x of arr.slice(0,160)){
     const d=document.createElement("div");
     d.className="card empty";
     d.innerHTML=`<strong>#${x.id}</strong><div class="good">EMPTY</div><div class="small">offset 0x${x.off.toString(16).toUpperCase()}</div>`;
-    d.onclick=()=>showDetail(x.id);
+    d.onclick=()=>{ $("idSearch").value=x.id;showDetail(x.id) };
     grid.appendChild(d);
   }
-  if(arr.length>show.length){
-    const more=document.createElement("div");
-    more.className="card unknown";
-    more.style.gridColumn="1/-1";
-    more.innerHTML=`แสดง ${show.length} รายการแรกจาก EMPTY ทั้งหมด ${arr.length} รายการ · ใช้ช่อง “ตรวจ ID” เพื่อดู ID ที่ต้องการ`;
-    grid.appendChild(more);
+  if(arr.length>160){
+    const d=document.createElement("div");d.className="card review";d.style.gridColumn="1/-1";
+    d.innerHTML=`แสดง 160 รายการแรกจาก EMPTY ทั้งหมด ${arr.length} รายการ · ใช้ช่องตรวจ ID เพื่อดูรายการอื่น`;
+    grid.appendChild(d);
   }
 }
+
 function findId(){
   const id=Number($("idSearch").value);
-  if(!Number.isInteger(id)||id<1||id>MAX_ID){
-    $("detail").style.display="block";
-    $("detail").innerHTML='<div class="card unknown">กรุณาใส่ ID 1–2000</div>';
-    return;
-  }
-  if(!scanResults.has(id)){
-    $("detail").style.display="block";
-    $("detail").innerHTML='<div class="card unknown">ยังไม่ได้สแกน ROM หรือ ID นี้อยู่นอกช่วง</div>';
-    return;
+  if(!Number.isInteger(id)||id<1||id>MAX_ID||!scanResults.has(id)){
+    $("detail").style.display="block";$("detail").innerHTML='<div class="card review">กรุณาสแกน ROM ก่อน และใส่ ID ที่อยู่ในช่วงที่สแกน</div>';return;
   }
   showDetail(id);
 }
 function showDetail(id){
-  const x=scanResults.get(id);
-  if(!x)return;
+  const x=scanResults.get(id);if(!x)return;
   const off=x.off;
-  const bytes=Array.from(rom.slice(off,off+32)).map(b=>b.toString(16).padStart(2,"0")).join(" ");
-  const u32a=readU32LE(rom,off+0x48)>>>0;
-  const u32b=readU32LE(rom,off+0x4C)>>>0;
+  const front=readU32(rom,off+0x48),back=readU32(rom,off+0x4C),pal=readU32(rom,off+0x50),shiny=readU32(rom,off+0x54),icon=readU32(rom,off+0x58),ow=readU32(rom,off+0xC8);
+  const hs=handlerSet(),hasHandler=hs.has(id);
+  const ptrRef=candidateRefs?candidateRefs.get(id)||0:null;
+  const kind=x.empty?(hasHandler||ptrRef>0?"review":"empty"):"used";
+  const cls=kind==="empty"?"empty":kind==="review"?"review":"used";
   $("detail").style.display="block";
   $("detail").innerHTML=`
-    <div class="card ${x.kind==="EMPTY"?"empty":"used"}">
-      <h3>ID #${id} · ${x.kind}</h3>
-      <div class="small">Record offset: 0x${off.toString(16).toUpperCase()}</div>
-      <div class="small">Non-zero sample count: ${x.nonZero}</div>
-      <pre>+00..+1F: ${bytes}
-+48 Front pointer: 0x${u32a.toString(16).padStart(8,"0").toUpperCase()}
-+4C Back pointer:  0x${u32b.toString(16).padStart(8,"0").toUpperCase()}</pre>
-      <div class="note">${x.kind==="EMPTY"
-        ?"🟢 Record หลักว่างตามเกณฑ์ v0.1 — ยังต้องตรวจ cross-reference ก่อนใช้งานจริง"
-        :"🔵 Record มีข้อมูล — ห้ามใช้เป็นช่องใหม่โดยอัตโนมัติ"}</div>
-    </div>`;
-  $("detail").scrollIntoView({behavior:"smooth",block:"nearest"});
+  <div class="card ${cls}">
+    <h3>ID #${id} · ${kind==="empty"?"CANDIDATE":" "+kind.toUpperCase()}</h3>
+    <div class="small">Record offset: <span class="hex">0x${off.toString(16).toUpperCase()}</span></div>
+    <div class="analysis-grid">
+      <div class="metric"><b>Primary</b>${x.empty?'<span class="good">EMPTY</span>':'<span class="bad">USED</span>'}</div>
+      <div class="metric"><b>Special Handler</b>${hasHandler?'<span class="warn">FOUND</span>':'<span class="good">NONE IN KNOWN TABLE</span>'}</div>
+      <div class="metric"><b>Front +48</b><span class="hex">0x${front.toString(16).toUpperCase().padStart(8,"0")}</span></div>
+      <div class="metric"><b>Back +4C</b><span class="hex">0x${back.toString(16).toUpperCase().padStart(8,"0")}</span></div>
+      <div class="metric"><b>Normal Palette +50</b><span class="hex">0x${pal.toString(16).toUpperCase().padStart(8,"0")}</span></div>
+      <div class="metric"><b>Shiny Palette +54</b><span class="hex">0x${shiny.toString(16).toUpperCase().padStart(8,"0")}</span></div>
+      <div class="metric"><b>Icon +58</b><span class="hex">0x${icon.toString(16).toUpperCase().padStart(8,"0")}</span></div>
+      <div class="metric"><b>Overworld Images +C8</b><span class="hex">0x${ow.toString(16).toUpperCase().padStart(8,"0")}</span></div>
+      <div class="metric"><b>Direct record-pointer refs</b>${ptrRef===null?"กำลังวิเคราะห์":ptrRef}</div>
+    </div>
+    <pre>+00..+1F: ${Array.from(rom.slice(off,off+32)).map(b=>b.toString(16).padStart(2,"0")).join(" ")}
++48 Front pointer: 0x${front.toString(16).toUpperCase().padStart(8,"0")}
++4C Back pointer:  0x${back.toString(16).toUpperCase().padStart(8,"0")}</pre>
+    <div class="note">${kind==="empty"&&!hasHandler&&ptrRef===0?"🟢 Primary ว่าง และไม่พบ direct pointer reference จากการตรวจนี้ — เป็น Candidate ที่น่าสนใจ แต่ยังไม่ใช่การรับรอง 100%":hasHandler?"🟡 ID นี้อยู่ใน Special Handler table ที่รู้ตำแหน่ง จึงไม่ควรใช้เป็น Candidate โดยอัตโนมัติ":"🔵 ID นี้มีข้อมูลหรือ reference ที่ต้องตรวจเพิ่มเติม"}</div>
+  </div>`;
 }
 
-// ===== Analyzer v0.2 (additive, READ ONLY) =====
-const SPECIAL_LIST_BASE = 0x47B56A;
-const SPECIAL_LIST_END  = 0x47B5E4;
-const SPECIAL_PTR_BASE  = 0x47B5E4;
-
-$("analyzeBtn").addEventListener("click", analyzeId);
-$("analyzerId").addEventListener("keydown", e => { if(e.key==="Enter") analyzeId(); });
-
-function validRomRange(off,len=1){
-  return !!rom && off>=0 && off+len<=rom.length;
-}
-function u16le(off){
-  if(!validRomRange(off,2)) return 0;
-  return rom[off] | (rom[off+1]<<8);
-}
-function u32le(off){
-  if(!validRomRange(off,4)) return 0;
-  return (rom[off] | (rom[off+1]<<8) | (rom[off+2]<<16) | (rom[off+3]<<24)) >>> 0;
-}
-function pointerToFileOffset(v){
-  // GBA ROM address mapping: 0x08000000 -> file offset 0.
-  if(v>=0x08000000 && v<0x0A000000){
-    const off=v-0x08000000;
-    return validRomRange(off,1) ? off : -1;
-  }
-  return -1;
-}
-function countU32References(value, maxHits=20000){
-  if(!rom || !value) return 0;
-  let n=0;
-  const a=value>>>0;
+function buildCandidateReferences(){
+  if(!rom)return;
+  const candidates=[...scanResults.values()].filter(x=>x.empty);
+  const ptrMap=new Map();
+  for(const x of candidates)ptrMap.set(pointerValueForOffset(x.off),x.id);
+  const counts=new Map();
   for(let i=0;i+3<rom.length;i++){
-    if(rom[i]=== (a&255) &&
-       rom[i+1]===((a>>>8)&255) &&
-       rom[i+2]===((a>>>16)&255) &&
-       rom[i+3]===((a>>>24)&255)){
-      n++;
-      if(n>=maxHits) return n;
-    }
+    const v=readU32(rom,i);
+    const id=ptrMap.get(v);
+    if(id!==undefined)counts.set(id,(counts.get(id)||0)+1);
   }
-  return n;
+  candidateRefs=counts;
+  renderCandidates();
 }
-function specialHandlerForId(id){
-  if(!rom || SPECIAL_LIST_END>SPECIAL_LIST_BASE) return null;
-  let index=0;
-  for(let off=SPECIAL_LIST_BASE; off<SPECIAL_LIST_END; off+=2,index++){
-    if(u16le(off)===id){
-      const ptrOff=SPECIAL_PTR_BASE + index*4;
-      const ptr=u32le(ptrOff);
-      return {index, ptr, ptrOff, fileOff:pointerToFileOffset(ptr)};
-    }
+
+function emptyRunLength(id){
+  let left=id,right=id;
+  while(scanResults.get(left-1)?.empty)left--;
+  while(scanResults.get(right+1)?.empty)right++;
+  return right-left+1;
+}
+
+function renderCandidates(){
+  const hs=handlerSet();
+  const list=[...scanResults.values()].filter(x=>x.empty).map(x=>{
+    const handler=hs.has(x.id);
+    const refs=candidateRefs.get(x.id)||0;
+    const run=emptyRunLength(x.id);
+    let score=100;
+    if(handler)score-=70;
+    if(refs>0)score-=Math.min(40,refs*5);
+    score+=Math.min(15,run);
+    return {...x,handler,refs,run,score};
+  }).sort((a,b)=>b.score-a.score||a.id-b.id).slice(0,40);
+  $("candidateStatus").innerHTML=`ตรวจ direct pointer references ให้กับ EMPTY records แล้ว · แสดง Candidate ที่คะแนนสูงสุด <b>${list.length}</b> รายการ<br><span class="warn">Pointer reference = heuristic; raw 16-bit ID references ยังไม่ถือเป็นหลักฐานเพียงอย่างเดียว</span>`;
+  const g=$("candidateGrid");g.innerHTML="";
+  for(const x of list){
+    const d=document.createElement("div");
+    d.className="card "+(x.handler||x.refs?"review":"empty");
+    d.innerHTML=`<strong>#${x.id}</strong><div class="${x.handler||x.refs?"warn":"good"}">${x.handler?"REVIEW · SPECIAL HANDLER":x.refs?"REVIEW · POINTER REFS":"CANDIDATE"}</div><div class="small">Score ${x.score} · empty run ${x.run}<br>direct record-pointer refs: ${x.refs}</div>`;
+    d.onclick=()=>{ $("analyzerId").value=x.id; analyzeId(); window.scrollTo({top:$("analyzerPanel").offsetTop-10,behavior:"smooth"}) };
+    g.appendChild(d);
   }
-  return null;
 }
-function classifyAnalyzer(x, special, ptrRefs){
-  if(!x) return ["UNKNOWN","yellow","ไม่มีข้อมูลจาก Scanner"];
-  if(x.kind!=="EMPTY") return ["USED","red","Primary Record มีข้อมูล จึงไม่ควรใช้เป็นช่องใหม่"];
-  if(special) return ["REVIEW","yellow","Primary Record ว่าง แต่ ID อยู่ใน Special Handler table"];
-  if(ptrRefs.some(r=>r.value!==0 && r.refs>0))
-    return ["REVIEW","yellow","Primary Record ว่าง แต่มี pointer/reference ที่ต้องตรวจเพิ่มเติม"];
-  return ["CANDIDATE","green","Primary Record ว่าง และไม่พบ Special Handler ในตารางที่ตรวจ"];
-}
+
 function analyzeId(){
+  if(!rom){$("analyzerStatus").innerHTML='<span class="warn">เลือก ROM และกด SCAN ROM ก่อน</span>';return}
   const id=Number($("analyzerId").value);
-  $("analyzerPanel").style.display="block";
-  if(!rom){
-    $("analyzerStatus").innerHTML='<span class="bad">เลือก ROM และกด SCAN ROM ก่อน</span>';
-    $("analyzerResult").innerHTML="";
-    return;
+  if(!Number.isInteger(id)||id<1||id>MAX_ID||!scanResults.has(id)){
+    $("analyzerStatus").innerHTML='<span class="bad">กรุณาใส่ ID ที่อยู่ในช่วง 1–2000 และต้องสแกน ROM ก่อน</span>';return;
   }
-  if(!Number.isInteger(id)||id<1||id>MAX_ID){
-    $("analyzerStatus").innerHTML='<span class="bad">กรุณาใส่ ID 1–2000</span>';
-    $("analyzerResult").innerHTML="";
-    return;
-  }
-  const off=TABLE_BASE+id*RECORD_SIZE;
-  if(!validRomRange(off,RECORD_SIZE)){
-    $("analyzerStatus").innerHTML='<span class="bad">Record อยู่นอกขอบเขต ROM</span>';
-    return;
-  }
-  let x=scanResults.get(id);
-  if(!x){
-    const zero=isAllZero(rom,off,RECORD_SIZE);
-    x={id,off,kind:zero?"EMPTY":"USED",nonZero:zero?0:1};
-  }
-
-  const fields=[
-    ["Front",0x48],["Back",0x4C],["Normal Palette",0x50],
-    ["Shiny Palette",0x54],["Icon Struct",0x58],
-    ["Icon Normal Palette",0x80],["Icon Shiny Palette",0x84],
-    ["OW Anim Table",0xC4],["OW Images Table",0xC8]
-  ];
-  const ptrRefs=fields.map(([name,rel])=>{
-    const value=u32le(off+rel);
-    return {name,rel,value,refs:value?countU32References(value):0,fileOff:pointerToFileOffset(value)};
-  });
-  const special=specialHandlerForId(id);
-  const verdict=classifyAnalyzer(x,special,ptrRefs);
-
-  $("analyzerStatus").innerHTML=
-    `<span class="pill pill-${verdict[1]}">${verdict[0]}</span>`+
-    `ID #${id} · Record 0x${off.toString(16).toUpperCase()}`;
-
-  const pointerHtml=ptrRefs.map(r=>{
-    const target=r.fileOff>=0 ? `file 0x${r.fileOff.toString(16).toUpperCase()}` : "not a ROM pointer";
-    const refs=r.value?` · refs ${r.refs}`:"";
-    return `<div class="metric"><b>${r.name}</b><span class="hex">0x${r.value.toString(16).padStart(8,"0").toUpperCase()}</span><div class="small">${target}${refs}</div></div>`;
-  }).join("");
-
-  const specialHtml=special
-    ? `<div class="metric"><b>Special Handler</b><span class="pill pill-yellow">FOUND</span><div class="small">list index ${special.index} · ptr 0x${special.ptr.toString(16).padStart(8,"0").toUpperCase()} · table offset 0x${special.ptrOff.toString(16).toUpperCase()}</div></div>`
-    : `<div class="metric"><b>Special Handler</b><span class="pill pill-green">NOT FOUND</span><div class="small">ไม่พบ ID ในช่วง 0x${SPECIAL_LIST_BASE.toString(16).toUpperCase()}–0x${SPECIAL_LIST_END.toString(16).toUpperCase()}</div></div>`;
-
+  const x=scanResults.get(id);
+  $("analyzerStatus").innerHTML=`กำลังวิเคราะห์ ID #${id} แบบ Read Only...`;
+  showDetail(id);
+  const hs=handlerSet(),handler=hs.has(id),refs=candidateRefs?candidateRefs.get(id)||0:0;
+  const score=x.empty?(100-(handler?70:0)-Math.min(40,refs*5)+Math.min(15,emptyRunLength(id))):0;
   $("analyzerResult").innerHTML=`
-    <div class="card ${verdict[1]==="green"?"empty":verdict[1]==="red"?"used":"unknown"}">
-      <h3>${verdict[0]} · ID #${id}</h3>
-      <div class="note">${verdict[2]}</div>
-      <div class="analysis-grid">
-        <div class="metric"><b>Primary Record</b><span class="hex">0x${off.toString(16).toUpperCase()}</span><div class="small">0x118 bytes · ${x.kind}</div></div>
-        ${specialHtml}
-      </div>
-      <h3 style="margin-top:18px">Pointers / References</h3>
-      <div class="analysis-grid">${pointerHtml}</div>
-      <div class="note" style="margin-top:14px">
-        ⚠️ Analyzer นี้เป็น Read Only และใช้ heuristic/reference scan เท่านั้น
-        ยังไม่มีการเขียน graphics, pointer หรือ ROM
-      </div>
-    </div>`;
-  $("analyzerPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  <div class="card ${!x.empty?"used":handler||refs?"review":"empty"}">
+    <h3>ผลวิเคราะห์ #${id}</h3>
+    <div class="analysis-grid">
+      <div class="metric"><b>Primary Record</b>${x.empty?'<span class="pill pill-green">EMPTY</span>':'<span class="pill pill-red">USED</span>'}</div>
+      <div class="metric"><b>Special Handler</b>${handler?'<span class="pill pill-yellow">FOUND</span>':'<span class="pill pill-green">NONE KNOWN</span>'}</div>
+      <div class="metric"><b>Direct Pointer References</b>${refs}</div>
+      <div class="metric"><b>Empty Run</b>${x.empty?emptyRunLength(id):0}</div>
+      <div class="metric"><b>Candidate Score</b>${x.empty?score:"—"}</div>
+      <div class="metric"><b>Decision</b>${!x.empty?"DO NOT USE":handler||refs?"REVIEW":"PROMISING CANDIDATE"}</div>
+    </div>
+    <div class="candidate-actions">
+      <button onclick='document.getElementById("idSearch").value=${id};showDetail(${id});window.scrollTo({top:document.getElementById("detail").offsetTop-20,behavior:"smooth"})'>ดู Record</button>
+      <button disabled>CREATE POKÉMON — ขั้นถัดไป</button>
+    </div>
+  </div>`;
+  $("analyzerStatus").textContent=`วิเคราะห์ ID #${id} เสร็จแล้ว · Read Only`;
 }
-
 </script>
 </body>
 </html>
