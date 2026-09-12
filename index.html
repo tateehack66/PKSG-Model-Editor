@@ -93,6 +93,11 @@ body {
     box-shadow: 0 20px 60px rgba(255,40,100,.18);
 }
 
+.creator:hover {
+    border-color: #9b7cff;
+    box-shadow: 0 20px 60px rgba(130,90,255,.18);
+}
+
 .icon {
     font-size: 50px;
     margin-bottom: 20px;
@@ -127,12 +132,6 @@ body {
 
 .model .arrow {
     color: #ff648c;
-}
-
-/* POKÉMON CREATOR */
-.creator:hover {
-    border-color: #9b7cff;
-    box-shadow: 0 20px 60px rgba(130,90,255,.18);
 }
 
 .creator h2 {
@@ -203,6 +202,7 @@ body {
 
     <main class="options">
 
+        <!-- SAVE EDITOR -->
         <div class="option save" onclick="saveEditor()">
 
             <div class="icon">
@@ -224,6 +224,7 @@ body {
 
         </div>
 
+        <!-- MODEL EDITOR -->
         <div class="option model" onclick="modelEditor()">
 
             <div class="icon">
@@ -277,32 +278,20 @@ body {
 </div>
 
 <script>
-
 function saveEditor() {
-
     alert(
-        "SAVE EDITOR
-
-" +
+        "SAVE EDITOR\n\n" +
         "ส่วนนี้จะเชื่อมต่อกับ PKSG Save Editor ในอนาคต"
     );
-
 }
 
 function modelEditor() {
-
-    // เปิดหน้า Model Editor แยกจากหน้า Home
     window.location.href = "model-editor.html";
-
 }
 
 function pokemonCreator() {
-
-    // เปิดหน้า Pokémon Creator/Scanner แยกจากหน้า Home
     window.location.href = "pokemon-creator.html";
-
 }
-
 </script>
 
 </body>
