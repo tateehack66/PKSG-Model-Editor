@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PKSG Pokémon Creator v0.6.1</title>
+<title>PKSG Pokémon Creator v0.6.2</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#172d4a 0%,#07101d 45%,#03070d 100%);color:#fff;min-height:100vh}
@@ -54,7 +54,7 @@ button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color
 <header class="header">
 <div class="logo">PKSG</div>
 <div class="subtitle">Pokémon SoulGold · Pokémon Creator</div>
-<div class="version">POKÉMON CREATOR v0.6.1 · CREATOR WORKSPACE</div>
+<div class="version">POKÉMON CREATOR v0.6.2 · CREATOR WORKSPACE</div>
 </header>
 
 <button class="back" onclick="location.href='index.html'">← กลับหน้าแรก</button>
@@ -108,8 +108,8 @@ button{pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color
 <section class="panel">
 <h2>🚧 ขั้นต่อไปของ Creator</h2>
 <p class="note">
-v0.5 ยังไม่เขียน ROM<br>
-หลังจากยืนยัน Candidate แล้ว เราจะต่อด้วยหน้าสร้าง Pokémon ใหม่: Name / Type / Base Stats / Abilities / Moves / Form และเชื่อม Model Editor สำหรับ Front, Back, Overworld, Icon และ Palette<br>
+v0.6.2 ยังไม่เขียน ROM<br>
+หลังจากยืนยัน Candidate แล้ว ปุ่ม CREATE POKÉMON จะพาไปยัง Creator Workspace เพื่อกรอก Name / Type / Base Stats / Abilities / Moves / Form และเชื่อม Model Package จาก Model Editor<br>
 ขั้น Build ROM จะสร้างไฟล์ ROM ใหม่แยกจากต้นฉบับเท่านั้น
 </p>
 </section>
@@ -321,7 +321,7 @@ function analyzeId(){
     </div>
   <div class="candidate-actions">
       <button onclick='document.getElementById("idSearch").value=${id};showDetail(${id});window.scrollTo({top:document.getElementById("detail").offsetTop-20,behavior:"smooth"})'>ดู Record</button>
-      <button disabled>CREATE POKÉMON — ขั้นถัดไป</button>
+      <button type="button" class="create-next-btn" onclick="activateCreatorFromCandidate(${id})">CREATE POKÉMON — ขั้นถัดไป</button>
     </div>
   </div>`;
   $("analyzerStatus").textContent=`วิเคราะห์ ID #${id} เสร็จแล้ว · Read Only`;
@@ -329,7 +329,7 @@ function analyzeId(){
 </script>
 
 <section class="panel" id="creatorWorkspace" style="border-color:#ff3f72">
-  <h2>🧬 NEW POKÉMON CREATOR v0.6.1</h2>
+  <h2>🧬 NEW POKÉMON CREATOR v0.6.2</h2>
   <p class="note">
     Workspace สำหรับสร้าง Pokémon ใหม่โดยใช้ Candidate ID ที่ผ่านการสแกนแล้ว
     และรับ Model Package จาก Model Editor โดยตรง
@@ -442,7 +442,7 @@ function analyzeId(){
 </section>
 
 <script>
-/* ===== PKSG CREATOR v0.6.1 — interaction/structure fix ===== */
+/* ===== PKSG CREATOR v0.6.2 — candidate to creator flow ===== */
 (function(){
   "use strict";
   let importedModelPackage=null;
@@ -507,6 +507,24 @@ function analyzeId(){
       modelPackage:importedModelPackage?{format:importedModelPackage.format,version:importedModelPackage.version,model:importedModelPackage.model,target:importedModelPackage.target,assetKeys:Object.keys(importedModelPackage.assets||{})}:null
     };
   }
+
+  window.activateCreatorFromCandidate=function(id){
+    id=Number(id);
+    if(!Number.isInteger(id)||id<1||id>2000){alert('Candidate ID ไม่ถูกต้อง');return;}
+    if(typeof scanResults==='undefined'||!scanResults.has(id)){alert('กรุณาเลือก ROM และ SCAN ROM ก่อน');return;}
+    const x=scanResults.get(id);
+    const hs=handlerSet();
+    const refs=(typeof candidateRefs!=='undefined'&&candidateRefs)?(candidateRefs.get(id)||0):0;
+    if(!x.empty){alert('ID #'+id+' ไม่ว่างใน Primary Record — ห้ามใช้');return;}
+    if(hs.has(id)||refs>0){alert('ID #'+id+' ยังต้อง REVIEW\nSpecial Handler: '+(hs.has(id)?'FOUND':'NONE KNOWN')+'\nDirect Pointer Refs: '+refs);return;}
+    const input=ce('creatorId');
+    if(input) input.value=id;
+    const status=ce('creatorValidation');
+    if(status) status.innerHTML='<span class="good">🟢 เลือก Candidate #'+id+' แล้ว · พร้อมกรอกข้อมูล Pokémon</span><br>ยังเป็น Project Only และยังไม่เขียน ROM';
+    const target=ce('creatorWorkspace');
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    setTimeout(()=>{ if(input){input.focus({preventScroll:true});} },500);
+  };
 
   function validateCreator(){
     const out=ce('creatorValidation'); const id=num('creatorId'); const name=text('creatorName');
