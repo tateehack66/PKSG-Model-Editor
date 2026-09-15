@@ -46,16 +46,35 @@ jobs:
           UNUSED_ERROR: 0
           DEPRECATED_ERROR: 0
         run: |
+          set -o pipefail
           echo 'Building with 2 parallel jobs to reduce runner memory pressure.'
-          make -j2 all
+          make -j2 all 2>&1 | tee ../build.log
+
+      - name: Show build failure tail
+        if: failure()
+        run: |
+          echo '===== LAST 250 LINES OF BUILD LOG ====='
+          tail -n 250 build.log || true
+          echo '===== ERROR MATCHES ====='
+          grep -nEi 'error:|fatal:|undefined reference|no rule to make target|make(\[[0-9]+\])?: \*\*\*' build.log | tail -n 100 || true
+
+      - name: Upload failure log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-build-log
+          path: build.log
+          if-no-files-found: warn
 
       - name: Collect ROM
+        if: success()
         run: |
           mkdir -p artifact
           find build-src -maxdepth 2 -type f \( -name '*.gba' -o -name '*.elf' -o -name '*.map' \) -exec cp {} artifact/ \;
           test -n "$(find artifact -name '*.gba' -print -quit)" || { echo 'No GBA ROM was produced.'; exit 1; }
 
       - name: Upload build artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: SoulGold-Rias-DEMON-build
