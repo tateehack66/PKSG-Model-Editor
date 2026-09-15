@@ -1,0 +1,58 @@
+name: SoulGold Rias GBA Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - soulgold-rias-build
+    paths:
+      - 'soulgold-rias-demon-source-v2.zip'
+      - '.github/workflows/soulgold-rias-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Check source archive
+        run: |
+          test -f soulgold-rias-demon-source-v2.zip || { echo 'Upload soulgold-rias-demon-source-v2.zip to this branch first.'; exit 1; }
+
+      - name: Install ARM GBA toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential binutils-arm-none-eabi gcc-arm-none-eabi libnewlib-arm-none-eabi libpng-dev python3
+
+      - name: Extract source
+        run: |
+          rm -rf build-src
+          mkdir build-src
+          unzip -q soulgold-rias-demon-source-v2.zip -d build-src
+
+      - name: Build ROM
+        working-directory: build-src/soulgold-master
+        env:
+          GAME_VERSION: EMERALD
+          GAME_REVISION: 0
+          GAME_LANGUAGE: ENGLISH
+          COMPARE: 0
+          UNUSED_ERROR: 0
+          DEPRECATED_ERROR: 0
+        run: |
+          touch .histignore
+          make -j$(nproc) -O all
+
+      - name: Collect ROM
+        run: |
+          mkdir -p artifact
+          find build-src/soulgold-master -maxdepth 2 -type f \( -name '*.gba' -o -name '*.elf' -o -name '*.map' \) -exec cp {} artifact/ \;
+          test -n "$(find artifact -name '*.gba' -print -quit)" || { echo 'No GBA ROM was produced.'; exit 1; }
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-DEMON-build
+          path: artifact/
+          if-no-files-found: error
