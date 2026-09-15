@@ -12,6 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout PKSG build branch
         uses: actions/checkout@v4
@@ -44,7 +45,9 @@ jobs:
           COMPARE: 0
           UNUSED_ERROR: 0
           DEPRECATED_ERROR: 0
-        run: make -j$(nproc) -O all
+        run: |
+          echo 'Building with 2 parallel jobs to reduce runner memory pressure.'
+          make -j2 all
 
       - name: Collect ROM
         run: |
