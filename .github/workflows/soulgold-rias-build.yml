@@ -36,6 +36,31 @@ jobs:
       - name: Apply Rias / DEMON patch
         run: unzip -o -q soulgold-rias-patch-v2.zip -d build-src
 
+      - name: Build project tools first
+        working-directory: build-src
+        run: |
+          set -o pipefail
+          echo 'Building native SoulGold asset/preprocessor tools first.'
+          make -f make_tools.mk -j2 2>&1 | tee ../tools-build.log
+
+      - name: Verify required build tools
+        working-directory: build-src
+        run: |
+          echo 'Checking host tools used by this source tree.'
+          missing=0
+          for tool in tools/preproc/preproc tools/gbagfx/gbagfx tools/png_dimensions/png_dimensions tools/gfx/gfx; do
+            if [ -e "$tool" ]; then
+              echo "FOUND: $tool"
+            else
+              echo "NOT PRESENT (may not be used by this source revision): $tool"
+            fi
+          done
+          test -x tools/preproc/preproc || missing=1
+          if [ "$missing" -ne 0 ]; then
+            echo 'Required preproc tool was not built.'
+            exit 1
+          fi
+
       - name: Build ROM
         working-directory: build-src
         env:
@@ -53,17 +78,21 @@ jobs:
       - name: Show build failure tail
         if: failure()
         run: |
-          echo '===== LAST 250 LINES OF BUILD LOG ====='
-          tail -n 250 build.log || true
+          echo '===== TOOLS BUILD LOG (LAST 150 LINES) ====='
+          tail -n 150 tools-build.log 2>/dev/null || true
+          echo '===== ROM BUILD LOG (LAST 250 LINES) ====='
+          tail -n 250 build.log 2>/dev/null || true
           echo '===== ERROR MATCHES ====='
-          grep -nEi 'error:|fatal:|undefined reference|no rule to make target|make(\[[0-9]+\])?: \*\*\*' build.log | tail -n 100 || true
+          grep -nEi 'error:|fatal:|not found|undefined reference|no rule to make target|make(\[[0-9]+\])?: \*\*\*' tools-build.log build.log 2>/dev/null | tail -n 150 || true
 
-      - name: Upload failure log
+      - name: Upload failure logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: SoulGold-Rias-build-log
-          path: build.log
+          path: |
+            tools-build.log
+            build.log
           if-no-files-found: warn
 
       - name: Collect ROM
