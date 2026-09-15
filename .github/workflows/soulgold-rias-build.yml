@@ -36,6 +36,17 @@ jobs:
       - name: Apply Rias / DEMON patch
         run: unzip -o -q soulgold-rias-patch-v2.zip -d build-src
 
+      - name: Repair Route 2 item flag
+        working-directory: build-src
+        run: |
+          set -e
+          FLAGS=include/constants/flags.h
+          if ! grep -q '^#define FLAG_ITEM_ROUTE2_NUGGET' "$FLAGS"; then
+            echo 'Restoring FLAG_ITEM_ROUTE2_NUGGET removed by the patch.'
+            sed -i '/^#define FLAG_ITEM_ROUTE2_CARBOS/a #define FLAG_ITEM_ROUTE2_NUGGET                                     0x46D' "$FLAGS"
+          fi
+          grep -n 'FLAG_ITEM_ROUTE2_\(CARBOS\|NUGGET\)' "$FLAGS"
+
       - name: Build project tools first
         working-directory: build-src
         run: |
