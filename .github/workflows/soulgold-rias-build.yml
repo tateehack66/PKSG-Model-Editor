@@ -89,12 +89,36 @@ jobs:
               s=re.sub(r'(\[TYPE_DEMON\]\s*=\s*)sSpriteAnim_TypeIcon_Mystery,',r'\1sSpriteAnim_TypeIcon_Demon,',s)
           write(p,s)
 
-          # Define Rias follower graphics.
+          # Define Rias follower graphics. P_FOOTPRINTS is FALSE in this fork, so
+          # the OW block MUST be inserted after the footprint guard. Run #17 put it
+          # directly after the footprint definition, which nested it inside
+          # #if P_FOOTPRINTS and compiled all three definitions out.
           p=Path('src/data/graphics/pokemon.h'); s=p.read_text()
           needle='const u8 gMonFootprint_RiasGremory[] = INCBIN_U8("graphics/pokemon/rias/footprint.1bpp");'
           if 'gObjectEventPic_RiasGremory' not in s:
               if needle not in s: raise RuntimeError('Rias graphics marker not found')
-              s=s.replace(needle,needle+'\n#if OW_POKEMON_OBJECT_EVENTS\nconst u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP("graphics/pokemon/rias/overworld.4bpp");\n#if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE\nconst u16 gOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_normal.gbapal");\nconst u16 gShinyOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_shiny.gbapal");\n#endif\n#endif')
+              needle_pos=s.find(needle)
+              footprint_end=s.find('#endif //P_FOOTPRINTS', needle_pos)
+              if footprint_end < 0: raise RuntimeError('Rias footprint guard end not found')
+              insert_at=s.find('\n', footprint_end)
+              if insert_at < 0: insert_at=len(s)
+              else: insert_at += 1
+              ow_block=(
+                  '#if OW_POKEMON_OBJECT_EVENTS\n'
+                  'const u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP("graphics/pokemon/rias/overworld.4bpp");\n'
+                  '#if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE\n'
+                  'const u16 gOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_normal.gbapal");\n'
+                  'const u16 gShinyOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_shiny.gbapal");\n'
+                  '#endif //OW_PKMN_OBJECTS_SHARE_PALETTES\n'
+                  '#endif //OW_POKEMON_OBJECT_EVENTS\n'
+              )
+              s=s[:insert_at]+ow_block+s[insert_at:]
+          # Guard against accidentally nesting the OW definitions under P_FOOTPRINTS again.
+          ow_pos=s.find('const u32 gObjectEventPic_RiasGremory[]')
+          needle_pos=s.find(needle)
+          footprint_end=s.find('#endif //P_FOOTPRINTS', needle_pos)
+          if not (needle_pos >= 0 and footprint_end >= 0 and footprint_end < ow_pos):
+              raise RuntimeError('Rias OW graphics are still inside the disabled P_FOOTPRINTS guard')
           write(p,s)
 
           # Build #16 failed because the follower table/species table referenced the
@@ -133,6 +157,7 @@ jobs:
               'src/pokemon_summary_screen.c':['sSpriteAnim_TypeDemon','[TYPE_DEMON]'],
               'src/data/swsh_party_menu.h':['sSpriteAnim_TypeDemon','[TYPE_DEMON]'],
               'src/type_icons.c':['sSpriteAnim_TypeIcon_Demon','[TYPE_DEMON]'],
+              'src/data/graphics/pokemon.h':['const u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP','const u16 gOverworldPalette_RiasGremory[] = INCBIN_U16','const u16 gShinyOverworldPalette_RiasGremory[] = INCBIN_U16'],
               'src/data/object_events/object_event_pic_tables_followers.h':['extern const u32 gObjectEventPic_RiasGremory[];','sPicTable_RiasGremory'],
               'src/data/pokemon/species_info.h':['extern const u16 gOverworldPalette_RiasGremory[];','sPicTable_RiasGremory','gOverworldPalette_RiasGremory'],
           }
@@ -155,6 +180,132 @@ jobs:
         run: |
           set -o pipefail
           make -j2 all 2>&1 | tee ../build.log
+
+      - name: Validate Rias linked symbols
+        if: success()
+        working-directory: build-src
+        run: |
+          arm-none-eabi-nm Soulgold.elf | grep -Eq ' [RrDd] gObjectEventPic_RiasGremory        working-directory: build-src
+        run: |
+          ROM="$(find . -maxdepth 2 -type f -name '*.gba' -print -quit)"
+          test -n "$ROM"
+          SIZE=$(stat -c%s "$ROM")
+          echo "ROM=$ROM size=$SIZE"
+          test "$SIZE" -le 33554432
+          test "$SIZE" -gt 1000000
+
+      - name: Collect diagnostics
+        if: always()
+        run: |
+          mkdir -p diagnostics
+          cp build.log diagnostics/build.log 2>/dev/null || true
+          cp build-src/Soulgold.map diagnostics/Soulgold.map 2>/dev/null || true
+          cp build-src/Soulgold.elf diagnostics/Soulgold.elf 2>/dev/null || true
+          printf 'commit=%s\n' "$GITHUB_SHA" > diagnostics/build-info.txt
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-Build8-diagnostics
+          path: diagnostics/
+          retention-days: 7
+
+      - name: Collect ROM
+        if: success()
+        run: |
+          mkdir -p artifact
+          find build-src -maxdepth 2 -type f \( -name '*.gba' -o -name '*.elf' -o -name '*.map' \) -exec cp {} artifact/ \;
+          test -n "$(find artifact -name '*.gba' -print -quit)"
+
+      - name: Upload ROM
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-Build8-source-test
+          path: artifact/
+
+          arm-none-eabi-nm Soulgold.elf | grep -Eq ' [RrDd] gOverworldPalette_RiasGremory        working-directory: build-src
+        run: |
+          ROM="$(find . -maxdepth 2 -type f -name '*.gba' -print -quit)"
+          test -n "$ROM"
+          SIZE=$(stat -c%s "$ROM")
+          echo "ROM=$ROM size=$SIZE"
+          test "$SIZE" -le 33554432
+          test "$SIZE" -gt 1000000
+
+      - name: Collect diagnostics
+        if: always()
+        run: |
+          mkdir -p diagnostics
+          cp build.log diagnostics/build.log 2>/dev/null || true
+          cp build-src/Soulgold.map diagnostics/Soulgold.map 2>/dev/null || true
+          cp build-src/Soulgold.elf diagnostics/Soulgold.elf 2>/dev/null || true
+          printf 'commit=%s\n' "$GITHUB_SHA" > diagnostics/build-info.txt
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-Build8-diagnostics
+          path: diagnostics/
+          retention-days: 7
+
+      - name: Collect ROM
+        if: success()
+        run: |
+          mkdir -p artifact
+          find build-src -maxdepth 2 -type f \( -name '*.gba' -o -name '*.elf' -o -name '*.map' \) -exec cp {} artifact/ \;
+          test -n "$(find artifact -name '*.gba' -print -quit)"
+
+      - name: Upload ROM
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-Build8-source-test
+          path: artifact/
+
+          arm-none-eabi-nm Soulgold.elf | grep -Eq ' [RrDd] gShinyOverworldPalette_RiasGremory        working-directory: build-src
+        run: |
+          ROM="$(find . -maxdepth 2 -type f -name '*.gba' -print -quit)"
+          test -n "$ROM"
+          SIZE=$(stat -c%s "$ROM")
+          echo "ROM=$ROM size=$SIZE"
+          test "$SIZE" -le 33554432
+          test "$SIZE" -gt 1000000
+
+      - name: Collect diagnostics
+        if: always()
+        run: |
+          mkdir -p diagnostics
+          cp build.log diagnostics/build.log 2>/dev/null || true
+          cp build-src/Soulgold.map diagnostics/Soulgold.map 2>/dev/null || true
+          cp build-src/Soulgold.elf diagnostics/Soulgold.elf 2>/dev/null || true
+          printf 'commit=%s\n' "$GITHUB_SHA" > diagnostics/build-info.txt
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-Build8-diagnostics
+          path: diagnostics/
+          retention-days: 7
+
+      - name: Collect ROM
+        if: success()
+        run: |
+          mkdir -p artifact
+          find build-src -maxdepth 2 -type f \( -name '*.gba' -o -name '*.elf' -o -name '*.map' \) -exec cp {} artifact/ \;
+          test -n "$(find artifact -name '*.gba' -print -quit)"
+
+      - name: Upload ROM
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-Build8-source-test
+          path: artifact/
+
+          echo "Rias follower graphics are linked into Soulgold.elf"
 
       - name: Validate ROM output
         if: success()
