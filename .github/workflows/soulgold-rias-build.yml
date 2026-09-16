@@ -15,7 +15,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-
       - name: Install toolchain
         run: |
           sudo apt-get update
@@ -29,10 +28,11 @@ jobs:
           cp build8-assets/front.png build-src/graphics/pokemon/rias/front.png
           cp build8-assets/back.png build-src/graphics/pokemon/rias/back.png
           cp build8-assets/icon.png build-src/graphics/pokemon/rias/icon.png
+          cp build8-assets/overworld.png build-src/graphics/pokemon/rias/overworld.png
           cp build8-assets/demon.png build-src/graphics/types/demon.png
           base64 -d build8-assets/swsh_move_types.png.b64 > build-src/graphics/party_menu/swsh/move_types.png
 
-      - name: Wire and validate Build 8 core
+      - name: Wire and validate Build 8
         working-directory: build-src
         run: |
           python3 - <<'PY'
@@ -42,8 +42,6 @@ jobs:
           def write(path, text):
               Path(path).write_text(text)
 
-          # Keep the Rias gift flag away from the Route 2 item flag. This prevents
-          # receiving Rias from accidentally consuming or colliding with that item.
           p=Path('include/constants/flags.h'); s=p.read_text()
           if '#define FLAG_ITEM_ROUTE2_NUGGET' not in s:
               marker='#define FLAG_ITEM_ROUTE2_CARBOS'
@@ -53,14 +51,12 @@ jobs:
                       '#define FLAG_RECEIVED_RIAS_GREMORY                                  0x297 // Custom: persistent Rias gift flag')
           write(p,s)
 
-          # gbagfx uses math functions on the current Ubuntu runner.
           p=Path('tools/gbagfx/Makefile'); s=p.read_text()
           if 'LIBS = -lpng -lz -lm' not in s:
               if 'LIBS = -lpng -lz' not in s: raise RuntimeError('gbagfx LIBS marker missing')
               s=s.replace('LIBS = -lpng -lz','LIBS = -lpng -lz -lm',1)
           write(p,s)
 
-          # Generate the new DEMON type asset alongside the stock type graphics.
           p=Path('graphics_file_rules.mk'); s=p.read_text(); lines=s.splitlines()
           for i,line in enumerate(lines):
               if line.startswith('types :='):
@@ -69,8 +65,6 @@ jobs:
           else: raise RuntimeError('types graphics rule missing')
           write(p,'\n'.join(lines)+'\n')
 
-          # Summary and SWSH party menu must index TYPE_DEMON's own frame rather
-          # than aliasing TYPE_DARK. This is the DRK->DEMON UI fix.
           for fn,mul in [('src/pokemon_summary_screen.c',8),('src/data/swsh_party_menu.h',4)]:
               p=Path(fn); s=p.read_text()
               anim='static const union AnimCmd sSpriteAnim_TypeDemon[] = {\n    ANIMCMD_FRAME(TYPE_DEMON * %d, 0, FALSE, FALSE),\n    ANIMCMD_END,\n};\n\n' % mul
@@ -81,10 +75,6 @@ jobs:
               s=re.sub(r'(\[TYPE_DEMON\]\s*=\s*)sSpriteAnim_TypeDark,', r'\1sSpriteAnim_TypeDemon,', s)
               write(p,s)
 
-          # Battle type-icon code has a fixed stock sheet. Keep a safe temporary
-          # fallback frame here so the core build can link; summary/party use the
-          # real DEMON artwork above. A dedicated battle-sheet frame can be added
-          # only after the core ROM is proven stable.
           p=Path('src/type_icons.c'); s=p.read_text()
           if 'sSpriteAnim_TypeIcon_Demon[]' not in s:
               marker='const union AnimCmd sSpriteAnim_TypeIcon_Fairy[] =\n{\n    ANIMCMD_FRAME(TYPE_ICON_2_FRAME(TYPE_FAIRY), 0),\n    ANIMCMD_END\n};\n'
@@ -99,31 +89,59 @@ jobs:
               s=re.sub(r'(\[TYPE_DEMON\]\s*=\s*)sSpriteAnim_TypeIcon_Mystery,',r'\1sSpriteAnim_TypeIcon_Demon,',s)
           write(p,s)
 
-          # Build #16/#17 failed in optional follower wiring, not in the Rias core.
-          # Remove any follower declarations/definitions injected by earlier attempts
-          # so Build 8 can first prove species/type/moves/battle sprites/gift stable.
+          # Define Rias follower graphics at top level. The Rias patch's footprint
+          # declaration is not guaranteed to sit in the stock P_FOOTPRINTS guard, so
+          # append the OW definitions after the fully-balanced graphics header instead
+          # of inserting relative to the footprint line.
           p=Path('src/data/graphics/pokemon.h'); s=p.read_text()
-          s=re.sub(r'\n#if OW_POKEMON_OBJECT_EVENTS\nconst u32 gObjectEventPic_RiasGremory\[\].*?#endif //OW_POKEMON_OBJECT_EVENTS\n?', '\n', s, flags=re.S)
+          needle='const u8 gMonFootprint_RiasGremory[] = INCBIN_U8("graphics/pokemon/rias/footprint.1bpp");'
+          if needle not in s: raise RuntimeError('Rias graphics marker not found')
+          if 'const u32 gObjectEventPic_RiasGremory[] =' not in s:
+              if not s.endswith('\n'): s += '\n'
+              s += (
+                  '\n#if OW_POKEMON_OBJECT_EVENTS\n'
+                  'const u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP("graphics/pokemon/rias/overworld.4bpp");\n'
+                  '#if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE\n'
+                  'const u16 gOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_normal.gbapal");\n'
+                  'const u16 gShinyOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_shiny.gbapal");\n'
+                  '#endif //OW_PKMN_OBJECTS_SHARE_PALETTES\n'
+                  '#endif //OW_POKEMON_OBJECT_EVENTS\n'
+              )
+          if s.count('const u32 gObjectEventPic_RiasGremory[] =') != 1:
+              raise RuntimeError('Rias OW graphic definition count is not exactly one')
+          if s.count('const u16 gOverworldPalette_RiasGremory[] =') != 1:
+              raise RuntimeError('Rias normal OW palette definition count is not exactly one')
+          if s.count('const u16 gShinyOverworldPalette_RiasGremory[] =') != 1:
+              raise RuntimeError('Rias shiny OW palette definition count is not exactly one')
           write(p,s)
 
+          # Build #16 failed because the follower table/species table referenced the
+          # Rias graphics before the compiler had declarations for those symbols.
+          # Add extern declarations at each use site; definitions remain in pokemon.h.
+          externs='extern const u32 gObjectEventPic_RiasGremory[];\nextern const u16 gOverworldPalette_RiasGremory[];\nextern const u16 gShinyOverworldPalette_RiasGremory[];\n\n'
+
           p=Path('src/data/object_events/object_event_pic_tables_followers.h'); s=p.read_text()
-          s=s.replace('extern const u32 gObjectEventPic_RiasGremory[];\n','')
-          s=s.replace('extern const u16 gOverworldPalette_RiasGremory[];\n','')
-          s=s.replace('extern const u16 gShinyOverworldPalette_RiasGremory[];\n','')
-          s=re.sub(r'\n*static const struct SpriteFrameImage sPicTable_RiasGremory\[\] = \{.*?\};\n?', '\n', s, flags=re.S)
+          if 'extern const u32 gObjectEventPic_RiasGremory[];' not in s:
+              s=externs+s
+          if 'sPicTable_RiasGremory' not in s:
+              s += '\nstatic const struct SpriteFrameImage sPicTable_RiasGremory[] = {\n    overworld_ascending_frames(gObjectEventPic_RiasGremory, 4, 4),\n};\n'
           write(p,s)
 
           p=Path('src/data/pokemon/species_info.h'); s=p.read_text()
-          s=s.replace('extern const u32 gObjectEventPic_RiasGremory[];\n','')
-          s=s.replace('extern const u16 gOverworldPalette_RiasGremory[];\n','')
-          s=s.replace('extern const u16 gShinyOverworldPalette_RiasGremory[];\n','')
-          start=s.find('[SPECIES_RIAS_GREMORY]')
-          if start < 0: raise RuntimeError('Rias species entry not found')
-          end=s.find('\n    },', start)
-          if end < 0: raise RuntimeError('Rias species entry end not found')
-          block=s[start:end]
-          block=re.sub(r'\n\s*OVERWORLD\(.*?\n\s*\)\n?', '\n', block, flags=re.S)
-          s=s[:start]+block+s[end:]
+          if 'extern const u16 gOverworldPalette_RiasGremory[];' not in s:
+              s=externs+s
+          if 'sPicTable_RiasGremory,' not in s:
+              start=s.find('[SPECIES_RIAS_GREMORY]')
+              if start < 0: raise RuntimeError('Rias species entry not found')
+              end=s.find('\n    },', start)
+              if end < 0: raise RuntimeError('Rias species entry end not found')
+              block=s[start:end]
+              insert='        OVERWORLD(\n            sPicTable_RiasGremory,\n            SIZE_32x32,\n            SHADOW_SIZE_M,\n            TRACKS_FOOT,\n            sAnimTable_Following,\n            gOverworldPalette_RiasGremory,\n            gShinyOverworldPalette_RiasGremory\n        )\n'
+              fp=block.find('        FOOTPRINT(')
+              if fp >= 0:
+                  nl=block.find('\n',fp); block=block[:nl+1]+insert+block[nl+1:]
+              else: block += '\n'+insert
+              s=s[:start]+block+s[end:]
           write(p,s)
 
           checks={
@@ -133,17 +151,17 @@ jobs:
               'src/pokemon_summary_screen.c':['sSpriteAnim_TypeDemon','[TYPE_DEMON]'],
               'src/data/swsh_party_menu.h':['sSpriteAnim_TypeDemon','[TYPE_DEMON]'],
               'src/type_icons.c':['sSpriteAnim_TypeIcon_Demon','[TYPE_DEMON]'],
-              'src/data/pokemon/species_info.h':['[SPECIES_RIAS_GREMORY]'],
+              'src/data/graphics/pokemon.h':['const u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP','const u16 gOverworldPalette_RiasGremory[] = INCBIN_U16','const u16 gShinyOverworldPalette_RiasGremory[] = INCBIN_U16'],
+              'src/data/object_events/object_event_pic_tables_followers.h':['extern const u32 gObjectEventPic_RiasGremory[];','sPicTable_RiasGremory'],
+              'src/data/pokemon/species_info.h':['extern const u16 gOverworldPalette_RiasGremory[];','sPicTable_RiasGremory','gOverworldPalette_RiasGremory'],
           }
           for fn,needles in checks.items():
               text=Path(fn).read_text()
               for n in needles:
                   if n not in text: raise RuntimeError(f'validation failed: {fn}: {n}')
-          if 'sPicTable_RiasGremory' in Path('src/data/pokemon/species_info.h').read_text():
-              raise RuntimeError('stale Rias follower reference remains in species_info.h')
           if Path('graphics/party_menu/swsh/move_types.png').stat().st_size < 100:
               raise RuntimeError('SWSH DEMON type sheet is invalid')
-          print('Build 8 core source validation passed; follower intentionally deferred')
+          print('Build 8 source validation passed')
           PY
 
       - name: Build tools
@@ -157,13 +175,14 @@ jobs:
           set -o pipefail
           make -j2 all 2>&1 | tee ../build.log
 
-      - name: Validate Rias core linked symbols
+      - name: Validate Rias linked symbols
         if: success()
         working-directory: build-src
         run: |
-          grep -F 'RiasGremory' Soulgold.map | head -20 || true
-          grep -F 'TYPE_DEMON' ../build.log >/dev/null 2>&1 || true
-          echo "Rias core link validation complete"
+          arm-none-eabi-nm Soulgold.elf | grep -F 'gObjectEventPic_RiasGremory'
+          arm-none-eabi-nm Soulgold.elf | grep -F 'gOverworldPalette_RiasGremory'
+          arm-none-eabi-nm Soulgold.elf | grep -F 'gShinyOverworldPalette_RiasGremory'
+          echo "Rias follower graphics are linked into Soulgold.elf"
 
       - name: Validate ROM output
         if: success()
@@ -175,7 +194,6 @@ jobs:
           echo "ROM=$ROM size=$SIZE"
           test "$SIZE" -le 33554432
           test "$SIZE" -gt 1000000
-          sha256sum "$ROM"
           sha256sum "$ROM"
 
       - name: Collect diagnostics
