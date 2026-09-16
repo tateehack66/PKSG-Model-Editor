@@ -1,0 +1,64 @@
+name: SoulGold Rias Build8 Run21 Recovery
+
+on:
+  push:
+    branches: [soulgold-rias-build]
+    paths:
+      - '.github/workflows/soulgold-rias-run21-recovery.yml'
+  workflow_dispatch:
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ARM binutils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends binutils-arm-none-eabi unzip
+
+      - name: Download successful Run 21 diagnostics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          gh run download 35119902867 --repo "${{ github.repository }}" --name SoulGold-Rias-Build8-diagnostics --dir run21
+          test -f run21/Soulgold.elf
+          arm-none-eabi-readelf -h run21/Soulgold.elf >/dev/null
+
+      - name: Recover ROM from linked ELF
+        run: |
+          set -euxo pipefail
+          arm-none-eabi-objcopy -O binary run21/Soulgold.elf SoulGold_Rias_DEMON_Build8_RUN21.gba
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('SoulGold_Rias_DEMON_Build8_RUN21.gba')
+          data=p.read_bytes()
+          raw=len(data)
+          if not (1_000_000 < raw <= 33_554_432):
+              raise SystemExit(f'invalid raw ROM size {raw}')
+          # Match gbafix -p behavior without depending on the source-tree host tool.
+          target=1 << (raw-1).bit_length()
+          if target > 33_554_432:
+              raise SystemExit(f'padding would exceed GBA 32 MiB limit: {target}')
+          if raw < target:
+              p.write_bytes(data + b'\xff'*(target-raw))
+          print(f'raw={raw} padded={p.stat().st_size}')
+          PY
+          test "$(stat -c%s SoulGold_Rias_DEMON_Build8_RUN21.gba)" -le 33554432
+          sha256sum SoulGold_Rias_DEMON_Build8_RUN21.gba | tee rom-sha256.txt
+
+      - name: Verify Rias linked symbols
+        run: |
+          set -euxo pipefail
+          arm-none-eabi-nm run21/Soulgold.elf | grep -F 'gObjectEventPic_RiasGremory'
+          arm-none-eabi-nm run21/Soulgold.elf | grep -F 'gOverworldPalette_RiasGremory'
+          arm-none-eabi-nm run21/Soulgold.elf | grep -F 'gShinyOverworldPalette_RiasGremory'
+
+      - name: Upload recovered ROM
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoulGold-Rias-Build8-Run21-recovered
+          path: |
+            SoulGold_Rias_DEMON_Build8_RUN21.gba
+            rom-sha256.txt
+          if-no-files-found: error
