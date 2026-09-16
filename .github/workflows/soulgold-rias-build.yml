@@ -48,7 +48,14 @@ jobs:
               if marker not in s: raise RuntimeError('Route 2 flag marker missing')
               s=s.replace(marker, '#define FLAG_ITEM_ROUTE2_NUGGET                                     0x46D\n'+marker, 1)
           s=s.replace('#define FLAG_RECEIVED_RIAS_GREMORY                                  0x46D // Custom: early-game Rias gift',
-                      '#define FLAG_RECEIVED_RIAS_GREMORY                                  0x297 // Custom: persistent Rias gift flag')
+                      '#define FLAG_RECEIVED_RIAS_GREMORY                                  0x103E // Custom: persistent Rias gift flag')
+          # 0x297-0x299 are actively used by the Battle Frontier Wonder Trade scripts
+          # despite stale "Unused Flag" comments. Use free custom slot 0x103E instead;
+          # it sits inside the existing CUSTOM_FLAGS_START..END allocation (ending 0x1041).
+          if '#define FLAG_WONDERTRADE1  0x297' not in s:
+              raise RuntimeError('Wonder Trade flag layout changed; re-audit Rias flag allocation')
+          if '#define FLAG_RECEIVED_RIAS_GREMORY                                  0x103E' not in s:
+              raise RuntimeError('Rias gift flag was not moved to free custom slot 0x103E')
           write(p,s)
 
           p=Path('tools/gbagfx/Makefile'); s=p.read_text()
@@ -145,7 +152,7 @@ jobs:
           write(p,s)
 
           checks={
-              'include/constants/flags.h':['FLAG_ITEM_ROUTE2_NUGGET','FLAG_RECEIVED_RIAS_GREMORY                                  0x297'],
+              'include/constants/flags.h':['FLAG_ITEM_ROUTE2_NUGGET','FLAG_RECEIVED_RIAS_GREMORY                                  0x103E'],
               'tools/gbagfx/Makefile':['LIBS = -lpng -lz -lm'],
               'graphics_file_rules.mk':[' stellar demon'],
               'src/pokemon_summary_screen.c':['sSpriteAnim_TypeDemon','[TYPE_DEMON]'],
