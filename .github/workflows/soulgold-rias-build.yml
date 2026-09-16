@@ -44,19 +44,33 @@ jobs:
               anim='static const union AnimCmd sSpriteAnim_TypeDemon[] = {\n    ANIMCMD_FRAME(TYPE_DEMON * %d, 0, FALSE, FALSE),\n    ANIMCMD_END,\n};\n\n' % mul
               if 'sSpriteAnim_TypeDemon[]' not in s:
                   pos=s.find('static const union AnimCmd *const')
+                  if pos < 0: raise RuntimeError(f'animation table marker not found in {fn}')
                   s=s[:pos]+anim+s[pos:]
               s=s.replace(old,old.replace('sSpriteAnim_TypeDark','sSpriteAnim_TypeDemon'))
               p.write_text(s)
           p=Path('src/data/graphics/pokemon.h'); s=p.read_text(); needle='const u8 gMonFootprint_RiasGremory[] = INCBIN_U8("graphics/pokemon/rias/footprint.1bpp");'
           if 'gObjectEventPic_RiasGremory' not in s:
+              if needle not in s: raise RuntimeError('Rias graphics marker not found')
               s=s.replace(needle,needle+'\n#if OW_POKEMON_OBJECT_EVENTS\nconst u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP("graphics/pokemon/rias/overworld.4bpp");\n#if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE\nconst u16 gOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_normal.gbapal");\nconst u16 gShinyOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_shiny.gbapal");\n#endif\n#endif')
           p.write_text(s)
           p=Path('src/data/object_events/object_event_pic_tables_followers.h'); s=p.read_text()
           if 'sPicTable_RiasGremory' not in s: s += '\nstatic const struct SpriteFrameImage sPicTable_RiasGremory[] = {\n    overworld_ascending_frames(gObjectEventPic_RiasGremory, 4, 4),\n};\n'
           p.write_text(s)
-          p=Path('src/data/pokemon/species_info.h'); s=p.read_text(); needle='        FOOTPRINT(RiasGremory)\n'
+          p=Path('src/data/pokemon/species_info.h'); s=p.read_text()
           if 'sPicTable_RiasGremory,' not in s:
-              s=s.replace(needle,needle+'        OVERWORLD(\n            sPicTable_RiasGremory,\n            SIZE_32x32,\n            SHADOW_SIZE_M,\n            TRACKS_FOOT,\n            sAnimTable_Following,\n            gOverworldPalette_RiasGremory,\n            gShinyOverworldPalette_RiasGremory\n        )\n')
+              start=s.find('[SPECIES_RIAS_GREMORY]')
+              if start < 0: raise RuntimeError('Rias species entry not found')
+              end=s.find('\n    },', start)
+              if end < 0: raise RuntimeError('Rias species entry end not found')
+              block=s[start:end]
+              insert='        OVERWORLD(\n            sPicTable_RiasGremory,\n            SIZE_32x32,\n            SHADOW_SIZE_M,\n            TRACKS_FOOT,\n            sAnimTable_Following,\n            gOverworldPalette_RiasGremory,\n            gShinyOverworldPalette_RiasGremory\n        )\n'
+              fp=block.find('        FOOTPRINT(')
+              if fp >= 0:
+                  nl=block.find('\n',fp)
+                  block=block[:nl+1]+insert+block[nl+1:]
+              else:
+                  block += '\n'+insert
+              s=s[:start]+block+s[end:]
           p.write_text(s)
           PY
       - name: Build tools
