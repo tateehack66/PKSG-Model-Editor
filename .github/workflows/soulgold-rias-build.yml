@@ -75,13 +75,13 @@ jobs:
           PY
       - name: Build tools
         working-directory: build-src
-        run: make -f make_tools.mk -j2
+        run: make -f make_tools.mk -j2 HOSTLIBS="-lpng -lm"
       - name: Build ROM
         working-directory: build-src
         env: {GAME_VERSION: EMERALD, GAME_REVISION: 0, GAME_LANGUAGE: ENGLISH, COMPARE: 0, UNUSED_ERROR: 0, DEPRECATED_ERROR: 0}
         run: |
           set -o pipefail
-          make -j2 all 2>&1 | tee ../build.log
+          make -j2 all HOSTLIBS="-lpng -lm" 2>&1 | tee ../build.log
       - name: Failure log
         if: failure()
         run: tail -n 300 build.log 2>/dev/null || true
