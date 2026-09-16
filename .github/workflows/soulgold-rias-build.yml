@@ -169,12 +169,13 @@ jobs:
         if: success()
         working-directory: build-src
         run: |
-          ROM="$(find . -maxdepth 2 -type f -name '*.gba' -print -quit)"
-          test -n "$ROM"
+          ROM="Soulgold.gba"
+          test -f "$ROM"
           SIZE=$(stat -c%s "$ROM")
           echo "ROM=$ROM size=$SIZE"
           test "$SIZE" -le 33554432
           test "$SIZE" -gt 1000000
+          sha256sum "$ROM"
           sha256sum "$ROM"
 
       - name: Collect diagnostics
@@ -198,8 +199,10 @@ jobs:
         if: success()
         run: |
           mkdir -p artifact
-          find build-src -maxdepth 2 -type f \( -name '*.gba' -o -name '*.elf' -o -name '*.map' \) -exec cp {} artifact/ \;
-          test -n "$(find artifact -name '*.gba' -print -quit)"
+          cp build-src/Soulgold.gba artifact/SoulGold_Rias_DEMON_Build8_SOURCE_TEST.gba
+          cp build-src/Soulgold.elf artifact/Soulgold.elf
+          cp build-src/Soulgold.map artifact/Soulgold.map
+          test -f artifact/SoulGold_Rias_DEMON_Build8_SOURCE_TEST.gba
 
       - name: Upload ROM
         if: success()
