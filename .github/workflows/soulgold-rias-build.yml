@@ -3,10 +3,10 @@ name: SoulGold Rias GBA Build
 on:
   workflow_dispatch:
   push:
-    branches:
-      - soulgold-rias-build
+    branches: [soulgold-rias-build]
     paths:
       - 'soulgold-rias-patch-v2.zip'
+      - 'build8-assets/**'
       - '.github/workflows/soulgold-rias-build.yml'
 
 jobs:
@@ -14,64 +14,66 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout PKSG build branch
-        uses: actions/checkout@v4
-
-      - name: Check Rias patch
-        run: |
-          test -f soulgold-rias-patch-v2.zip || { echo 'Upload soulgold-rias-patch-v2.zip to this branch first.'; exit 1; }
-
-      - name: Install ARM GBA toolchain
+      - uses: actions/checkout@v4
+      - name: Install toolchain
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends build-essential git unzip binutils-arm-none-eabi gcc-arm-none-eabi libnewlib-arm-none-eabi libpng-dev python3
-
-      - name: Fetch matching SoulGold source
+      - name: Fetch source and apply Rias patch
         run: |
           git clone https://github.com/Eemeliri/soulgold.git build-src
-          cd build-src
-          git checkout 730e93f41359eede6f089127eced104ebec7842d
-          touch .histignore
-
-      - name: Apply Rias / DEMON patch
-        run: unzip -o -q soulgold-rias-patch-v2.zip -d build-src
-
-      - name: Repair Route 2 item flag
+          cd build-src && git checkout 730e93f41359eede6f089127eced104ebec7842d && touch .histignore && cd ..
+          unzip -o -q soulgold-rias-patch-v2.zip -d build-src
+          cp build8-assets/front.png build-src/graphics/pokemon/rias/front.png
+          cp build8-assets/back.png build-src/graphics/pokemon/rias/back.png
+          cp build8-assets/icon.png build-src/graphics/pokemon/rias/icon.png
+          cp build8-assets/overworld.png build-src/graphics/pokemon/rias/overworld.png
+          cp build8-assets/demon.png build-src/graphics/types/demon.png
+      - name: Wire Build 8 DEMON and follower
         working-directory: build-src
         run: |
-          set -e
-          FLAGS=include/constants/flags.h
-          if ! grep -q '^#define FLAG_ITEM_ROUTE2_NUGGET' "$FLAGS"; then
-            echo 'Restoring FLAG_ITEM_ROUTE2_NUGGET removed by the patch.'
-            sed -i '/^#define FLAG_ITEM_ROUTE2_CARBOS/a #define FLAG_ITEM_ROUTE2_NUGGET                                     0x46D' "$FLAGS"
-          fi
-          grep -n 'FLAG_ITEM_ROUTE2_\(CARBOS\|NUGGET\)' "$FLAGS"
+          python3 - <<'PY'
+          from pathlib import Path
+          # Restore flag clobbered by old patch.
+          p=Path('include/constants/flags.h'); s=p.read_text()
+          if '#define FLAG_ITEM_ROUTE2_NUGGET' not in s:
+              s=s.replace('#define FLAG_ITEM_ROUTE2_CARBOS', '#define FLAG_ITEM_ROUTE2_NUGGET                                     0x46D\n#define FLAG_ITEM_ROUTE2_CARBOS',1)
+          p.write_text(s)
 
-      - name: Build project tools first
+          # Give DEMON its own summary/party label frame instead of Dark (DRK).
+          for fn,mul in [('src/pokemon_summary_screen.c',8),('src/data/swsh_party_menu.h',4)]:
+              p=Path(fn); s=p.read_text()
+              marker='[TYPE_DEMON] = sSpriteAnim_TypeDark,' if mul==8 else '[TYPE_DEMON]    = sSpriteAnim_TypeDark,'
+              anim=('static const union AnimCmd sSpriteAnim_TypeDemon[] = {\n'
+                    f'    ANIMCMD_FRAME(TYPE_DEMON * {mul}, 0, FALSE, FALSE),\n'
+                    '    ANIMCMD_END,\n};\n\n')
+              if 'sSpriteAnim_TypeDemon[]' not in s:
+                  pos=s.find('static const union AnimCmd *const')
+                  s=s[:pos]+anim+s[pos:]
+              s=s.replace(marker, marker.replace('sSpriteAnim_TypeDark','sSpriteAnim_TypeDemon'))
+              p.write_text(s)
+
+          # Register Rias follower graphics.
+          p=Path('src/data/graphics/pokemon.h'); s=p.read_text()
+          needle='const u8 gMonFootprint_RiasGremory[] = INCBIN_U8("graphics/pokemon/rias/footprint.1bpp");'
+          add=needle+'\n#if OW_POKEMON_OBJECT_EVENTS\nconst u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP("graphics/pokemon/rias/overworld.4bpp");\n#if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE\nconst u16 gOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_normal.gbapal");\nconst u16 gShinyOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_shiny.gbapal");\n#endif\n#endif'
+          if 'gObjectEventPic_RiasGremory' not in s: s=s.replace(needle,add)
+          p.write_text(s)
+
+          p=Path('src/data/object_events/object_event_pic_tables_followers.h'); s=p.read_text()
+          if 'sPicTable_RiasGremory' not in s:
+              s += '\nstatic const struct SpriteFrameImage sPicTable_RiasGremory[] = {\n    overworld_ascending_frames(gObjectEventPic_RiasGremory, 4, 4),\n};\n'
+          p.write_text(s)
+
+          p=Path('src/data/pokemon/species_info.h'); s=p.read_text()
+          needle='        FOOTPRINT(RiasGremory)\n'
+          ow='        FOOTPRINT(RiasGremory)\n        OVERWORLD(\n            sPicTable_RiasGremory,\n            SIZE_32x32,\n            SHADOW_SIZE_M,\n            TRACKS_FOOT,\n            sAnimTable_Following,\n            gOverworldPalette_RiasGremory,\n            gShinyOverworldPalette_RiasGremory\n        )\n'
+          if 'sPicTable_RiasGremory,' not in s: s=s.replace(needle,ow)
+          p.write_text(s)
+          PY
+      - name: Build tools
         working-directory: build-src
-        run: |
-          set -o pipefail
-          echo 'Building native SoulGold asset/preprocessor tools first.'
-          make -f make_tools.mk -j2 2>&1 | tee ../tools-build.log
-
-      - name: Verify required build tools
-        working-directory: build-src
-        run: |
-          echo 'Checking host tools used by this source tree.'
-          missing=0
-          for tool in tools/preproc/preproc tools/gbagfx/gbagfx tools/png_dimensions/png_dimensions tools/gfx/gfx; do
-            if [ -e "$tool" ]; then
-              echo "FOUND: $tool"
-            else
-              echo "NOT PRESENT (may not be used by this source revision): $tool"
-            fi
-          done
-          test -x tools/preproc/preproc || missing=1
-          if [ "$missing" -ne 0 ]; then
-            echo 'Required preproc tool was not built.'
-            exit 1
-          fi
-
+        run: make -f make_tools.mk -j2
       - name: Build ROM
         working-directory: build-src
         env:
@@ -83,40 +85,19 @@ jobs:
           DEPRECATED_ERROR: 0
         run: |
           set -o pipefail
-          echo 'Building with 2 parallel jobs to reduce runner memory pressure.'
           make -j2 all 2>&1 | tee ../build.log
-
-      - name: Show build failure tail
+      - name: Failure log
         if: failure()
-        run: |
-          echo '===== TOOLS BUILD LOG (LAST 150 LINES) ====='
-          tail -n 150 tools-build.log 2>/dev/null || true
-          echo '===== ROM BUILD LOG (LAST 250 LINES) ====='
-          tail -n 250 build.log 2>/dev/null || true
-          echo '===== ERROR MATCHES ====='
-          grep -nEi 'error:|fatal:|not found|undefined reference|no rule to make target|make(\[[0-9]+\])?: \*\*\*' tools-build.log build.log 2>/dev/null | tail -n 150 || true
-
-      - name: Upload failure logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: SoulGold-Rias-build-log
-          path: |
-            tools-build.log
-            build.log
-          if-no-files-found: warn
-
-      - name: Collect ROM
+        run: tail -n 300 build.log 2>/dev/null || true
+      - name: Collect
         if: success()
         run: |
           mkdir -p artifact
           find build-src -maxdepth 2 -type f \( -name '*.gba' -o -name '*.elf' -o -name '*.map' \) -exec cp {} artifact/ \;
-          test -n "$(find artifact -name '*.gba' -print -quit)" || { echo 'No GBA ROM was produced.'; exit 1; }
-
-      - name: Upload build artifact
+          test -n "$(find artifact -name '*.gba' -print -quit)"
+      - name: Upload
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: SoulGold-Rias-DEMON-build
+          name: SoulGold-Rias-Build8-source-test
           path: artifact/
-          if-no-files-found: error
