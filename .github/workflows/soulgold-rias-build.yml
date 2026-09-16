@@ -19,6 +19,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends build-essential git unzip binutils-arm-none-eabi gcc-arm-none-eabi libnewlib-arm-none-eabi libpng-dev python3
+
       - name: Fetch source and apply Rias patch
         run: |
           git clone https://github.com/Eemeliri/soulgold.git build-src
@@ -29,33 +30,76 @@ jobs:
           cp build8-assets/icon.png build-src/graphics/pokemon/rias/icon.png
           cp build8-assets/overworld.png build-src/graphics/pokemon/rias/overworld.png
           cp build8-assets/demon.png build-src/graphics/types/demon.png
-      - name: Wire Build 8 DEMON and follower
+          base64 -d build8-assets/swsh_move_types.png.b64 > build-src/graphics/party_menu/swsh/move_types.png
+
+      - name: Wire and validate Build 8
         working-directory: build-src
         run: |
           python3 - <<'PY'
           from pathlib import Path
+
+          def write(path, text):
+              Path(path).write_text(text)
+
+          # Restore the real Route 2 Nugget flag removed by the Rias patch.
           p=Path('include/constants/flags.h'); s=p.read_text()
           if '#define FLAG_ITEM_ROUTE2_NUGGET' not in s:
-              s=s.replace('#define FLAG_ITEM_ROUTE2_CARBOS', '#define FLAG_ITEM_ROUTE2_NUGGET                                     0x46D\n#define FLAG_ITEM_ROUTE2_CARBOS',1)
-          p.write_text(s)
+              marker='#define FLAG_ITEM_ROUTE2_CARBOS'
+              if marker not in s: raise RuntimeError('Route 2 flag marker missing')
+              s=s.replace(marker, '#define FLAG_ITEM_ROUTE2_NUGGET                                     0x46D\n'+marker, 1)
+          # Do not let the gift share 0x46D with the Nugget. 0x297 is retained by
+          # this fork but documented as a legacy Wonder Trade flag; Rias owns it in this build.
+          s=s.replace('#define FLAG_RECEIVED_RIAS_GREMORY                                  0x46D // Custom: early-game Rias gift',
+                      '#define FLAG_RECEIVED_RIAS_GREMORY                                  0x297 // Custom: persistent Rias gift flag')
+          write(p,s)
+
+          # gbagfx calls pow/sqrt. HOSTLIBS is not consumed by its Makefile, so libm
+          # must be linked in gbagfx's own LIBS and must remain after source objects.
+          p=Path('tools/gbagfx/Makefile'); s=p.read_text()
+          if 'LIBS = -lpng -lz -lm' not in s:
+              if 'LIBS = -lpng -lz' not in s: raise RuntimeError('gbagfx LIBS marker missing')
+              s=s.replace('LIBS = -lpng -lz','LIBS = -lpng -lz -lm',1)
+          write(p,s)
+
+          # Register DEMON in the generated summary type sheet.
+          p=Path('graphics_file_rules.mk'); s=p.read_text()
+          lines=s.splitlines()
+          for i,line in enumerate(lines):
+              if line.startswith('types :='):
+                  words=line.split()
+                  if 'demon' not in words:
+                      lines[i]=line+' demon'
+                  break
+          else: raise RuntimeError('types graphics rule missing')
+          write(p,'\n'.join(lines)+'\n')
+
+          # Summary and SWSH party menu need a real frame for TYPE_DEMON.
           for fn,mul in [('src/pokemon_summary_screen.c',8),('src/data/swsh_party_menu.h',4)]:
               p=Path(fn); s=p.read_text()
-              old='[TYPE_DEMON] = sSpriteAnim_TypeDark,' if mul==8 else '[TYPE_DEMON]    = sSpriteAnim_TypeDark,'
+              dark='[TYPE_DEMON] = sSpriteAnim_TypeDark,' if mul==8 else '[TYPE_DEMON]    = sSpriteAnim_TypeDark,'
               anim='static const union AnimCmd sSpriteAnim_TypeDemon[] = {\n    ANIMCMD_FRAME(TYPE_DEMON * %d, 0, FALSE, FALSE),\n    ANIMCMD_END,\n};\n\n' % mul
               if 'sSpriteAnim_TypeDemon[]' not in s:
                   pos=s.find('static const union AnimCmd *const')
                   if pos < 0: raise RuntimeError(f'animation table marker not found in {fn}')
                   s=s[:pos]+anim+s[pos:]
-              s=s.replace(old,old.replace('sSpriteAnim_TypeDark','sSpriteAnim_TypeDemon'))
-              p.write_text(s)
-          p=Path('src/data/graphics/pokemon.h'); s=p.read_text(); needle='const u8 gMonFootprint_RiasGremory[] = INCBIN_U8("graphics/pokemon/rias/footprint.1bpp");'
+              s=s.replace(dark,dark.replace('sSpriteAnim_TypeDark','sSpriteAnim_TypeDemon'))
+              # Also handle spacing variants from future patch revisions.
+              s=s.replace('[TYPE_DEMON] =    sSpriteAnim_TypeDark,','[TYPE_DEMON] =    sSpriteAnim_TypeDemon,')
+              write(p,s)
+
+          # Follower graphics declarations.
+          p=Path('src/data/graphics/pokemon.h'); s=p.read_text()
+          needle='const u8 gMonFootprint_RiasGremory[] = INCBIN_U8("graphics/pokemon/rias/footprint.1bpp");'
           if 'gObjectEventPic_RiasGremory' not in s:
               if needle not in s: raise RuntimeError('Rias graphics marker not found')
               s=s.replace(needle,needle+'\n#if OW_POKEMON_OBJECT_EVENTS\nconst u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP("graphics/pokemon/rias/overworld.4bpp");\n#if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE\nconst u16 gOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_normal.gbapal");\nconst u16 gShinyOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_shiny.gbapal");\n#endif\n#endif')
-          p.write_text(s)
+          write(p,s)
+
           p=Path('src/data/object_events/object_event_pic_tables_followers.h'); s=p.read_text()
-          if 'sPicTable_RiasGremory' not in s: s += '\nstatic const struct SpriteFrameImage sPicTable_RiasGremory[] = {\n    overworld_ascending_frames(gObjectEventPic_RiasGremory, 4, 4),\n};\n'
-          p.write_text(s)
+          if 'sPicTable_RiasGremory' not in s:
+              s += '\nstatic const struct SpriteFrameImage sPicTable_RiasGremory[] = {\n    overworld_ascending_frames(gObjectEventPic_RiasGremory, 4, 4),\n};\n'
+          write(p,s)
+
           p=Path('src/data/pokemon/species_info.h'); s=p.read_text()
           if 'sPicTable_RiasGremory,' not in s:
               start=s.find('[SPECIES_RIAS_GREMORY]')
@@ -71,26 +115,59 @@ jobs:
               else:
                   block += '\n'+insert
               s=s[:start]+block+s[end:]
-          p.write_text(s)
+          write(p,s)
+
+          # Pre-build assertions catch silent regressions before spending build time.
+          checks={
+              'include/constants/flags.h':['FLAG_ITEM_ROUTE2_NUGGET','FLAG_RECEIVED_RIAS_GREMORY                                  0x297'],
+              'tools/gbagfx/Makefile':['LIBS = -lpng -lz -lm'],
+              'graphics_file_rules.mk':[' stellar demon'],
+              'src/pokemon_summary_screen.c':['sSpriteAnim_TypeDemon','[TYPE_DEMON]'],
+              'src/data/swsh_party_menu.h':['sSpriteAnim_TypeDemon','[TYPE_DEMON]'],
+              'src/data/pokemon/species_info.h':['sPicTable_RiasGremory','gOverworldPalette_RiasGremory'],
+          }
+          for fn,needles in checks.items():
+              text=Path(fn).read_text()
+              for n in needles:
+                  if n not in text: raise RuntimeError(f'validation failed: {fn}: {n}')
+          if Path('graphics/party_menu/swsh/move_types.png').stat().st_size < 100:
+              raise RuntimeError('SWSH DEMON type sheet is invalid')
+          print('Build 8 source validation passed')
           PY
+
       - name: Build tools
         working-directory: build-src
-        run: make -f make_tools.mk -j2 HOSTLIBS="-lpng -lm"
+        run: make -f make_tools.mk -j2
+
       - name: Build ROM
         working-directory: build-src
         env: {GAME_VERSION: EMERALD, GAME_REVISION: 0, GAME_LANGUAGE: ENGLISH, COMPARE: 0, UNUSED_ERROR: 0, DEPRECATED_ERROR: 0}
         run: |
           set -o pipefail
-          make -j2 all HOSTLIBS="-lpng -lm" 2>&1 | tee ../build.log
+          make -j2 all 2>&1 | tee ../build.log
+
+      - name: Validate ROM output
+        if: success()
+        working-directory: build-src
+        run: |
+          ROM="$(find . -maxdepth 2 -type f -name '*.gba' -print -quit)"
+          test -n "$ROM"
+          SIZE=$(stat -c%s "$ROM")
+          echo "ROM=$ROM size=$SIZE"
+          test "$SIZE" -le 33554432
+          test "$SIZE" -gt 1000000
+
       - name: Failure log
         if: failure()
         run: tail -n 300 build.log 2>/dev/null || true
+
       - name: Collect
         if: success()
         run: |
           mkdir -p artifact
           find build-src -maxdepth 2 -type f \( -name '*.gba' -o -name '*.elf' -o -name '*.map' \) -exec cp {} artifact/ \;
           test -n "$(find artifact -name '*.gba' -print -quit)"
+
       - name: Upload
         if: success()
         uses: actions/upload-artifact@v4
