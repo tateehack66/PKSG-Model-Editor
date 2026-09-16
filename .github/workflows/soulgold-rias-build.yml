@@ -89,22 +89,17 @@ jobs:
               s=re.sub(r'(\[TYPE_DEMON\]\s*=\s*)sSpriteAnim_TypeIcon_Mystery,',r'\1sSpriteAnim_TypeIcon_Demon,',s)
           write(p,s)
 
-          # Define Rias follower graphics. P_FOOTPRINTS is FALSE in this fork, so
-          # the OW block MUST be inserted after the footprint guard. Run #17 put it
-          # directly after the footprint definition, which nested it inside
-          # #if P_FOOTPRINTS and compiled all three definitions out.
+          # Define Rias follower graphics at top level. The Rias patch's footprint
+          # declaration is not guaranteed to sit in the stock P_FOOTPRINTS guard, so
+          # append the OW definitions after the fully-balanced graphics header instead
+          # of inserting relative to the footprint line.
           p=Path('src/data/graphics/pokemon.h'); s=p.read_text()
           needle='const u8 gMonFootprint_RiasGremory[] = INCBIN_U8("graphics/pokemon/rias/footprint.1bpp");'
-          if 'gObjectEventPic_RiasGremory' not in s:
-              if needle not in s: raise RuntimeError('Rias graphics marker not found')
-              needle_pos=s.find(needle)
-              footprint_end=s.find('#endif //P_FOOTPRINTS', needle_pos)
-              if footprint_end < 0: raise RuntimeError('Rias footprint guard end not found')
-              insert_at=s.find('\n', footprint_end)
-              if insert_at < 0: insert_at=len(s)
-              else: insert_at += 1
-              ow_block=(
-                  '#if OW_POKEMON_OBJECT_EVENTS\n'
+          if needle not in s: raise RuntimeError('Rias graphics marker not found')
+          if 'const u32 gObjectEventPic_RiasGremory[] =' not in s:
+              if not s.endswith('\n'): s += '\n'
+              s += (
+                  '\n#if OW_POKEMON_OBJECT_EVENTS\n'
                   'const u32 gObjectEventPic_RiasGremory[] = INCBIN_COMP("graphics/pokemon/rias/overworld.4bpp");\n'
                   '#if OW_PKMN_OBJECTS_SHARE_PALETTES == FALSE\n'
                   'const u16 gOverworldPalette_RiasGremory[] = INCBIN_U16("graphics/pokemon/rias/overworld_normal.gbapal");\n'
@@ -112,13 +107,12 @@ jobs:
                   '#endif //OW_PKMN_OBJECTS_SHARE_PALETTES\n'
                   '#endif //OW_POKEMON_OBJECT_EVENTS\n'
               )
-              s=s[:insert_at]+ow_block+s[insert_at:]
-          # Guard against accidentally nesting the OW definitions under P_FOOTPRINTS again.
-          ow_pos=s.find('const u32 gObjectEventPic_RiasGremory[]')
-          needle_pos=s.find(needle)
-          footprint_end=s.find('#endif //P_FOOTPRINTS', needle_pos)
-          if not (needle_pos >= 0 and footprint_end >= 0 and footprint_end < ow_pos):
-              raise RuntimeError('Rias OW graphics are still inside the disabled P_FOOTPRINTS guard')
+          if s.count('const u32 gObjectEventPic_RiasGremory[] =') != 1:
+              raise RuntimeError('Rias OW graphic definition count is not exactly one')
+          if s.count('const u16 gOverworldPalette_RiasGremory[] =') != 1:
+              raise RuntimeError('Rias normal OW palette definition count is not exactly one')
+          if s.count('const u16 gShinyOverworldPalette_RiasGremory[] =') != 1:
+              raise RuntimeError('Rias shiny OW palette definition count is not exactly one')
           write(p,s)
 
           # Build #16 failed because the follower table/species table referenced the
